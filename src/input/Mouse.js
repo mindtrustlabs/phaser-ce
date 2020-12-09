@@ -208,14 +208,14 @@ Phaser.Mouse.prototype = {
 
         this._onMouseUp = function (event)
         {
-            console.log("On mouse up");
+            console.error("On mouse up");
             return _this.onMouseUp(event);
         };
 
         this._onMouseUpGlobal = function (event)
         {
 
-            console.log("On mouse up global");
+            console.error("On mouse up global");
             return _this.onMouseUpGlobal(event);
         };
 
