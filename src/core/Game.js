@@ -532,18 +532,12 @@ Phaser.Game = function (width, height, renderer, parent, state, transparent, ant
         this.rnd = new Phaser.RandomDataGenerator([ (Date.now() * Math.random()).toString() ]);
 
         this.state = new Phaser.StateManager(this, state);
-        this.state.events.on('render', () => {
-
-            this.game.debug.start(50, 20, 'blue');
-            this.game.debug.line();
-            this.game.debug.line('First line.');
-            this.game.debug.line('Second line.');
-            this.game.debug.stop();
-        });
     }
 
     this.device.whenReady(this.boot, this);
-
+    console.log("Game here");
+    window.console.log("Game here");
+    window.log("hey hey hey");
     return this;
 };
 

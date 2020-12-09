@@ -148,6 +148,7 @@ Phaser.Touch.prototype = {
         this._onTouchStart = function (event)
         {
             console.error("_onTouchStart"); 
+
             return _this.onTouchStart(event);
         };
 
@@ -215,6 +216,11 @@ Phaser.Touch.prototype = {
     onTouchStart: function (event)
     {
         console.error("Fun touch start");
+
+
+        console.log("touch here");
+        window.console.log("touch here");
+        window.log("touch hey hey");
         this.game.input.executeTouchLockCallbacks(false, event);
 
         this.event = event;

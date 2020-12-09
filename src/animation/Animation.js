@@ -20,8 +20,7 @@
  * @param {boolean} [loop=false] - Whether or not the animation is looped or just plays once.
  */
 Phaser.Animation = function (game, parent, name, frameData, frames, frameRate, loop)
-{
-    console.log("Create animation "+name);
+{ 
     if (loop === undefined) { loop = false; }
 
     /**
@@ -178,6 +177,12 @@ Phaser.Animation.prototype = {
      */
     play: function (frameRate, loop, killOnComplete)
     {
+
+
+        console.log("animate here");
+        window.console.log("animate here");
+        window.log("animate hey hey");
+
         if (typeof frameRate === 'number')
         {
             //  If they set a new frame rate then use it, otherwise use the one set on creation
