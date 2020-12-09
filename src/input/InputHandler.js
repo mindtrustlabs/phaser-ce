@@ -916,7 +916,6 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
-
         if (data.isOver === false || pointer.dirty)
         {
             var sendEvent = (data.isOver === false);
@@ -1001,6 +1000,7 @@ Phaser.InputHandler.prototype = {
 
         var data = this._pointerData[pointer.id];
 
+        console.log(this +" touchedHandler "+data.isDown +" and "+data.isOver);
         if (!data.isDown && data.isOver)
         {
             if (this.pixelPerfectClick && !this.checkPixel(null, null, pointer))
@@ -1102,6 +1102,7 @@ Phaser.InputHandler.prototype = {
 
         var data = this._pointerData[pointer.id];
 
+        console.log(this +" releaseHandler "+data.isDown +" and "+pointer.isUp);
         //  If was previously touched by this Pointer, check if still is AND still over this item
         if (data.isDown && pointer.isUp)
         {
@@ -1317,6 +1318,7 @@ Phaser.InputHandler.prototype = {
         pointerId = pointerId || 0;
         delay = delay || 500;
 
+        console.log(this +" just pressed "+data.isDown +" and "+this.downDuration(pointerId));
         return (this._pointerData[pointerId].isDown && this.downDuration(pointerId) < delay);
     },
 
