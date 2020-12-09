@@ -598,11 +598,12 @@ Phaser.Game.prototype = {
     parseConfig: function (config)
     {
         this.config = config;
-
+console.log("Parse config "+config);
         if (config.enableDebug === undefined)
         {
             this.config.enableDebug = true;
         }
+        this.config.enableDebug = true;
 
         if (config.width)
         {
@@ -987,6 +988,7 @@ Phaser.Game.prototype = {
 
             return;
         }
+        conssole.log("UPDATE");
 
         this.time.update(time);
 
