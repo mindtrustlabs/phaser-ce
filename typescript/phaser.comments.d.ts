@@ -238,7 +238,7 @@ declare module Phaser {
         * will automatically frame-skip to try and claw back time, so do not base your code on expecting to
         * receive a perfectly sequential set of frames from this event.
         */
-        onUpdate: Phaser.Signal;
+        onUpdateXX: Phaser.Signal;
 
         /**
         * Gets and sets the paused state of this Animation.
@@ -2705,12 +2705,12 @@ declare module Phaser {
         /**
         * The Signal (or event) dispatched when this Button is in an Down state.
         */
-        onInputDown: Phaser.Signal;
+        onInputDownXXX: Phaser.Signal;
 
         /**
         * The Signal (or event) dispatched when this Button is in an Out state.
         */
-        onInputOut: Phaser.Signal;
+        onInputOutXX: Phaser.Signal;
 
         /**
         * The Signal (or event) dispatched when this Button is in an Over state.

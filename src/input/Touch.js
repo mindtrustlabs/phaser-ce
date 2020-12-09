@@ -147,7 +147,7 @@ Phaser.Touch.prototype = {
 
         this._onTouchStart = function (event)
         {
-            console.error("_onTouchStart"); */purposeful break
+            console.error("_onTouchStart"); 
             return _this.onTouchStart(event);
         };
 
