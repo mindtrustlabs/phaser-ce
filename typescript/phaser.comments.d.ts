@@ -6815,7 +6815,7 @@ declare module Phaser {
         * - {any} The Game Object that received the event.
         * - {Phaser.Pointer} The Phaser.Pointer object that caused the event.
         */
-        onInputDown: Phaser.Signal;
+        onInputDownXX: Phaser.Signal;
 
         /**
         * This signal is dispatched if the Game Object has {@link Phaser.Component.InputEnabled#inputEnabled inputEnabled} set to `true`,
