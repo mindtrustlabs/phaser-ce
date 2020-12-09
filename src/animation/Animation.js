@@ -21,6 +21,7 @@
  */
 Phaser.Animation = function (game, parent, name, frameData, frames, frameRate, loop)
 {
+    console.log("Create animation "+name);
     if (loop === undefined) { loop = false; }
 
     /**
