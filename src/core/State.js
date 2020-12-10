@@ -30,8 +30,6 @@
  */
 Phaser.State = function ()
 {
-
-    console.log("STATE created "+this);
     /**
      * @property {Phaser.Game} game - This is a reference to the currently running Game.
      */

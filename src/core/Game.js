@@ -535,9 +535,7 @@ Phaser.Game = function (width, height, renderer, parent, state, transparent, ant
     }
 
     this.device.whenReady(this.boot, this);
-    console.log("Game here");
-    window.console.log("Game here");
-    window.log("hey hey hey");
+
     return this;
 };
 
@@ -600,12 +598,11 @@ Phaser.Game.prototype = {
     parseConfig: function (config)
     {
         this.config = config;
-console.log("Parse config "+config);
+
         if (config.enableDebug === undefined)
         {
             this.config.enableDebug = true;
         }
-        this.config.enableDebug = true;
 
         if (config.width)
         {
@@ -990,7 +987,6 @@ console.log("Parse config "+config);
 
             return;
         }
-        conssole.log("UPDATE");
 
         this.time.update(time);
 

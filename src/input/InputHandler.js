@@ -992,6 +992,7 @@ Phaser.InputHandler.prototype = {
      */
     _touchedHandler: function (pointer)
     {
+        console.log(this +" touchedHandler "+data.isDown +" and "+data.isOver);
         if (this.sprite === null)
         {
             //  Abort. We've been destroyed.
@@ -999,8 +1000,6 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
-alert("DOWN");
-        console.log(this +" touchedHandler "+data.isDown +" and "+data.isOver);
         if (!data.isDown && data.isOver)
         {
             if (this.pixelPerfectClick && !this.checkPixel(null, null, pointer))

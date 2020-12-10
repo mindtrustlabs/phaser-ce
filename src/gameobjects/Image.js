@@ -41,7 +41,6 @@ Phaser.Image = function (game, x, y, key, frame)
     key = key || null;
     frame = frame || null;
 
-    console.log("Image created "+this);
     /**
      * @property {number} type - The const type of this object.
      * @readonly

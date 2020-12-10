@@ -665,6 +665,8 @@ Phaser.Pointer.prototype = {
         if (this.targetObject !== null)
         {
             this.targetObject._touchedHandler(this);
+        } else {
+            console.log("touch not over an object");
         }
 
         return this;
