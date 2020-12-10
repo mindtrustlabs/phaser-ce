@@ -999,7 +999,7 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
-
+alert("DOWN");
         console.log(this +" touchedHandler "+data.isDown +" and "+data.isOver);
         if (!data.isDown && data.isOver)
         {
