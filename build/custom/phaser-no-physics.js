@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 15:09:50
+* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 15:29:54
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -25246,6 +25246,7 @@ Phaser.MSPointer.prototype = {
     {
         this.game.input.executeTouchLockCallbacks(false, event);
 
+        console.log("Pointer down on MSPoonter");
         this.event = event;
 
         if (this.capture)
@@ -25318,6 +25319,7 @@ Phaser.MSPointer.prototype = {
      */
     onPointerUp: function (event)
     {
+        console.log("On MS Pointer up");
         this.game.input.executeTouchLockCallbacks(true, event);
 
         this.event = event;
@@ -26490,6 +26492,7 @@ Phaser.Pointer.prototype = {
     {
         var input = this.game.input;
 
+        console.log("input start "+input +" and this pointer "+this +"  "+this.isMouse );
         if (event.pointerId)
         {
             this.pointerId = event.pointerId;
@@ -26854,6 +26857,7 @@ Phaser.Pointer.prototype = {
     {
         var input = this.game.input;
 
+        console.log("input stop "+input);
         if (this._stateReset && this.withinGame)
         {
             event.preventDefault();

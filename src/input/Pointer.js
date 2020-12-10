@@ -610,6 +610,7 @@ Phaser.Pointer.prototype = {
     {
         var input = this.game.input;
 
+        console.log("input start "+input +" and this pointer "+this +"  "+this.isMouse );
         if (event.pointerId)
         {
             this.pointerId = event.pointerId;
@@ -974,6 +975,7 @@ Phaser.Pointer.prototype = {
     {
         var input = this.game.input;
 
+        console.log("input stop "+input);
         if (this._stateReset && this.withinGame)
         {
             event.preventDefault();
