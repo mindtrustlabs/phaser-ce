@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 13:56:54
+* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 15:09:50
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -15053,8 +15053,6 @@ Object.defineProperty(Phaser.Camera.prototype, 'centerY', {
  */
 Phaser.State = function ()
 {
-
-    console.log("STATE created "+this);
     /**
      * @property {Phaser.Game} game - This is a reference to the currently running Game.
      */
@@ -22091,9 +22089,7 @@ Phaser.Game = function (width, height, renderer, parent, state, transparent, ant
     }
 
     this.device.whenReady(this.boot, this);
-    console.log("Game here");
-    window.console.log("Game here");
-    window.log("hey hey hey");
+
     return this;
 };
 
@@ -22156,12 +22152,11 @@ Phaser.Game.prototype = {
     parseConfig: function (config)
     {
         this.config = config;
-console.log("Parse config "+config);
+
         if (config.enableDebug === undefined)
         {
             this.config.enableDebug = true;
         }
-        this.config.enableDebug = true;
 
         if (config.width)
         {
@@ -22546,7 +22541,6 @@ console.log("Parse config "+config);
 
             return;
         }
-        conssole.log("UPDATE");
 
         this.time.update(time);
 
@@ -26551,6 +26545,8 @@ Phaser.Pointer.prototype = {
         if (this.targetObject !== null)
         {
             this.targetObject._touchedHandler(this);
+        } else {
+            console.log("touch not over an object");
         }
 
         return this;
@@ -27305,7 +27301,7 @@ Phaser.Touch.prototype = {
 
         this._onTouchStart = function (event)
         {
-            console.error("_onTouchStart");
+            console.log("_onTouchStart");
             return _this.onTouchStart(event);
         };
 
@@ -27316,7 +27312,7 @@ Phaser.Touch.prototype = {
 
         this._onTouchEnd = function (event)
         {
-            console.error("_onTouchEnd");
+            console.log("_onTouchEnd");
             return _this.onTouchEnd(event);
         };
 
@@ -27372,7 +27368,7 @@ Phaser.Touch.prototype = {
      */
     onTouchStart: function (event)
     {
-        console.error("Fun touch start");
+        console.log("Fun touch start");
         this.game.input.executeTouchLockCallbacks(false, event);
 
         this.event = event;
@@ -27411,7 +27407,7 @@ Phaser.Touch.prototype = {
      */
     onTouchCancel: function (event)
     {
-        console.error("Fun touch cancel");
+        console.log("Fun touch cancel");
         this.event = event;
 
         if (this.touchCancelCallback)
@@ -28564,6 +28560,7 @@ Phaser.InputHandler.prototype = {
      */
     _touchedHandler: function (pointer)
     {
+        console.log(this +" touchedHandler "+data.isDown +" and "+data.isOver);
         if (this.sprite === null)
         {
             //  Abort. We've been destroyed.
@@ -28571,8 +28568,6 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
-alert("DOWN");
-        console.log(this +" touchedHandler "+data.isDown +" and "+data.isOver);
         if (!data.isDown && data.isOver)
         {
             if (this.pixelPerfectClick && !this.checkPixel(null, null, pointer))
@@ -36149,7 +36144,6 @@ Phaser.Sprite = function (game, x, y, key, frame)
     key = key || null;
     frame = frame || null;
 
-    console.log("SPrite created "+this);
     /**
      * @property {number} type - The const type of this object.
      * @readonly
@@ -36258,7 +36252,6 @@ Phaser.Image = function (game, x, y, key, frame)
     key = key || null;
     frame = frame || null;
 
-    console.log("Image created "+this);
     /**
      * @property {number} type - The const type of this object.
      * @readonly
@@ -57762,12 +57755,6 @@ Phaser.Animation.prototype = {
      */
     play: function (frameRate, loop, killOnComplete)
     {
-
-
-        console.log("animate here");
-        window.console.log("animate here");
-        window.log("animate hey hey");
-
         if (typeof frameRate === 'number')
         {
             //  If they set a new frame rate then use it, otherwise use the one set on creation
