@@ -7,12 +7,10892 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Wed Oct 21 2020 14:49:39
+* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 11:14:14
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
 * Phaser - http://phaser.io
 */
+
+/**
+ * @fileoverview gl-matrix - High performance matrix and vector operations
+ * @author Brandon Jones
+ * @author Colin MacKenzie IV
+ * @version 2.3.2
+ */
+
+/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE. */
+
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else {
+		var a = factory();
+		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
+	}
+})(this, function() {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId])
+/******/ 			return installedModules[moduleId].exports;
+
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			exports: {},
+/******/ 			id: moduleId,
+/******/ 			loaded: false
+/******/ 		};
+
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+
+
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(0);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * @fileoverview gl-matrix - High performance matrix and vector operations
+	 * @author Brandon Jones
+	 * @author Colin MacKenzie IV
+	 * @version 2.3.2
+	 */
+
+	/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE. */
+	// END HEADER
+
+	exports.glMatrix = __webpack_require__(1);
+	exports.mat2 = __webpack_require__(2);
+	exports.mat2d = __webpack_require__(3);
+	exports.mat3 = __webpack_require__(4);
+	exports.mat4 = __webpack_require__(5);
+	exports.quat = __webpack_require__(6);
+	exports.vec2 = __webpack_require__(9);
+	exports.vec3 = __webpack_require__(7);
+	exports.vec4 = __webpack_require__(8);
+
+/***/ },
+/* 1 */
+/***/ function(module, exports) {
+
+	/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE. */
+
+	/**
+	 * @class Common utilities
+	 * @name glMatrix
+	 */
+	var glMatrix = {};
+
+	// Configuration Constants
+	glMatrix.EPSILON = 0.000001;
+	glMatrix.ARRAY_TYPE = (typeof Float32Array !== 'undefined') ? Float32Array : Array;
+	glMatrix.RANDOM = Math.random;
+	glMatrix.ENABLE_SIMD = false;
+
+	// Capability detection
+	glMatrix.SIMD_AVAILABLE = (glMatrix.ARRAY_TYPE === this.Float32Array) && ('SIMD' in this);
+	glMatrix.USE_SIMD = glMatrix.ENABLE_SIMD && glMatrix.SIMD_AVAILABLE;
+
+	/**
+	 * Sets the type of array used when creating new vectors and matrices
+	 *
+	 * @param {Type} type Array type, such as Float32Array or Array
+	 */
+	glMatrix.setMatrixArrayType = function(type) {
+	    glMatrix.ARRAY_TYPE = type;
+	}
+
+	var degree = Math.PI / 180;
+
+	/**
+	* Convert Degree To Radian
+	*
+	* @param {Number} a Angle in Degrees
+	*/
+	glMatrix.toRadian = function(a){
+	     return a * degree;
+	}
+
+	/**
+	 * Tests whether or not the arguments have approximately the same value, within an absolute
+	 * or relative tolerance of glMatrix.EPSILON (an absolute tolerance is used for values less 
+	 * than or equal to 1.0, and a relative tolerance is used for larger values)
+	 * 
+	 * @param {Number} a The first number to test.
+	 * @param {Number} b The second number to test.
+	 * @returns {Boolean} True if the numbers are approximately equal, false otherwise.
+	 */
+	glMatrix.equals = function(a, b) {
+		return Math.abs(a - b) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a), Math.abs(b));
+	}
+
+	module.exports = glMatrix;
+
+
+/***/ },
+/* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE. */
+
+	var glMatrix = __webpack_require__(1);
+
+	/**
+	 * @class 2x2 Matrix
+	 * @name mat2
+	 */
+	var mat2 = {};
+
+	/**
+	 * Creates a new identity mat2
+	 *
+	 * @returns {mat2} a new 2x2 matrix
+	 */
+	mat2.create = function() {
+	    var out = new glMatrix.ARRAY_TYPE(4);
+	    out[0] = 1;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 1;
+	    return out;
+	};
+
+	/**
+	 * Creates a new mat2 initialized with values from an existing matrix
+	 *
+	 * @param {mat2} a matrix to clone
+	 * @returns {mat2} a new 2x2 matrix
+	 */
+	mat2.clone = function(a) {
+	    var out = new glMatrix.ARRAY_TYPE(4);
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    out[3] = a[3];
+	    return out;
+	};
+
+	/**
+	 * Copy the values from one mat2 to another
+	 *
+	 * @param {mat2} out the receiving matrix
+	 * @param {mat2} a the source matrix
+	 * @returns {mat2} out
+	 */
+	mat2.copy = function(out, a) {
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    out[3] = a[3];
+	    return out;
+	};
+
+	/**
+	 * Set a mat2 to the identity matrix
+	 *
+	 * @param {mat2} out the receiving matrix
+	 * @returns {mat2} out
+	 */
+	mat2.identity = function(out) {
+	    out[0] = 1;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 1;
+	    return out;
+	};
+
+	/**
+	 * Create a new mat2 with the given values
+	 *
+	 * @param {Number} m00 Component in column 0, row 0 position (index 0)
+	 * @param {Number} m01 Component in column 0, row 1 position (index 1)
+	 * @param {Number} m10 Component in column 1, row 0 position (index 2)
+	 * @param {Number} m11 Component in column 1, row 1 position (index 3)
+	 * @returns {mat2} out A new 2x2 matrix
+	 */
+	mat2.fromValues = function(m00, m01, m10, m11) {
+	    var out = new glMatrix.ARRAY_TYPE(4);
+	    out[0] = m00;
+	    out[1] = m01;
+	    out[2] = m10;
+	    out[3] = m11;
+	    return out;
+	};
+
+	/**
+	 * Set the components of a mat2 to the given values
+	 *
+	 * @param {mat2} out the receiving matrix
+	 * @param {Number} m00 Component in column 0, row 0 position (index 0)
+	 * @param {Number} m01 Component in column 0, row 1 position (index 1)
+	 * @param {Number} m10 Component in column 1, row 0 position (index 2)
+	 * @param {Number} m11 Component in column 1, row 1 position (index 3)
+	 * @returns {mat2} out
+	 */
+	mat2.set = function(out, m00, m01, m10, m11) {
+	    out[0] = m00;
+	    out[1] = m01;
+	    out[2] = m10;
+	    out[3] = m11;
+	    return out;
+	};
+
+
+	/**
+	 * Transpose the values of a mat2
+	 *
+	 * @param {mat2} out the receiving matrix
+	 * @param {mat2} a the source matrix
+	 * @returns {mat2} out
+	 */
+	mat2.transpose = function(out, a) {
+	    // If we are transposing ourselves we can skip a few steps but have to cache some values
+	    if (out === a) {
+	        var a1 = a[1];
+	        out[1] = a[2];
+	        out[2] = a1;
+	    } else {
+	        out[0] = a[0];
+	        out[1] = a[2];
+	        out[2] = a[1];
+	        out[3] = a[3];
+	    }
+	    
+	    return out;
+	};
+
+	/**
+	 * Inverts a mat2
+	 *
+	 * @param {mat2} out the receiving matrix
+	 * @param {mat2} a the source matrix
+	 * @returns {mat2} out
+	 */
+	mat2.invert = function(out, a) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3],
+
+	        // Calculate the determinant
+	        det = a0 * a3 - a2 * a1;
+
+	    if (!det) {
+	        return null;
+	    }
+	    det = 1.0 / det;
+	    
+	    out[0] =  a3 * det;
+	    out[1] = -a1 * det;
+	    out[2] = -a2 * det;
+	    out[3] =  a0 * det;
+
+	    return out;
+	};
+
+	/**
+	 * Calculates the adjugate of a mat2
+	 *
+	 * @param {mat2} out the receiving matrix
+	 * @param {mat2} a the source matrix
+	 * @returns {mat2} out
+	 */
+	mat2.adjoint = function(out, a) {
+	    // Caching this value is nessecary if out == a
+	    var a0 = a[0];
+	    out[0] =  a[3];
+	    out[1] = -a[1];
+	    out[2] = -a[2];
+	    out[3] =  a0;
+
+	    return out;
+	};
+
+	/**
+	 * Calculates the determinant of a mat2
+	 *
+	 * @param {mat2} a the source matrix
+	 * @returns {Number} determinant of a
+	 */
+	mat2.determinant = function (a) {
+	    return a[0] * a[3] - a[2] * a[1];
+	};
+
+	/**
+	 * Multiplies two mat2's
+	 *
+	 * @param {mat2} out the receiving matrix
+	 * @param {mat2} a the first operand
+	 * @param {mat2} b the second operand
+	 * @returns {mat2} out
+	 */
+	mat2.multiply = function (out, a, b) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
+	    var b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+	    out[0] = a0 * b0 + a2 * b1;
+	    out[1] = a1 * b0 + a3 * b1;
+	    out[2] = a0 * b2 + a2 * b3;
+	    out[3] = a1 * b2 + a3 * b3;
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link mat2.multiply}
+	 * @function
+	 */
+	mat2.mul = mat2.multiply;
+
+	/**
+	 * Rotates a mat2 by the given angle
+	 *
+	 * @param {mat2} out the receiving matrix
+	 * @param {mat2} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat2} out
+	 */
+	mat2.rotate = function (out, a, rad) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3],
+	        s = Math.sin(rad),
+	        c = Math.cos(rad);
+	    out[0] = a0 *  c + a2 * s;
+	    out[1] = a1 *  c + a3 * s;
+	    out[2] = a0 * -s + a2 * c;
+	    out[3] = a1 * -s + a3 * c;
+	    return out;
+	};
+
+	/**
+	 * Scales the mat2 by the dimensions in the given vec2
+	 *
+	 * @param {mat2} out the receiving matrix
+	 * @param {mat2} a the matrix to rotate
+	 * @param {vec2} v the vec2 to scale the matrix by
+	 * @returns {mat2} out
+	 **/
+	mat2.scale = function(out, a, v) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3],
+	        v0 = v[0], v1 = v[1];
+	    out[0] = a0 * v0;
+	    out[1] = a1 * v0;
+	    out[2] = a2 * v1;
+	    out[3] = a3 * v1;
+	    return out;
+	};
+
+	/**
+	 * Creates a matrix from a given angle
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat2.identity(dest);
+	 *     mat2.rotate(dest, dest, rad);
+	 *
+	 * @param {mat2} out mat2 receiving operation result
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat2} out
+	 */
+	mat2.fromRotation = function(out, rad) {
+	    var s = Math.sin(rad),
+	        c = Math.cos(rad);
+	    out[0] = c;
+	    out[1] = s;
+	    out[2] = -s;
+	    out[3] = c;
+	    return out;
+	}
+
+	/**
+	 * Creates a matrix from a vector scaling
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat2.identity(dest);
+	 *     mat2.scale(dest, dest, vec);
+	 *
+	 * @param {mat2} out mat2 receiving operation result
+	 * @param {vec2} v Scaling vector
+	 * @returns {mat2} out
+	 */
+	mat2.fromScaling = function(out, v) {
+	    out[0] = v[0];
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = v[1];
+	    return out;
+	}
+
+	/**
+	 * Returns a string representation of a mat2
+	 *
+	 * @param {mat2} a matrix to represent as a string
+	 * @returns {String} string representation of the matrix
+	 */
+	mat2.str = function (a) {
+	    return 'mat2(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' + a[3] + ')';
+	};
+
+	/**
+	 * Returns Frobenius norm of a mat2
+	 *
+	 * @param {mat2} a the matrix to calculate Frobenius norm of
+	 * @returns {Number} Frobenius norm
+	 */
+	mat2.frob = function (a) {
+	    return(Math.sqrt(Math.pow(a[0], 2) + Math.pow(a[1], 2) + Math.pow(a[2], 2) + Math.pow(a[3], 2)))
+	};
+
+	/**
+	 * Returns L, D and U matrices (Lower triangular, Diagonal and Upper triangular) by factorizing the input matrix
+	 * @param {mat2} L the lower triangular matrix 
+	 * @param {mat2} D the diagonal matrix 
+	 * @param {mat2} U the upper triangular matrix 
+	 * @param {mat2} a the input matrix to factorize
+	 */
+
+	mat2.LDU = function (L, D, U, a) { 
+	    L[2] = a[2]/a[0]; 
+	    U[0] = a[0]; 
+	    U[1] = a[1]; 
+	    U[3] = a[3] - L[2] * U[1]; 
+	    return [L, D, U];       
+	}; 
+
+	/**
+	 * Adds two mat2's
+	 *
+	 * @param {mat2} out the receiving matrix
+	 * @param {mat2} a the first operand
+	 * @param {mat2} b the second operand
+	 * @returns {mat2} out
+	 */
+	mat2.add = function(out, a, b) {
+	    out[0] = a[0] + b[0];
+	    out[1] = a[1] + b[1];
+	    out[2] = a[2] + b[2];
+	    out[3] = a[3] + b[3];
+	    return out;
+	};
+
+	/**
+	 * Subtracts matrix b from matrix a
+	 *
+	 * @param {mat2} out the receiving matrix
+	 * @param {mat2} a the first operand
+	 * @param {mat2} b the second operand
+	 * @returns {mat2} out
+	 */
+	mat2.subtract = function(out, a, b) {
+	    out[0] = a[0] - b[0];
+	    out[1] = a[1] - b[1];
+	    out[2] = a[2] - b[2];
+	    out[3] = a[3] - b[3];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link mat2.subtract}
+	 * @function
+	 */
+	mat2.sub = mat2.subtract;
+
+	/**
+	 * Returns whether or not the matrices have exactly the same elements in the same position (when compared with ===)
+	 *
+	 * @param {mat2} a The first matrix.
+	 * @param {mat2} b The second matrix.
+	 * @returns {Boolean} True if the matrices are equal, false otherwise.
+	 */
+	mat2.exactEquals = function (a, b) {
+	    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
+	};
+
+	/**
+	 * Returns whether or not the matrices have approximately the same elements in the same position.
+	 *
+	 * @param {mat2} a The first matrix.
+	 * @param {mat2} b The second matrix.
+	 * @returns {Boolean} True if the matrices are equal, false otherwise.
+	 */
+	mat2.equals = function (a, b) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
+	    var b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+	    return (Math.abs(a0 - b0) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
+	            Math.abs(a1 - b1) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a1), Math.abs(b1)) &&
+	            Math.abs(a2 - b2) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a2), Math.abs(b2)) &&
+	            Math.abs(a3 - b3) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a3), Math.abs(b3)));
+	};
+
+	/**
+	 * Multiply each element of the matrix by a scalar.
+	 *
+	 * @param {mat2} out the receiving matrix
+	 * @param {mat2} a the matrix to scale
+	 * @param {Number} b amount to scale the matrix's elements by
+	 * @returns {mat2} out
+	 */
+	mat2.multiplyScalar = function(out, a, b) {
+	    out[0] = a[0] * b;
+	    out[1] = a[1] * b;
+	    out[2] = a[2] * b;
+	    out[3] = a[3] * b;
+	    return out;
+	};
+
+	/**
+	 * Adds two mat2's after multiplying each element of the second operand by a scalar value.
+	 *
+	 * @param {mat2} out the receiving vector
+	 * @param {mat2} a the first operand
+	 * @param {mat2} b the second operand
+	 * @param {Number} scale the amount to scale b's elements by before adding
+	 * @returns {mat2} out
+	 */
+	mat2.multiplyScalarAndAdd = function(out, a, b, scale) {
+	    out[0] = a[0] + (b[0] * scale);
+	    out[1] = a[1] + (b[1] * scale);
+	    out[2] = a[2] + (b[2] * scale);
+	    out[3] = a[3] + (b[3] * scale);
+	    return out;
+	};
+
+	module.exports = mat2;
+
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE. */
+
+	var glMatrix = __webpack_require__(1);
+
+	/**
+	 * @class 2x3 Matrix
+	 * @name mat2d
+	 * 
+	 * @description 
+	 * A mat2d contains six elements defined as:
+	 * <pre>
+	 * [a, c, tx,
+	 *  b, d, ty]
+	 * </pre>
+	 * This is a short form for the 3x3 matrix:
+	 * <pre>
+	 * [a, c, tx,
+	 *  b, d, ty,
+	 *  0, 0, 1]
+	 * </pre>
+	 * The last row is ignored so the array is shorter and operations are faster.
+	 */
+	var mat2d = {};
+
+	/**
+	 * Creates a new identity mat2d
+	 *
+	 * @returns {mat2d} a new 2x3 matrix
+	 */
+	mat2d.create = function() {
+	    var out = new glMatrix.ARRAY_TYPE(6);
+	    out[0] = 1;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 1;
+	    out[4] = 0;
+	    out[5] = 0;
+	    return out;
+	};
+
+	/**
+	 * Creates a new mat2d initialized with values from an existing matrix
+	 *
+	 * @param {mat2d} a matrix to clone
+	 * @returns {mat2d} a new 2x3 matrix
+	 */
+	mat2d.clone = function(a) {
+	    var out = new glMatrix.ARRAY_TYPE(6);
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    out[3] = a[3];
+	    out[4] = a[4];
+	    out[5] = a[5];
+	    return out;
+	};
+
+	/**
+	 * Copy the values from one mat2d to another
+	 *
+	 * @param {mat2d} out the receiving matrix
+	 * @param {mat2d} a the source matrix
+	 * @returns {mat2d} out
+	 */
+	mat2d.copy = function(out, a) {
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    out[3] = a[3];
+	    out[4] = a[4];
+	    out[5] = a[5];
+	    return out;
+	};
+
+	/**
+	 * Set a mat2d to the identity matrix
+	 *
+	 * @param {mat2d} out the receiving matrix
+	 * @returns {mat2d} out
+	 */
+	mat2d.identity = function(out) {
+	    out[0] = 1;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 1;
+	    out[4] = 0;
+	    out[5] = 0;
+	    return out;
+	};
+
+	/**
+	 * Create a new mat2d with the given values
+	 *
+	 * @param {Number} a Component A (index 0)
+	 * @param {Number} b Component B (index 1)
+	 * @param {Number} c Component C (index 2)
+	 * @param {Number} d Component D (index 3)
+	 * @param {Number} tx Component TX (index 4)
+	 * @param {Number} ty Component TY (index 5)
+	 * @returns {mat2d} A new mat2d
+	 */
+	mat2d.fromValues = function(a, b, c, d, tx, ty) {
+	    var out = new glMatrix.ARRAY_TYPE(6);
+	    out[0] = a;
+	    out[1] = b;
+	    out[2] = c;
+	    out[3] = d;
+	    out[4] = tx;
+	    out[5] = ty;
+	    return out;
+	};
+
+	/**
+	 * Set the components of a mat2d to the given values
+	 *
+	 * @param {mat2d} out the receiving matrix
+	 * @param {Number} a Component A (index 0)
+	 * @param {Number} b Component B (index 1)
+	 * @param {Number} c Component C (index 2)
+	 * @param {Number} d Component D (index 3)
+	 * @param {Number} tx Component TX (index 4)
+	 * @param {Number} ty Component TY (index 5)
+	 * @returns {mat2d} out
+	 */
+	mat2d.set = function(out, a, b, c, d, tx, ty) {
+	    out[0] = a;
+	    out[1] = b;
+	    out[2] = c;
+	    out[3] = d;
+	    out[4] = tx;
+	    out[5] = ty;
+	    return out;
+	};
+
+	/**
+	 * Inverts a mat2d
+	 *
+	 * @param {mat2d} out the receiving matrix
+	 * @param {mat2d} a the source matrix
+	 * @returns {mat2d} out
+	 */
+	mat2d.invert = function(out, a) {
+	    var aa = a[0], ab = a[1], ac = a[2], ad = a[3],
+	        atx = a[4], aty = a[5];
+
+	    var det = aa * ad - ab * ac;
+	    if(!det){
+	        return null;
+	    }
+	    det = 1.0 / det;
+
+	    out[0] = ad * det;
+	    out[1] = -ab * det;
+	    out[2] = -ac * det;
+	    out[3] = aa * det;
+	    out[4] = (ac * aty - ad * atx) * det;
+	    out[5] = (ab * atx - aa * aty) * det;
+	    return out;
+	};
+
+	/**
+	 * Calculates the determinant of a mat2d
+	 *
+	 * @param {mat2d} a the source matrix
+	 * @returns {Number} determinant of a
+	 */
+	mat2d.determinant = function (a) {
+	    return a[0] * a[3] - a[1] * a[2];
+	};
+
+	/**
+	 * Multiplies two mat2d's
+	 *
+	 * @param {mat2d} out the receiving matrix
+	 * @param {mat2d} a the first operand
+	 * @param {mat2d} b the second operand
+	 * @returns {mat2d} out
+	 */
+	mat2d.multiply = function (out, a, b) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3], a4 = a[4], a5 = a[5],
+	        b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3], b4 = b[4], b5 = b[5];
+	    out[0] = a0 * b0 + a2 * b1;
+	    out[1] = a1 * b0 + a3 * b1;
+	    out[2] = a0 * b2 + a2 * b3;
+	    out[3] = a1 * b2 + a3 * b3;
+	    out[4] = a0 * b4 + a2 * b5 + a4;
+	    out[5] = a1 * b4 + a3 * b5 + a5;
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link mat2d.multiply}
+	 * @function
+	 */
+	mat2d.mul = mat2d.multiply;
+
+	/**
+	 * Rotates a mat2d by the given angle
+	 *
+	 * @param {mat2d} out the receiving matrix
+	 * @param {mat2d} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat2d} out
+	 */
+	mat2d.rotate = function (out, a, rad) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3], a4 = a[4], a5 = a[5],
+	        s = Math.sin(rad),
+	        c = Math.cos(rad);
+	    out[0] = a0 *  c + a2 * s;
+	    out[1] = a1 *  c + a3 * s;
+	    out[2] = a0 * -s + a2 * c;
+	    out[3] = a1 * -s + a3 * c;
+	    out[4] = a4;
+	    out[5] = a5;
+	    return out;
+	};
+
+	/**
+	 * Scales the mat2d by the dimensions in the given vec2
+	 *
+	 * @param {mat2d} out the receiving matrix
+	 * @param {mat2d} a the matrix to translate
+	 * @param {vec2} v the vec2 to scale the matrix by
+	 * @returns {mat2d} out
+	 **/
+	mat2d.scale = function(out, a, v) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3], a4 = a[4], a5 = a[5],
+	        v0 = v[0], v1 = v[1];
+	    out[0] = a0 * v0;
+	    out[1] = a1 * v0;
+	    out[2] = a2 * v1;
+	    out[3] = a3 * v1;
+	    out[4] = a4;
+	    out[5] = a5;
+	    return out;
+	};
+
+	/**
+	 * Translates the mat2d by the dimensions in the given vec2
+	 *
+	 * @param {mat2d} out the receiving matrix
+	 * @param {mat2d} a the matrix to translate
+	 * @param {vec2} v the vec2 to translate the matrix by
+	 * @returns {mat2d} out
+	 **/
+	mat2d.translate = function(out, a, v) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3], a4 = a[4], a5 = a[5],
+	        v0 = v[0], v1 = v[1];
+	    out[0] = a0;
+	    out[1] = a1;
+	    out[2] = a2;
+	    out[3] = a3;
+	    out[4] = a0 * v0 + a2 * v1 + a4;
+	    out[5] = a1 * v0 + a3 * v1 + a5;
+	    return out;
+	};
+
+	/**
+	 * Creates a matrix from a given angle
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat2d.identity(dest);
+	 *     mat2d.rotate(dest, dest, rad);
+	 *
+	 * @param {mat2d} out mat2d receiving operation result
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat2d} out
+	 */
+	mat2d.fromRotation = function(out, rad) {
+	    var s = Math.sin(rad), c = Math.cos(rad);
+	    out[0] = c;
+	    out[1] = s;
+	    out[2] = -s;
+	    out[3] = c;
+	    out[4] = 0;
+	    out[5] = 0;
+	    return out;
+	}
+
+	/**
+	 * Creates a matrix from a vector scaling
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat2d.identity(dest);
+	 *     mat2d.scale(dest, dest, vec);
+	 *
+	 * @param {mat2d} out mat2d receiving operation result
+	 * @param {vec2} v Scaling vector
+	 * @returns {mat2d} out
+	 */
+	mat2d.fromScaling = function(out, v) {
+	    out[0] = v[0];
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = v[1];
+	    out[4] = 0;
+	    out[5] = 0;
+	    return out;
+	}
+
+	/**
+	 * Creates a matrix from a vector translation
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat2d.identity(dest);
+	 *     mat2d.translate(dest, dest, vec);
+	 *
+	 * @param {mat2d} out mat2d receiving operation result
+	 * @param {vec2} v Translation vector
+	 * @returns {mat2d} out
+	 */
+	mat2d.fromTranslation = function(out, v) {
+	    out[0] = 1;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 1;
+	    out[4] = v[0];
+	    out[5] = v[1];
+	    return out;
+	}
+
+	/**
+	 * Returns a string representation of a mat2d
+	 *
+	 * @param {mat2d} a matrix to represent as a string
+	 * @returns {String} string representation of the matrix
+	 */
+	mat2d.str = function (a) {
+	    return 'mat2d(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' + 
+	                    a[3] + ', ' + a[4] + ', ' + a[5] + ')';
+	};
+
+	/**
+	 * Returns Frobenius norm of a mat2d
+	 *
+	 * @param {mat2d} a the matrix to calculate Frobenius norm of
+	 * @returns {Number} Frobenius norm
+	 */
+	mat2d.frob = function (a) { 
+	    return(Math.sqrt(Math.pow(a[0], 2) + Math.pow(a[1], 2) + Math.pow(a[2], 2) + Math.pow(a[3], 2) + Math.pow(a[4], 2) + Math.pow(a[5], 2) + 1))
+	}; 
+
+	/**
+	 * Adds two mat2d's
+	 *
+	 * @param {mat2d} out the receiving matrix
+	 * @param {mat2d} a the first operand
+	 * @param {mat2d} b the second operand
+	 * @returns {mat2d} out
+	 */
+	mat2d.add = function(out, a, b) {
+	    out[0] = a[0] + b[0];
+	    out[1] = a[1] + b[1];
+	    out[2] = a[2] + b[2];
+	    out[3] = a[3] + b[3];
+	    out[4] = a[4] + b[4];
+	    out[5] = a[5] + b[5];
+	    return out;
+	};
+
+	/**
+	 * Subtracts matrix b from matrix a
+	 *
+	 * @param {mat2d} out the receiving matrix
+	 * @param {mat2d} a the first operand
+	 * @param {mat2d} b the second operand
+	 * @returns {mat2d} out
+	 */
+	mat2d.subtract = function(out, a, b) {
+	    out[0] = a[0] - b[0];
+	    out[1] = a[1] - b[1];
+	    out[2] = a[2] - b[2];
+	    out[3] = a[3] - b[3];
+	    out[4] = a[4] - b[4];
+	    out[5] = a[5] - b[5];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link mat2d.subtract}
+	 * @function
+	 */
+	mat2d.sub = mat2d.subtract;
+
+	/**
+	 * Multiply each element of the matrix by a scalar.
+	 *
+	 * @param {mat2d} out the receiving matrix
+	 * @param {mat2d} a the matrix to scale
+	 * @param {Number} b amount to scale the matrix's elements by
+	 * @returns {mat2d} out
+	 */
+	mat2d.multiplyScalar = function(out, a, b) {
+	    out[0] = a[0] * b;
+	    out[1] = a[1] * b;
+	    out[2] = a[2] * b;
+	    out[3] = a[3] * b;
+	    out[4] = a[4] * b;
+	    out[5] = a[5] * b;
+	    return out;
+	};
+
+	/**
+	 * Adds two mat2d's after multiplying each element of the second operand by a scalar value.
+	 *
+	 * @param {mat2d} out the receiving vector
+	 * @param {mat2d} a the first operand
+	 * @param {mat2d} b the second operand
+	 * @param {Number} scale the amount to scale b's elements by before adding
+	 * @returns {mat2d} out
+	 */
+	mat2d.multiplyScalarAndAdd = function(out, a, b, scale) {
+	    out[0] = a[0] + (b[0] * scale);
+	    out[1] = a[1] + (b[1] * scale);
+	    out[2] = a[2] + (b[2] * scale);
+	    out[3] = a[3] + (b[3] * scale);
+	    out[4] = a[4] + (b[4] * scale);
+	    out[5] = a[5] + (b[5] * scale);
+	    return out;
+	};
+
+	/**
+	 * Returns whether or not the matrices have exactly the same elements in the same position (when compared with ===)
+	 *
+	 * @param {mat2d} a The first matrix.
+	 * @param {mat2d} b The second matrix.
+	 * @returns {Boolean} True if the matrices are equal, false otherwise.
+	 */
+	mat2d.exactEquals = function (a, b) {
+	    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3] && a[4] === b[4] && a[5] === b[5];
+	};
+
+	/**
+	 * Returns whether or not the matrices have approximately the same elements in the same position.
+	 *
+	 * @param {mat2d} a The first matrix.
+	 * @param {mat2d} b The second matrix.
+	 * @returns {Boolean} True if the matrices are equal, false otherwise.
+	 */
+	mat2d.equals = function (a, b) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3], a4 = a[4], a5 = a[5];
+	    var b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3], b4 = b[4], b5 = b[5];
+	    return (Math.abs(a0 - b0) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
+	            Math.abs(a1 - b1) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a1), Math.abs(b1)) &&
+	            Math.abs(a2 - b2) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a2), Math.abs(b2)) &&
+	            Math.abs(a3 - b3) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a3), Math.abs(b3)) &&
+	            Math.abs(a4 - b4) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a4), Math.abs(b4)) &&
+	            Math.abs(a5 - b5) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a5), Math.abs(b5)));
+	};
+
+	module.exports = mat2d;
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE. */
+
+	var glMatrix = __webpack_require__(1);
+
+	/**
+	 * @class 3x3 Matrix
+	 * @name mat3
+	 */
+	var mat3 = {};
+
+	/**
+	 * Creates a new identity mat3
+	 *
+	 * @returns {mat3} a new 3x3 matrix
+	 */
+	mat3.create = function() {
+	    var out = new glMatrix.ARRAY_TYPE(9);
+	    out[0] = 1;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 0;
+	    out[4] = 1;
+	    out[5] = 0;
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = 1;
+	    return out;
+	};
+
+	/**
+	 * Copies the upper-left 3x3 values into the given mat3.
+	 *
+	 * @param {mat3} out the receiving 3x3 matrix
+	 * @param {mat4} a   the source 4x4 matrix
+	 * @returns {mat3} out
+	 */
+	mat3.fromMat4 = function(out, a) {
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    out[3] = a[4];
+	    out[4] = a[5];
+	    out[5] = a[6];
+	    out[6] = a[8];
+	    out[7] = a[9];
+	    out[8] = a[10];
+	    return out;
+	};
+
+	/**
+	 * Creates a new mat3 initialized with values from an existing matrix
+	 *
+	 * @param {mat3} a matrix to clone
+	 * @returns {mat3} a new 3x3 matrix
+	 */
+	mat3.clone = function(a) {
+	    var out = new glMatrix.ARRAY_TYPE(9);
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    out[3] = a[3];
+	    out[4] = a[4];
+	    out[5] = a[5];
+	    out[6] = a[6];
+	    out[7] = a[7];
+	    out[8] = a[8];
+	    return out;
+	};
+
+	/**
+	 * Copy the values from one mat3 to another
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the source matrix
+	 * @returns {mat3} out
+	 */
+	mat3.copy = function(out, a) {
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    out[3] = a[3];
+	    out[4] = a[4];
+	    out[5] = a[5];
+	    out[6] = a[6];
+	    out[7] = a[7];
+	    out[8] = a[8];
+	    return out;
+	};
+
+	/**
+	 * Create a new mat3 with the given values
+	 *
+	 * @param {Number} m00 Component in column 0, row 0 position (index 0)
+	 * @param {Number} m01 Component in column 0, row 1 position (index 1)
+	 * @param {Number} m02 Component in column 0, row 2 position (index 2)
+	 * @param {Number} m10 Component in column 1, row 0 position (index 3)
+	 * @param {Number} m11 Component in column 1, row 1 position (index 4)
+	 * @param {Number} m12 Component in column 1, row 2 position (index 5)
+	 * @param {Number} m20 Component in column 2, row 0 position (index 6)
+	 * @param {Number} m21 Component in column 2, row 1 position (index 7)
+	 * @param {Number} m22 Component in column 2, row 2 position (index 8)
+	 * @returns {mat3} A new mat3
+	 */
+	mat3.fromValues = function(m00, m01, m02, m10, m11, m12, m20, m21, m22) {
+	    var out = new glMatrix.ARRAY_TYPE(9);
+	    out[0] = m00;
+	    out[1] = m01;
+	    out[2] = m02;
+	    out[3] = m10;
+	    out[4] = m11;
+	    out[5] = m12;
+	    out[6] = m20;
+	    out[7] = m21;
+	    out[8] = m22;
+	    return out;
+	};
+
+	/**
+	 * Set the components of a mat3 to the given values
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {Number} m00 Component in column 0, row 0 position (index 0)
+	 * @param {Number} m01 Component in column 0, row 1 position (index 1)
+	 * @param {Number} m02 Component in column 0, row 2 position (index 2)
+	 * @param {Number} m10 Component in column 1, row 0 position (index 3)
+	 * @param {Number} m11 Component in column 1, row 1 position (index 4)
+	 * @param {Number} m12 Component in column 1, row 2 position (index 5)
+	 * @param {Number} m20 Component in column 2, row 0 position (index 6)
+	 * @param {Number} m21 Component in column 2, row 1 position (index 7)
+	 * @param {Number} m22 Component in column 2, row 2 position (index 8)
+	 * @returns {mat3} out
+	 */
+	mat3.set = function(out, m00, m01, m02, m10, m11, m12, m20, m21, m22) {
+	    out[0] = m00;
+	    out[1] = m01;
+	    out[2] = m02;
+	    out[3] = m10;
+	    out[4] = m11;
+	    out[5] = m12;
+	    out[6] = m20;
+	    out[7] = m21;
+	    out[8] = m22;
+	    return out;
+	};
+
+	/**
+	 * Set a mat3 to the identity matrix
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @returns {mat3} out
+	 */
+	mat3.identity = function(out) {
+	    out[0] = 1;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 0;
+	    out[4] = 1;
+	    out[5] = 0;
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = 1;
+	    return out;
+	};
+
+	/**
+	 * Transpose the values of a mat3
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the source matrix
+	 * @returns {mat3} out
+	 */
+	mat3.transpose = function(out, a) {
+	    // If we are transposing ourselves we can skip a few steps but have to cache some values
+	    if (out === a) {
+	        var a01 = a[1], a02 = a[2], a12 = a[5];
+	        out[1] = a[3];
+	        out[2] = a[6];
+	        out[3] = a01;
+	        out[5] = a[7];
+	        out[6] = a02;
+	        out[7] = a12;
+	    } else {
+	        out[0] = a[0];
+	        out[1] = a[3];
+	        out[2] = a[6];
+	        out[3] = a[1];
+	        out[4] = a[4];
+	        out[5] = a[7];
+	        out[6] = a[2];
+	        out[7] = a[5];
+	        out[8] = a[8];
+	    }
+
+	    return out;
+	};
+
+	/**
+	 * Inverts a mat3
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the source matrix
+	 * @returns {mat3} out
+	 */
+	mat3.invert = function(out, a) {
+	    var a00 = a[0], a01 = a[1], a02 = a[2],
+	        a10 = a[3], a11 = a[4], a12 = a[5],
+	        a20 = a[6], a21 = a[7], a22 = a[8],
+
+	        b01 = a22 * a11 - a12 * a21,
+	        b11 = -a22 * a10 + a12 * a20,
+	        b21 = a21 * a10 - a11 * a20,
+
+	        // Calculate the determinant
+	        det = a00 * b01 + a01 * b11 + a02 * b21;
+
+	    if (!det) {
+	        return null;
+	    }
+	    det = 1.0 / det;
+
+	    out[0] = b01 * det;
+	    out[1] = (-a22 * a01 + a02 * a21) * det;
+	    out[2] = (a12 * a01 - a02 * a11) * det;
+	    out[3] = b11 * det;
+	    out[4] = (a22 * a00 - a02 * a20) * det;
+	    out[5] = (-a12 * a00 + a02 * a10) * det;
+	    out[6] = b21 * det;
+	    out[7] = (-a21 * a00 + a01 * a20) * det;
+	    out[8] = (a11 * a00 - a01 * a10) * det;
+	    return out;
+	};
+
+	/**
+	 * Calculates the adjugate of a mat3
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the source matrix
+	 * @returns {mat3} out
+	 */
+	mat3.adjoint = function(out, a) {
+	    var a00 = a[0], a01 = a[1], a02 = a[2],
+	        a10 = a[3], a11 = a[4], a12 = a[5],
+	        a20 = a[6], a21 = a[7], a22 = a[8];
+
+	    out[0] = (a11 * a22 - a12 * a21);
+	    out[1] = (a02 * a21 - a01 * a22);
+	    out[2] = (a01 * a12 - a02 * a11);
+	    out[3] = (a12 * a20 - a10 * a22);
+	    out[4] = (a00 * a22 - a02 * a20);
+	    out[5] = (a02 * a10 - a00 * a12);
+	    out[6] = (a10 * a21 - a11 * a20);
+	    out[7] = (a01 * a20 - a00 * a21);
+	    out[8] = (a00 * a11 - a01 * a10);
+	    return out;
+	};
+
+	/**
+	 * Calculates the determinant of a mat3
+	 *
+	 * @param {mat3} a the source matrix
+	 * @returns {Number} determinant of a
+	 */
+	mat3.determinant = function (a) {
+	    var a00 = a[0], a01 = a[1], a02 = a[2],
+	        a10 = a[3], a11 = a[4], a12 = a[5],
+	        a20 = a[6], a21 = a[7], a22 = a[8];
+
+	    return a00 * (a22 * a11 - a12 * a21) + a01 * (-a22 * a10 + a12 * a20) + a02 * (a21 * a10 - a11 * a20);
+	};
+
+	/**
+	 * Multiplies two mat3's
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the first operand
+	 * @param {mat3} b the second operand
+	 * @returns {mat3} out
+	 */
+	mat3.multiply = function (out, a, b) {
+	    var a00 = a[0], a01 = a[1], a02 = a[2],
+	        a10 = a[3], a11 = a[4], a12 = a[5],
+	        a20 = a[6], a21 = a[7], a22 = a[8],
+
+	        b00 = b[0], b01 = b[1], b02 = b[2],
+	        b10 = b[3], b11 = b[4], b12 = b[5],
+	        b20 = b[6], b21 = b[7], b22 = b[8];
+
+	    out[0] = b00 * a00 + b01 * a10 + b02 * a20;
+	    out[1] = b00 * a01 + b01 * a11 + b02 * a21;
+	    out[2] = b00 * a02 + b01 * a12 + b02 * a22;
+
+	    out[3] = b10 * a00 + b11 * a10 + b12 * a20;
+	    out[4] = b10 * a01 + b11 * a11 + b12 * a21;
+	    out[5] = b10 * a02 + b11 * a12 + b12 * a22;
+
+	    out[6] = b20 * a00 + b21 * a10 + b22 * a20;
+	    out[7] = b20 * a01 + b21 * a11 + b22 * a21;
+	    out[8] = b20 * a02 + b21 * a12 + b22 * a22;
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link mat3.multiply}
+	 * @function
+	 */
+	mat3.mul = mat3.multiply;
+
+	/**
+	 * Translate a mat3 by the given vector
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the matrix to translate
+	 * @param {vec2} v vector to translate by
+	 * @returns {mat3} out
+	 */
+	mat3.translate = function(out, a, v) {
+	    var a00 = a[0], a01 = a[1], a02 = a[2],
+	        a10 = a[3], a11 = a[4], a12 = a[5],
+	        a20 = a[6], a21 = a[7], a22 = a[8],
+	        x = v[0], y = v[1];
+
+	    out[0] = a00;
+	    out[1] = a01;
+	    out[2] = a02;
+
+	    out[3] = a10;
+	    out[4] = a11;
+	    out[5] = a12;
+
+	    out[6] = x * a00 + y * a10 + a20;
+	    out[7] = x * a01 + y * a11 + a21;
+	    out[8] = x * a02 + y * a12 + a22;
+	    return out;
+	};
+
+	/**
+	 * Rotates a mat3 by the given angle
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat3} out
+	 */
+	mat3.rotate = function (out, a, rad) {
+	    var a00 = a[0], a01 = a[1], a02 = a[2],
+	        a10 = a[3], a11 = a[4], a12 = a[5],
+	        a20 = a[6], a21 = a[7], a22 = a[8],
+
+	        s = Math.sin(rad),
+	        c = Math.cos(rad);
+
+	    out[0] = c * a00 + s * a10;
+	    out[1] = c * a01 + s * a11;
+	    out[2] = c * a02 + s * a12;
+
+	    out[3] = c * a10 - s * a00;
+	    out[4] = c * a11 - s * a01;
+	    out[5] = c * a12 - s * a02;
+
+	    out[6] = a20;
+	    out[7] = a21;
+	    out[8] = a22;
+	    return out;
+	};
+
+	/**
+	 * Scales the mat3 by the dimensions in the given vec2
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the matrix to rotate
+	 * @param {vec2} v the vec2 to scale the matrix by
+	 * @returns {mat3} out
+	 **/
+	mat3.scale = function(out, a, v) {
+	    var x = v[0], y = v[1];
+
+	    out[0] = x * a[0];
+	    out[1] = x * a[1];
+	    out[2] = x * a[2];
+
+	    out[3] = y * a[3];
+	    out[4] = y * a[4];
+	    out[5] = y * a[5];
+
+	    out[6] = a[6];
+	    out[7] = a[7];
+	    out[8] = a[8];
+	    return out;
+	};
+
+	/**
+	 * Creates a matrix from a vector translation
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat3.identity(dest);
+	 *     mat3.translate(dest, dest, vec);
+	 *
+	 * @param {mat3} out mat3 receiving operation result
+	 * @param {vec2} v Translation vector
+	 * @returns {mat3} out
+	 */
+	mat3.fromTranslation = function(out, v) {
+	    out[0] = 1;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 0;
+	    out[4] = 1;
+	    out[5] = 0;
+	    out[6] = v[0];
+	    out[7] = v[1];
+	    out[8] = 1;
+	    return out;
+	}
+
+	/**
+	 * Creates a matrix from a given angle
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat3.identity(dest);
+	 *     mat3.rotate(dest, dest, rad);
+	 *
+	 * @param {mat3} out mat3 receiving operation result
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat3} out
+	 */
+	mat3.fromRotation = function(out, rad) {
+	    var s = Math.sin(rad), c = Math.cos(rad);
+
+	    out[0] = c;
+	    out[1] = s;
+	    out[2] = 0;
+
+	    out[3] = -s;
+	    out[4] = c;
+	    out[5] = 0;
+
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = 1;
+	    return out;
+	}
+
+	/**
+	 * Creates a matrix from a vector scaling
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat3.identity(dest);
+	 *     mat3.scale(dest, dest, vec);
+	 *
+	 * @param {mat3} out mat3 receiving operation result
+	 * @param {vec2} v Scaling vector
+	 * @returns {mat3} out
+	 */
+	mat3.fromScaling = function(out, v) {
+	    out[0] = v[0];
+	    out[1] = 0;
+	    out[2] = 0;
+
+	    out[3] = 0;
+	    out[4] = v[1];
+	    out[5] = 0;
+
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = 1;
+	    return out;
+	}
+
+	/**
+	 * Copies the values from a mat2d into a mat3
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat2d} a the matrix to copy
+	 * @returns {mat3} out
+	 **/
+	mat3.fromMat2d = function(out, a) {
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = 0;
+
+	    out[3] = a[2];
+	    out[4] = a[3];
+	    out[5] = 0;
+
+	    out[6] = a[4];
+	    out[7] = a[5];
+	    out[8] = 1;
+	    return out;
+	};
+
+	/**
+	* Calculates a 3x3 matrix from the given quaternion
+	*
+	* @param {mat3} out mat3 receiving operation result
+	* @param {quat} q Quaternion to create matrix from
+	*
+	* @returns {mat3} out
+	*/
+	mat3.fromQuat = function (out, q) {
+	    var x = q[0], y = q[1], z = q[2], w = q[3],
+	        x2 = x + x,
+	        y2 = y + y,
+	        z2 = z + z,
+
+	        xx = x * x2,
+	        yx = y * x2,
+	        yy = y * y2,
+	        zx = z * x2,
+	        zy = z * y2,
+	        zz = z * z2,
+	        wx = w * x2,
+	        wy = w * y2,
+	        wz = w * z2;
+
+	    out[0] = 1 - yy - zz;
+	    out[3] = yx - wz;
+	    out[6] = zx + wy;
+
+	    out[1] = yx + wz;
+	    out[4] = 1 - xx - zz;
+	    out[7] = zy - wx;
+
+	    out[2] = zx - wy;
+	    out[5] = zy + wx;
+	    out[8] = 1 - xx - yy;
+
+	    return out;
+	};
+
+	/**
+	* Calculates a 3x3 normal matrix (transpose inverse) from the 4x4 matrix
+	*
+	* @param {mat3} out mat3 receiving operation result
+	* @param {mat4} a Mat4 to derive the normal matrix from
+	*
+	* @returns {mat3} out
+	*/
+	mat3.normalFromMat4 = function (out, a) {
+	    var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+	        a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
+	        a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
+	        a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15],
+
+	        b00 = a00 * a11 - a01 * a10,
+	        b01 = a00 * a12 - a02 * a10,
+	        b02 = a00 * a13 - a03 * a10,
+	        b03 = a01 * a12 - a02 * a11,
+	        b04 = a01 * a13 - a03 * a11,
+	        b05 = a02 * a13 - a03 * a12,
+	        b06 = a20 * a31 - a21 * a30,
+	        b07 = a20 * a32 - a22 * a30,
+	        b08 = a20 * a33 - a23 * a30,
+	        b09 = a21 * a32 - a22 * a31,
+	        b10 = a21 * a33 - a23 * a31,
+	        b11 = a22 * a33 - a23 * a32,
+
+	        // Calculate the determinant
+	        det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+
+	    if (!det) {
+	        return null;
+	    }
+	    det = 1.0 / det;
+
+	    out[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;
+	    out[1] = (a12 * b08 - a10 * b11 - a13 * b07) * det;
+	    out[2] = (a10 * b10 - a11 * b08 + a13 * b06) * det;
+
+	    out[3] = (a02 * b10 - a01 * b11 - a03 * b09) * det;
+	    out[4] = (a00 * b11 - a02 * b08 + a03 * b07) * det;
+	    out[5] = (a01 * b08 - a00 * b10 - a03 * b06) * det;
+
+	    out[6] = (a31 * b05 - a32 * b04 + a33 * b03) * det;
+	    out[7] = (a32 * b02 - a30 * b05 - a33 * b01) * det;
+	    out[8] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
+
+	    return out;
+	};
+
+	/**
+	 * Returns a string representation of a mat3
+	 *
+	 * @param {mat3} a matrix to represent as a string
+	 * @returns {String} string representation of the matrix
+	 */
+	mat3.str = function (a) {
+	    return 'mat3(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' +
+	                    a[3] + ', ' + a[4] + ', ' + a[5] + ', ' +
+	                    a[6] + ', ' + a[7] + ', ' + a[8] + ')';
+	};
+
+	/**
+	 * Returns Frobenius norm of a mat3
+	 *
+	 * @param {mat3} a the matrix to calculate Frobenius norm of
+	 * @returns {Number} Frobenius norm
+	 */
+	mat3.frob = function (a) {
+	    return(Math.sqrt(Math.pow(a[0], 2) + Math.pow(a[1], 2) + Math.pow(a[2], 2) + Math.pow(a[3], 2) + Math.pow(a[4], 2) + Math.pow(a[5], 2) + Math.pow(a[6], 2) + Math.pow(a[7], 2) + Math.pow(a[8], 2)))
+	};
+
+	/**
+	 * Adds two mat3's
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the first operand
+	 * @param {mat3} b the second operand
+	 * @returns {mat3} out
+	 */
+	mat3.add = function(out, a, b) {
+	    out[0] = a[0] + b[0];
+	    out[1] = a[1] + b[1];
+	    out[2] = a[2] + b[2];
+	    out[3] = a[3] + b[3];
+	    out[4] = a[4] + b[4];
+	    out[5] = a[5] + b[5];
+	    out[6] = a[6] + b[6];
+	    out[7] = a[7] + b[7];
+	    out[8] = a[8] + b[8];
+	    return out;
+	};
+
+	/**
+	 * Subtracts matrix b from matrix a
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the first operand
+	 * @param {mat3} b the second operand
+	 * @returns {mat3} out
+	 */
+	mat3.subtract = function(out, a, b) {
+	    out[0] = a[0] - b[0];
+	    out[1] = a[1] - b[1];
+	    out[2] = a[2] - b[2];
+	    out[3] = a[3] - b[3];
+	    out[4] = a[4] - b[4];
+	    out[5] = a[5] - b[5];
+	    out[6] = a[6] - b[6];
+	    out[7] = a[7] - b[7];
+	    out[8] = a[8] - b[8];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link mat3.subtract}
+	 * @function
+	 */
+	mat3.sub = mat3.subtract;
+
+	/**
+	 * Multiply each element of the matrix by a scalar.
+	 *
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the matrix to scale
+	 * @param {Number} b amount to scale the matrix's elements by
+	 * @returns {mat3} out
+	 */
+	mat3.multiplyScalar = function(out, a, b) {
+	    out[0] = a[0] * b;
+	    out[1] = a[1] * b;
+	    out[2] = a[2] * b;
+	    out[3] = a[3] * b;
+	    out[4] = a[4] * b;
+	    out[5] = a[5] * b;
+	    out[6] = a[6] * b;
+	    out[7] = a[7] * b;
+	    out[8] = a[8] * b;
+	    return out;
+	};
+
+	/**
+	 * Adds two mat3's after multiplying each element of the second operand by a scalar value.
+	 *
+	 * @param {mat3} out the receiving vector
+	 * @param {mat3} a the first operand
+	 * @param {mat3} b the second operand
+	 * @param {Number} scale the amount to scale b's elements by before adding
+	 * @returns {mat3} out
+	 */
+	mat3.multiplyScalarAndAdd = function(out, a, b, scale) {
+	    out[0] = a[0] + (b[0] * scale);
+	    out[1] = a[1] + (b[1] * scale);
+	    out[2] = a[2] + (b[2] * scale);
+	    out[3] = a[3] + (b[3] * scale);
+	    out[4] = a[4] + (b[4] * scale);
+	    out[5] = a[5] + (b[5] * scale);
+	    out[6] = a[6] + (b[6] * scale);
+	    out[7] = a[7] + (b[7] * scale);
+	    out[8] = a[8] + (b[8] * scale);
+	    return out;
+	};
+
+	/**
+	 * Returns whether or not the matrices have exactly the same elements in the same position (when compared with ===)
+	 *
+	 * @param {mat3} a The first matrix.
+	 * @param {mat3} b The second matrix.
+	 * @returns {Boolean} True if the matrices are equal, false otherwise.
+	 */
+	mat3.exactEquals = function (a, b) {
+	    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] &&
+	           a[3] === b[3] && a[4] === b[4] && a[5] === b[5] &&
+	           a[6] === b[6] && a[7] === b[7] && a[8] === b[8];
+	};
+
+	/**
+	 * Returns whether or not the matrices have approximately the same elements in the same position.
+	 *
+	 * @param {mat3} a The first matrix.
+	 * @param {mat3} b The second matrix.
+	 * @returns {Boolean} True if the matrices are equal, false otherwise.
+	 */
+	mat3.equals = function (a, b) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3], a4 = a[4], a5 = a[5], a6 = a[6], a7 = a[7], a8 = a[8];
+	    var b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3], b4 = b[4], b5 = b[5], b6 = a[6], b7 = b[7], b8 = b[8];
+	    return (Math.abs(a0 - b0) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
+	            Math.abs(a1 - b1) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a1), Math.abs(b1)) &&
+	            Math.abs(a2 - b2) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a2), Math.abs(b2)) &&
+	            Math.abs(a3 - b3) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a3), Math.abs(b3)) &&
+	            Math.abs(a4 - b4) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a4), Math.abs(b4)) &&
+	            Math.abs(a5 - b5) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a5), Math.abs(b5)) &&
+	            Math.abs(a6 - b6) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a6), Math.abs(b6)) &&
+	            Math.abs(a7 - b7) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a7), Math.abs(b7)) &&
+	            Math.abs(a8 - b8) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a8), Math.abs(b8)));
+	};
+
+
+	module.exports = mat3;
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE. */
+
+	var glMatrix = __webpack_require__(1);
+
+	/**
+	 * @class 4x4 Matrix
+	 * @name mat4
+	 */
+	var mat4 = {
+	  scalar: {},
+	  SIMD: {}
+	};
+
+	/**
+	 * Creates a new identity mat4
+	 *
+	 * @returns {mat4} a new 4x4 matrix
+	 */
+	mat4.create = function() {
+	    var out = new glMatrix.ARRAY_TYPE(16);
+	    out[0] = 1;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 0;
+	    out[4] = 0;
+	    out[5] = 1;
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = 0;
+	    out[9] = 0;
+	    out[10] = 1;
+	    out[11] = 0;
+	    out[12] = 0;
+	    out[13] = 0;
+	    out[14] = 0;
+	    out[15] = 1;
+	    return out;
+	};
+
+	/**
+	 * Creates a new mat4 initialized with values from an existing matrix
+	 *
+	 * @param {mat4} a matrix to clone
+	 * @returns {mat4} a new 4x4 matrix
+	 */
+	mat4.clone = function(a) {
+	    var out = new glMatrix.ARRAY_TYPE(16);
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    out[3] = a[3];
+	    out[4] = a[4];
+	    out[5] = a[5];
+	    out[6] = a[6];
+	    out[7] = a[7];
+	    out[8] = a[8];
+	    out[9] = a[9];
+	    out[10] = a[10];
+	    out[11] = a[11];
+	    out[12] = a[12];
+	    out[13] = a[13];
+	    out[14] = a[14];
+	    out[15] = a[15];
+	    return out;
+	};
+
+	/**
+	 * Copy the values from one mat4 to another
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the source matrix
+	 * @returns {mat4} out
+	 */
+	mat4.copy = function(out, a) {
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    out[3] = a[3];
+	    out[4] = a[4];
+	    out[5] = a[5];
+	    out[6] = a[6];
+	    out[7] = a[7];
+	    out[8] = a[8];
+	    out[9] = a[9];
+	    out[10] = a[10];
+	    out[11] = a[11];
+	    out[12] = a[12];
+	    out[13] = a[13];
+	    out[14] = a[14];
+	    out[15] = a[15];
+	    return out;
+	};
+
+	/**
+	 * Create a new mat4 with the given values
+	 *
+	 * @param {Number} m00 Component in column 0, row 0 position (index 0)
+	 * @param {Number} m01 Component in column 0, row 1 position (index 1)
+	 * @param {Number} m02 Component in column 0, row 2 position (index 2)
+	 * @param {Number} m03 Component in column 0, row 3 position (index 3)
+	 * @param {Number} m10 Component in column 1, row 0 position (index 4)
+	 * @param {Number} m11 Component in column 1, row 1 position (index 5)
+	 * @param {Number} m12 Component in column 1, row 2 position (index 6)
+	 * @param {Number} m13 Component in column 1, row 3 position (index 7)
+	 * @param {Number} m20 Component in column 2, row 0 position (index 8)
+	 * @param {Number} m21 Component in column 2, row 1 position (index 9)
+	 * @param {Number} m22 Component in column 2, row 2 position (index 10)
+	 * @param {Number} m23 Component in column 2, row 3 position (index 11)
+	 * @param {Number} m30 Component in column 3, row 0 position (index 12)
+	 * @param {Number} m31 Component in column 3, row 1 position (index 13)
+	 * @param {Number} m32 Component in column 3, row 2 position (index 14)
+	 * @param {Number} m33 Component in column 3, row 3 position (index 15)
+	 * @returns {mat4} A new mat4
+	 */
+	mat4.fromValues = function(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33) {
+	    var out = new glMatrix.ARRAY_TYPE(16);
+	    out[0] = m00;
+	    out[1] = m01;
+	    out[2] = m02;
+	    out[3] = m03;
+	    out[4] = m10;
+	    out[5] = m11;
+	    out[6] = m12;
+	    out[7] = m13;
+	    out[8] = m20;
+	    out[9] = m21;
+	    out[10] = m22;
+	    out[11] = m23;
+	    out[12] = m30;
+	    out[13] = m31;
+	    out[14] = m32;
+	    out[15] = m33;
+	    return out;
+	};
+
+	/**
+	 * Set the components of a mat4 to the given values
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {Number} m00 Component in column 0, row 0 position (index 0)
+	 * @param {Number} m01 Component in column 0, row 1 position (index 1)
+	 * @param {Number} m02 Component in column 0, row 2 position (index 2)
+	 * @param {Number} m03 Component in column 0, row 3 position (index 3)
+	 * @param {Number} m10 Component in column 1, row 0 position (index 4)
+	 * @param {Number} m11 Component in column 1, row 1 position (index 5)
+	 * @param {Number} m12 Component in column 1, row 2 position (index 6)
+	 * @param {Number} m13 Component in column 1, row 3 position (index 7)
+	 * @param {Number} m20 Component in column 2, row 0 position (index 8)
+	 * @param {Number} m21 Component in column 2, row 1 position (index 9)
+	 * @param {Number} m22 Component in column 2, row 2 position (index 10)
+	 * @param {Number} m23 Component in column 2, row 3 position (index 11)
+	 * @param {Number} m30 Component in column 3, row 0 position (index 12)
+	 * @param {Number} m31 Component in column 3, row 1 position (index 13)
+	 * @param {Number} m32 Component in column 3, row 2 position (index 14)
+	 * @param {Number} m33 Component in column 3, row 3 position (index 15)
+	 * @returns {mat4} out
+	 */
+	mat4.set = function(out, m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33) {
+	    out[0] = m00;
+	    out[1] = m01;
+	    out[2] = m02;
+	    out[3] = m03;
+	    out[4] = m10;
+	    out[5] = m11;
+	    out[6] = m12;
+	    out[7] = m13;
+	    out[8] = m20;
+	    out[9] = m21;
+	    out[10] = m22;
+	    out[11] = m23;
+	    out[12] = m30;
+	    out[13] = m31;
+	    out[14] = m32;
+	    out[15] = m33;
+	    return out;
+	};
+
+
+	/**
+	 * Set a mat4 to the identity matrix
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @returns {mat4} out
+	 */
+	mat4.identity = function(out) {
+	    out[0] = 1;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 0;
+	    out[4] = 0;
+	    out[5] = 1;
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = 0;
+	    out[9] = 0;
+	    out[10] = 1;
+	    out[11] = 0;
+	    out[12] = 0;
+	    out[13] = 0;
+	    out[14] = 0;
+	    out[15] = 1;
+	    return out;
+	};
+
+	/**
+	 * Transpose the values of a mat4 not using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the source matrix
+	 * @returns {mat4} out
+	 */
+	mat4.scalar.transpose = function(out, a) {
+	    // If we are transposing ourselves we can skip a few steps but have to cache some values
+	    if (out === a) {
+	        var a01 = a[1], a02 = a[2], a03 = a[3],
+	            a12 = a[6], a13 = a[7],
+	            a23 = a[11];
+
+	        out[1] = a[4];
+	        out[2] = a[8];
+	        out[3] = a[12];
+	        out[4] = a01;
+	        out[6] = a[9];
+	        out[7] = a[13];
+	        out[8] = a02;
+	        out[9] = a12;
+	        out[11] = a[14];
+	        out[12] = a03;
+	        out[13] = a13;
+	        out[14] = a23;
+	    } else {
+	        out[0] = a[0];
+	        out[1] = a[4];
+	        out[2] = a[8];
+	        out[3] = a[12];
+	        out[4] = a[1];
+	        out[5] = a[5];
+	        out[6] = a[9];
+	        out[7] = a[13];
+	        out[8] = a[2];
+	        out[9] = a[6];
+	        out[10] = a[10];
+	        out[11] = a[14];
+	        out[12] = a[3];
+	        out[13] = a[7];
+	        out[14] = a[11];
+	        out[15] = a[15];
+	    }
+
+	    return out;
+	};
+
+	/**
+	 * Transpose the values of a mat4 using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the source matrix
+	 * @returns {mat4} out
+	 */
+	mat4.SIMD.transpose = function(out, a) {
+	    var a0, a1, a2, a3,
+	        tmp01, tmp23,
+	        out0, out1, out2, out3;
+
+	    a0 = SIMD.Float32x4.load(a, 0);
+	    a1 = SIMD.Float32x4.load(a, 4);
+	    a2 = SIMD.Float32x4.load(a, 8);
+	    a3 = SIMD.Float32x4.load(a, 12);
+
+	    tmp01 = SIMD.Float32x4.shuffle(a0, a1, 0, 1, 4, 5);
+	    tmp23 = SIMD.Float32x4.shuffle(a2, a3, 0, 1, 4, 5);
+	    out0  = SIMD.Float32x4.shuffle(tmp01, tmp23, 0, 2, 4, 6);
+	    out1  = SIMD.Float32x4.shuffle(tmp01, tmp23, 1, 3, 5, 7);
+	    SIMD.Float32x4.store(out, 0,  out0);
+	    SIMD.Float32x4.store(out, 4,  out1);
+
+	    tmp01 = SIMD.Float32x4.shuffle(a0, a1, 2, 3, 6, 7);
+	    tmp23 = SIMD.Float32x4.shuffle(a2, a3, 2, 3, 6, 7);
+	    out2  = SIMD.Float32x4.shuffle(tmp01, tmp23, 0, 2, 4, 6);
+	    out3  = SIMD.Float32x4.shuffle(tmp01, tmp23, 1, 3, 5, 7);
+	    SIMD.Float32x4.store(out, 8,  out2);
+	    SIMD.Float32x4.store(out, 12, out3);
+
+	    return out;
+	};
+
+	/**
+	 * Transpse a mat4 using SIMD if available and enabled
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the source matrix
+	 * @returns {mat4} out
+	 */
+	mat4.transpose = glMatrix.USE_SIMD ? mat4.SIMD.transpose : mat4.scalar.transpose;
+
+	/**
+	 * Inverts a mat4 not using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the source matrix
+	 * @returns {mat4} out
+	 */
+	mat4.scalar.invert = function(out, a) {
+	    var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+	        a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
+	        a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
+	        a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15],
+
+	        b00 = a00 * a11 - a01 * a10,
+	        b01 = a00 * a12 - a02 * a10,
+	        b02 = a00 * a13 - a03 * a10,
+	        b03 = a01 * a12 - a02 * a11,
+	        b04 = a01 * a13 - a03 * a11,
+	        b05 = a02 * a13 - a03 * a12,
+	        b06 = a20 * a31 - a21 * a30,
+	        b07 = a20 * a32 - a22 * a30,
+	        b08 = a20 * a33 - a23 * a30,
+	        b09 = a21 * a32 - a22 * a31,
+	        b10 = a21 * a33 - a23 * a31,
+	        b11 = a22 * a33 - a23 * a32,
+
+	        // Calculate the determinant
+	        det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+
+	    if (!det) {
+	        return null;
+	    }
+	    det = 1.0 / det;
+
+	    out[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;
+	    out[1] = (a02 * b10 - a01 * b11 - a03 * b09) * det;
+	    out[2] = (a31 * b05 - a32 * b04 + a33 * b03) * det;
+	    out[3] = (a22 * b04 - a21 * b05 - a23 * b03) * det;
+	    out[4] = (a12 * b08 - a10 * b11 - a13 * b07) * det;
+	    out[5] = (a00 * b11 - a02 * b08 + a03 * b07) * det;
+	    out[6] = (a32 * b02 - a30 * b05 - a33 * b01) * det;
+	    out[7] = (a20 * b05 - a22 * b02 + a23 * b01) * det;
+	    out[8] = (a10 * b10 - a11 * b08 + a13 * b06) * det;
+	    out[9] = (a01 * b08 - a00 * b10 - a03 * b06) * det;
+	    out[10] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
+	    out[11] = (a21 * b02 - a20 * b04 - a23 * b00) * det;
+	    out[12] = (a11 * b07 - a10 * b09 - a12 * b06) * det;
+	    out[13] = (a00 * b09 - a01 * b07 + a02 * b06) * det;
+	    out[14] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
+	    out[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
+
+	    return out;
+	};
+
+	/**
+	 * Inverts a mat4 using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the source matrix
+	 * @returns {mat4} out
+	 */
+	mat4.SIMD.invert = function(out, a) {
+	  var row0, row1, row2, row3,
+	      tmp1,
+	      minor0, minor1, minor2, minor3,
+	      det,
+	      a0 = SIMD.Float32x4.load(a, 0),
+	      a1 = SIMD.Float32x4.load(a, 4),
+	      a2 = SIMD.Float32x4.load(a, 8),
+	      a3 = SIMD.Float32x4.load(a, 12);
+
+	  // Compute matrix adjugate
+	  tmp1 = SIMD.Float32x4.shuffle(a0, a1, 0, 1, 4, 5);
+	  row1 = SIMD.Float32x4.shuffle(a2, a3, 0, 1, 4, 5);
+	  row0 = SIMD.Float32x4.shuffle(tmp1, row1, 0, 2, 4, 6);
+	  row1 = SIMD.Float32x4.shuffle(row1, tmp1, 1, 3, 5, 7);
+	  tmp1 = SIMD.Float32x4.shuffle(a0, a1, 2, 3, 6, 7);
+	  row3 = SIMD.Float32x4.shuffle(a2, a3, 2, 3, 6, 7);
+	  row2 = SIMD.Float32x4.shuffle(tmp1, row3, 0, 2, 4, 6);
+	  row3 = SIMD.Float32x4.shuffle(row3, tmp1, 1, 3, 5, 7);
+
+	  tmp1   = SIMD.Float32x4.mul(row2, row3);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 1, 0, 3, 2);
+	  minor0 = SIMD.Float32x4.mul(row1, tmp1);
+	  minor1 = SIMD.Float32x4.mul(row0, tmp1);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 2, 3, 0, 1);
+	  minor0 = SIMD.Float32x4.sub(SIMD.Float32x4.mul(row1, tmp1), minor0);
+	  minor1 = SIMD.Float32x4.sub(SIMD.Float32x4.mul(row0, tmp1), minor1);
+	  minor1 = SIMD.Float32x4.swizzle(minor1, 2, 3, 0, 1);
+
+	  tmp1   = SIMD.Float32x4.mul(row1, row2);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 1, 0, 3, 2);
+	  minor0 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row3, tmp1), minor0);
+	  minor3 = SIMD.Float32x4.mul(row0, tmp1);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 2, 3, 0, 1);
+	  minor0 = SIMD.Float32x4.sub(minor0, SIMD.Float32x4.mul(row3, tmp1));
+	  minor3 = SIMD.Float32x4.sub(SIMD.Float32x4.mul(row0, tmp1), minor3);
+	  minor3 = SIMD.Float32x4.swizzle(minor3, 2, 3, 0, 1);
+
+	  tmp1   = SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(row1, 2, 3, 0, 1), row3);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 1, 0, 3, 2);
+	  row2   = SIMD.Float32x4.swizzle(row2, 2, 3, 0, 1);
+	  minor0 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row2, tmp1), minor0);
+	  minor2 = SIMD.Float32x4.mul(row0, tmp1);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 2, 3, 0, 1);
+	  minor0 = SIMD.Float32x4.sub(minor0, SIMD.Float32x4.mul(row2, tmp1));
+	  minor2 = SIMD.Float32x4.sub(SIMD.Float32x4.mul(row0, tmp1), minor2);
+	  minor2 = SIMD.Float32x4.swizzle(minor2, 2, 3, 0, 1);
+
+	  tmp1   = SIMD.Float32x4.mul(row0, row1);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 1, 0, 3, 2);
+	  minor2 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row3, tmp1), minor2);
+	  minor3 = SIMD.Float32x4.sub(SIMD.Float32x4.mul(row2, tmp1), minor3);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 2, 3, 0, 1);
+	  minor2 = SIMD.Float32x4.sub(SIMD.Float32x4.mul(row3, tmp1), minor2);
+	  minor3 = SIMD.Float32x4.sub(minor3, SIMD.Float32x4.mul(row2, tmp1));
+
+	  tmp1   = SIMD.Float32x4.mul(row0, row3);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 1, 0, 3, 2);
+	  minor1 = SIMD.Float32x4.sub(minor1, SIMD.Float32x4.mul(row2, tmp1));
+	  minor2 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row1, tmp1), minor2);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 2, 3, 0, 1);
+	  minor1 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row2, tmp1), minor1);
+	  minor2 = SIMD.Float32x4.sub(minor2, SIMD.Float32x4.mul(row1, tmp1));
+
+	  tmp1   = SIMD.Float32x4.mul(row0, row2);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 1, 0, 3, 2);
+	  minor1 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row3, tmp1), minor1);
+	  minor3 = SIMD.Float32x4.sub(minor3, SIMD.Float32x4.mul(row1, tmp1));
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 2, 3, 0, 1);
+	  minor1 = SIMD.Float32x4.sub(minor1, SIMD.Float32x4.mul(row3, tmp1));
+	  minor3 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row1, tmp1), minor3);
+
+	  // Compute matrix determinant
+	  det   = SIMD.Float32x4.mul(row0, minor0);
+	  det   = SIMD.Float32x4.add(SIMD.Float32x4.swizzle(det, 2, 3, 0, 1), det);
+	  det   = SIMD.Float32x4.add(SIMD.Float32x4.swizzle(det, 1, 0, 3, 2), det);
+	  tmp1  = SIMD.Float32x4.reciprocalApproximation(det);
+	  det   = SIMD.Float32x4.sub(
+	               SIMD.Float32x4.add(tmp1, tmp1),
+	               SIMD.Float32x4.mul(det, SIMD.Float32x4.mul(tmp1, tmp1)));
+	  det   = SIMD.Float32x4.swizzle(det, 0, 0, 0, 0);
+	  if (!det) {
+	      return null;
+	  }
+
+	  // Compute matrix inverse
+	  SIMD.Float32x4.store(out, 0,  SIMD.Float32x4.mul(det, minor0));
+	  SIMD.Float32x4.store(out, 4,  SIMD.Float32x4.mul(det, minor1));
+	  SIMD.Float32x4.store(out, 8,  SIMD.Float32x4.mul(det, minor2));
+	  SIMD.Float32x4.store(out, 12, SIMD.Float32x4.mul(det, minor3));
+	  return out;
+	}
+
+	/**
+	 * Inverts a mat4 using SIMD if available and enabled
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the source matrix
+	 * @returns {mat4} out
+	 */
+	mat4.invert = glMatrix.USE_SIMD ? mat4.SIMD.invert : mat4.scalar.invert;
+
+	/**
+	 * Calculates the adjugate of a mat4 not using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the source matrix
+	 * @returns {mat4} out
+	 */
+	mat4.scalar.adjoint = function(out, a) {
+	    var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+	        a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
+	        a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
+	        a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
+
+	    out[0]  =  (a11 * (a22 * a33 - a23 * a32) - a21 * (a12 * a33 - a13 * a32) + a31 * (a12 * a23 - a13 * a22));
+	    out[1]  = -(a01 * (a22 * a33 - a23 * a32) - a21 * (a02 * a33 - a03 * a32) + a31 * (a02 * a23 - a03 * a22));
+	    out[2]  =  (a01 * (a12 * a33 - a13 * a32) - a11 * (a02 * a33 - a03 * a32) + a31 * (a02 * a13 - a03 * a12));
+	    out[3]  = -(a01 * (a12 * a23 - a13 * a22) - a11 * (a02 * a23 - a03 * a22) + a21 * (a02 * a13 - a03 * a12));
+	    out[4]  = -(a10 * (a22 * a33 - a23 * a32) - a20 * (a12 * a33 - a13 * a32) + a30 * (a12 * a23 - a13 * a22));
+	    out[5]  =  (a00 * (a22 * a33 - a23 * a32) - a20 * (a02 * a33 - a03 * a32) + a30 * (a02 * a23 - a03 * a22));
+	    out[6]  = -(a00 * (a12 * a33 - a13 * a32) - a10 * (a02 * a33 - a03 * a32) + a30 * (a02 * a13 - a03 * a12));
+	    out[7]  =  (a00 * (a12 * a23 - a13 * a22) - a10 * (a02 * a23 - a03 * a22) + a20 * (a02 * a13 - a03 * a12));
+	    out[8]  =  (a10 * (a21 * a33 - a23 * a31) - a20 * (a11 * a33 - a13 * a31) + a30 * (a11 * a23 - a13 * a21));
+	    out[9]  = -(a00 * (a21 * a33 - a23 * a31) - a20 * (a01 * a33 - a03 * a31) + a30 * (a01 * a23 - a03 * a21));
+	    out[10] =  (a00 * (a11 * a33 - a13 * a31) - a10 * (a01 * a33 - a03 * a31) + a30 * (a01 * a13 - a03 * a11));
+	    out[11] = -(a00 * (a11 * a23 - a13 * a21) - a10 * (a01 * a23 - a03 * a21) + a20 * (a01 * a13 - a03 * a11));
+	    out[12] = -(a10 * (a21 * a32 - a22 * a31) - a20 * (a11 * a32 - a12 * a31) + a30 * (a11 * a22 - a12 * a21));
+	    out[13] =  (a00 * (a21 * a32 - a22 * a31) - a20 * (a01 * a32 - a02 * a31) + a30 * (a01 * a22 - a02 * a21));
+	    out[14] = -(a00 * (a11 * a32 - a12 * a31) - a10 * (a01 * a32 - a02 * a31) + a30 * (a01 * a12 - a02 * a11));
+	    out[15] =  (a00 * (a11 * a22 - a12 * a21) - a10 * (a01 * a22 - a02 * a21) + a20 * (a01 * a12 - a02 * a11));
+	    return out;
+	};
+
+	/**
+	 * Calculates the adjugate of a mat4 using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the source matrix
+	 * @returns {mat4} out
+	 */
+	mat4.SIMD.adjoint = function(out, a) {
+	  var a0, a1, a2, a3;
+	  var row0, row1, row2, row3;
+	  var tmp1;
+	  var minor0, minor1, minor2, minor3;
+
+	  a0 = SIMD.Float32x4.load(a, 0);
+	  a1 = SIMD.Float32x4.load(a, 4);
+	  a2 = SIMD.Float32x4.load(a, 8);
+	  a3 = SIMD.Float32x4.load(a, 12);
+
+	  // Transpose the source matrix.  Sort of.  Not a true transpose operation
+	  tmp1 = SIMD.Float32x4.shuffle(a0, a1, 0, 1, 4, 5);
+	  row1 = SIMD.Float32x4.shuffle(a2, a3, 0, 1, 4, 5);
+	  row0 = SIMD.Float32x4.shuffle(tmp1, row1, 0, 2, 4, 6);
+	  row1 = SIMD.Float32x4.shuffle(row1, tmp1, 1, 3, 5, 7);
+
+	  tmp1 = SIMD.Float32x4.shuffle(a0, a1, 2, 3, 6, 7);
+	  row3 = SIMD.Float32x4.shuffle(a2, a3, 2, 3, 6, 7);
+	  row2 = SIMD.Float32x4.shuffle(tmp1, row3, 0, 2, 4, 6);
+	  row3 = SIMD.Float32x4.shuffle(row3, tmp1, 1, 3, 5, 7);
+
+	  tmp1   = SIMD.Float32x4.mul(row2, row3);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 1, 0, 3, 2);
+	  minor0 = SIMD.Float32x4.mul(row1, tmp1);
+	  minor1 = SIMD.Float32x4.mul(row0, tmp1);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 2, 3, 0, 1);
+	  minor0 = SIMD.Float32x4.sub(SIMD.Float32x4.mul(row1, tmp1), minor0);
+	  minor1 = SIMD.Float32x4.sub(SIMD.Float32x4.mul(row0, tmp1), minor1);
+	  minor1 = SIMD.Float32x4.swizzle(minor1, 2, 3, 0, 1);
+
+	  tmp1   = SIMD.Float32x4.mul(row1, row2);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 1, 0, 3, 2);
+	  minor0 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row3, tmp1), minor0);
+	  minor3 = SIMD.Float32x4.mul(row0, tmp1);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 2, 3, 0, 1);
+	  minor0 = SIMD.Float32x4.sub(minor0, SIMD.Float32x4.mul(row3, tmp1));
+	  minor3 = SIMD.Float32x4.sub(SIMD.Float32x4.mul(row0, tmp1), minor3);
+	  minor3 = SIMD.Float32x4.swizzle(minor3, 2, 3, 0, 1);
+
+	  tmp1   = SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(row1, 2, 3, 0, 1), row3);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 1, 0, 3, 2);
+	  row2   = SIMD.Float32x4.swizzle(row2, 2, 3, 0, 1);
+	  minor0 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row2, tmp1), minor0);
+	  minor2 = SIMD.Float32x4.mul(row0, tmp1);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 2, 3, 0, 1);
+	  minor0 = SIMD.Float32x4.sub(minor0, SIMD.Float32x4.mul(row2, tmp1));
+	  minor2 = SIMD.Float32x4.sub(SIMD.Float32x4.mul(row0, tmp1), minor2);
+	  minor2 = SIMD.Float32x4.swizzle(minor2, 2, 3, 0, 1);
+
+	  tmp1   = SIMD.Float32x4.mul(row0, row1);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 1, 0, 3, 2);
+	  minor2 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row3, tmp1), minor2);
+	  minor3 = SIMD.Float32x4.sub(SIMD.Float32x4.mul(row2, tmp1), minor3);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 2, 3, 0, 1);
+	  minor2 = SIMD.Float32x4.sub(SIMD.Float32x4.mul(row3, tmp1), minor2);
+	  minor3 = SIMD.Float32x4.sub(minor3, SIMD.Float32x4.mul(row2, tmp1));
+
+	  tmp1   = SIMD.Float32x4.mul(row0, row3);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 1, 0, 3, 2);
+	  minor1 = SIMD.Float32x4.sub(minor1, SIMD.Float32x4.mul(row2, tmp1));
+	  minor2 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row1, tmp1), minor2);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 2, 3, 0, 1);
+	  minor1 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row2, tmp1), minor1);
+	  minor2 = SIMD.Float32x4.sub(minor2, SIMD.Float32x4.mul(row1, tmp1));
+
+	  tmp1   = SIMD.Float32x4.mul(row0, row2);
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 1, 0, 3, 2);
+	  minor1 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row3, tmp1), minor1);
+	  minor3 = SIMD.Float32x4.sub(minor3, SIMD.Float32x4.mul(row1, tmp1));
+	  tmp1   = SIMD.Float32x4.swizzle(tmp1, 2, 3, 0, 1);
+	  minor1 = SIMD.Float32x4.sub(minor1, SIMD.Float32x4.mul(row3, tmp1));
+	  minor3 = SIMD.Float32x4.add(SIMD.Float32x4.mul(row1, tmp1), minor3);
+
+	  SIMD.Float32x4.store(out, 0,  minor0);
+	  SIMD.Float32x4.store(out, 4,  minor1);
+	  SIMD.Float32x4.store(out, 8,  minor2);
+	  SIMD.Float32x4.store(out, 12, minor3);
+	  return out;
+	};
+
+	/**
+	 * Calculates the adjugate of a mat4 using SIMD if available and enabled
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the source matrix
+	 * @returns {mat4} out
+	 */
+	 mat4.adjoint = glMatrix.USE_SIMD ? mat4.SIMD.adjoint : mat4.scalar.adjoint;
+
+	/**
+	 * Calculates the determinant of a mat4
+	 *
+	 * @param {mat4} a the source matrix
+	 * @returns {Number} determinant of a
+	 */
+	mat4.determinant = function (a) {
+	    var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+	        a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
+	        a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
+	        a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15],
+
+	        b00 = a00 * a11 - a01 * a10,
+	        b01 = a00 * a12 - a02 * a10,
+	        b02 = a00 * a13 - a03 * a10,
+	        b03 = a01 * a12 - a02 * a11,
+	        b04 = a01 * a13 - a03 * a11,
+	        b05 = a02 * a13 - a03 * a12,
+	        b06 = a20 * a31 - a21 * a30,
+	        b07 = a20 * a32 - a22 * a30,
+	        b08 = a20 * a33 - a23 * a30,
+	        b09 = a21 * a32 - a22 * a31,
+	        b10 = a21 * a33 - a23 * a31,
+	        b11 = a22 * a33 - a23 * a32;
+
+	    // Calculate the determinant
+	    return b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+	};
+
+	/**
+	 * Multiplies two mat4's explicitly using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the first operand, must be a Float32Array
+	 * @param {mat4} b the second operand, must be a Float32Array
+	 * @returns {mat4} out
+	 */
+	mat4.SIMD.multiply = function (out, a, b) {
+	    var a0 = SIMD.Float32x4.load(a, 0);
+	    var a1 = SIMD.Float32x4.load(a, 4);
+	    var a2 = SIMD.Float32x4.load(a, 8);
+	    var a3 = SIMD.Float32x4.load(a, 12);
+
+	    var b0 = SIMD.Float32x4.load(b, 0);
+	    var out0 = SIMD.Float32x4.add(
+	                   SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b0, 0, 0, 0, 0), a0),
+	                   SIMD.Float32x4.add(
+	                       SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b0, 1, 1, 1, 1), a1),
+	                       SIMD.Float32x4.add(
+	                           SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b0, 2, 2, 2, 2), a2),
+	                           SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b0, 3, 3, 3, 3), a3))));
+	    SIMD.Float32x4.store(out, 0, out0);
+
+	    var b1 = SIMD.Float32x4.load(b, 4);
+	    var out1 = SIMD.Float32x4.add(
+	                   SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b1, 0, 0, 0, 0), a0),
+	                   SIMD.Float32x4.add(
+	                       SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b1, 1, 1, 1, 1), a1),
+	                       SIMD.Float32x4.add(
+	                           SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b1, 2, 2, 2, 2), a2),
+	                           SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b1, 3, 3, 3, 3), a3))));
+	    SIMD.Float32x4.store(out, 4, out1);
+
+	    var b2 = SIMD.Float32x4.load(b, 8);
+	    var out2 = SIMD.Float32x4.add(
+	                   SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b2, 0, 0, 0, 0), a0),
+	                   SIMD.Float32x4.add(
+	                       SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b2, 1, 1, 1, 1), a1),
+	                       SIMD.Float32x4.add(
+	                               SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b2, 2, 2, 2, 2), a2),
+	                               SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b2, 3, 3, 3, 3), a3))));
+	    SIMD.Float32x4.store(out, 8, out2);
+
+	    var b3 = SIMD.Float32x4.load(b, 12);
+	    var out3 = SIMD.Float32x4.add(
+	                   SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b3, 0, 0, 0, 0), a0),
+	                   SIMD.Float32x4.add(
+	                        SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b3, 1, 1, 1, 1), a1),
+	                        SIMD.Float32x4.add(
+	                            SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b3, 2, 2, 2, 2), a2),
+	                            SIMD.Float32x4.mul(SIMD.Float32x4.swizzle(b3, 3, 3, 3, 3), a3))));
+	    SIMD.Float32x4.store(out, 12, out3);
+
+	    return out;
+	};
+
+	/**
+	 * Multiplies two mat4's explicitly not using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the first operand
+	 * @param {mat4} b the second operand
+	 * @returns {mat4} out
+	 */
+	mat4.scalar.multiply = function (out, a, b) {
+	    var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+	        a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
+	        a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
+	        a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
+
+	    // Cache only the current line of the second matrix
+	    var b0  = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+	    out[0] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
+	    out[1] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
+	    out[2] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
+	    out[3] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+
+	    b0 = b[4]; b1 = b[5]; b2 = b[6]; b3 = b[7];
+	    out[4] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
+	    out[5] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
+	    out[6] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
+	    out[7] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+
+	    b0 = b[8]; b1 = b[9]; b2 = b[10]; b3 = b[11];
+	    out[8] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
+	    out[9] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
+	    out[10] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
+	    out[11] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+
+	    b0 = b[12]; b1 = b[13]; b2 = b[14]; b3 = b[15];
+	    out[12] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
+	    out[13] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
+	    out[14] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
+	    out[15] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+	    return out;
+	};
+
+	/**
+	 * Multiplies two mat4's using SIMD if available and enabled
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the first operand
+	 * @param {mat4} b the second operand
+	 * @returns {mat4} out
+	 */
+	mat4.multiply = glMatrix.USE_SIMD ? mat4.SIMD.multiply : mat4.scalar.multiply;
+
+	/**
+	 * Alias for {@link mat4.multiply}
+	 * @function
+	 */
+	mat4.mul = mat4.multiply;
+
+	/**
+	 * Translate a mat4 by the given vector not using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to translate
+	 * @param {vec3} v vector to translate by
+	 * @returns {mat4} out
+	 */
+	mat4.scalar.translate = function (out, a, v) {
+	    var x = v[0], y = v[1], z = v[2],
+	        a00, a01, a02, a03,
+	        a10, a11, a12, a13,
+	        a20, a21, a22, a23;
+
+	    if (a === out) {
+	        out[12] = a[0] * x + a[4] * y + a[8] * z + a[12];
+	        out[13] = a[1] * x + a[5] * y + a[9] * z + a[13];
+	        out[14] = a[2] * x + a[6] * y + a[10] * z + a[14];
+	        out[15] = a[3] * x + a[7] * y + a[11] * z + a[15];
+	    } else {
+	        a00 = a[0]; a01 = a[1]; a02 = a[2]; a03 = a[3];
+	        a10 = a[4]; a11 = a[5]; a12 = a[6]; a13 = a[7];
+	        a20 = a[8]; a21 = a[9]; a22 = a[10]; a23 = a[11];
+
+	        out[0] = a00; out[1] = a01; out[2] = a02; out[3] = a03;
+	        out[4] = a10; out[5] = a11; out[6] = a12; out[7] = a13;
+	        out[8] = a20; out[9] = a21; out[10] = a22; out[11] = a23;
+
+	        out[12] = a00 * x + a10 * y + a20 * z + a[12];
+	        out[13] = a01 * x + a11 * y + a21 * z + a[13];
+	        out[14] = a02 * x + a12 * y + a22 * z + a[14];
+	        out[15] = a03 * x + a13 * y + a23 * z + a[15];
+	    }
+
+	    return out;
+	};
+
+	/**
+	 * Translates a mat4 by the given vector using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to translate
+	 * @param {vec3} v vector to translate by
+	 * @returns {mat4} out
+	 */
+	mat4.SIMD.translate = function (out, a, v) {
+	    var a0 = SIMD.Float32x4.load(a, 0),
+	        a1 = SIMD.Float32x4.load(a, 4),
+	        a2 = SIMD.Float32x4.load(a, 8),
+	        a3 = SIMD.Float32x4.load(a, 12),
+	        vec = SIMD.Float32x4(v[0], v[1], v[2] , 0);
+
+	    if (a !== out) {
+	        out[0] = a[0]; out[1] = a[1]; out[2] = a[2]; out[3] = a[3];
+	        out[4] = a[4]; out[5] = a[5]; out[6] = a[6]; out[7] = a[7];
+	        out[8] = a[8]; out[9] = a[9]; out[10] = a[10]; out[11] = a[11];
+	    }
+
+	    a0 = SIMD.Float32x4.mul(a0, SIMD.Float32x4.swizzle(vec, 0, 0, 0, 0));
+	    a1 = SIMD.Float32x4.mul(a1, SIMD.Float32x4.swizzle(vec, 1, 1, 1, 1));
+	    a2 = SIMD.Float32x4.mul(a2, SIMD.Float32x4.swizzle(vec, 2, 2, 2, 2));
+
+	    var t0 = SIMD.Float32x4.add(a0, SIMD.Float32x4.add(a1, SIMD.Float32x4.add(a2, a3)));
+	    SIMD.Float32x4.store(out, 12, t0);
+
+	    return out;
+	};
+
+	/**
+	 * Translates a mat4 by the given vector using SIMD if available and enabled
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to translate
+	 * @param {vec3} v vector to translate by
+	 * @returns {mat4} out
+	 */
+	mat4.translate = glMatrix.USE_SIMD ? mat4.SIMD.translate : mat4.scalar.translate;
+
+	/**
+	 * Scales the mat4 by the dimensions in the given vec3 not using vectorization
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to scale
+	 * @param {vec3} v the vec3 to scale the matrix by
+	 * @returns {mat4} out
+	 **/
+	mat4.scalar.scale = function(out, a, v) {
+	    var x = v[0], y = v[1], z = v[2];
+
+	    out[0] = a[0] * x;
+	    out[1] = a[1] * x;
+	    out[2] = a[2] * x;
+	    out[3] = a[3] * x;
+	    out[4] = a[4] * y;
+	    out[5] = a[5] * y;
+	    out[6] = a[6] * y;
+	    out[7] = a[7] * y;
+	    out[8] = a[8] * z;
+	    out[9] = a[9] * z;
+	    out[10] = a[10] * z;
+	    out[11] = a[11] * z;
+	    out[12] = a[12];
+	    out[13] = a[13];
+	    out[14] = a[14];
+	    out[15] = a[15];
+	    return out;
+	};
+
+	/**
+	 * Scales the mat4 by the dimensions in the given vec3 using vectorization
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to scale
+	 * @param {vec3} v the vec3 to scale the matrix by
+	 * @returns {mat4} out
+	 **/
+	mat4.SIMD.scale = function(out, a, v) {
+	    var a0, a1, a2;
+	    var vec = SIMD.Float32x4(v[0], v[1], v[2], 0);
+
+	    a0 = SIMD.Float32x4.load(a, 0);
+	    SIMD.Float32x4.store(
+	        out, 0, SIMD.Float32x4.mul(a0, SIMD.Float32x4.swizzle(vec, 0, 0, 0, 0)));
+
+	    a1 = SIMD.Float32x4.load(a, 4);
+	    SIMD.Float32x4.store(
+	        out, 4, SIMD.Float32x4.mul(a1, SIMD.Float32x4.swizzle(vec, 1, 1, 1, 1)));
+
+	    a2 = SIMD.Float32x4.load(a, 8);
+	    SIMD.Float32x4.store(
+	        out, 8, SIMD.Float32x4.mul(a2, SIMD.Float32x4.swizzle(vec, 2, 2, 2, 2)));
+
+	    out[12] = a[12];
+	    out[13] = a[13];
+	    out[14] = a[14];
+	    out[15] = a[15];
+	    return out;
+	};
+
+	/**
+	 * Scales the mat4 by the dimensions in the given vec3 using SIMD if available and enabled
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to scale
+	 * @param {vec3} v the vec3 to scale the matrix by
+	 * @returns {mat4} out
+	 */
+	mat4.scale = glMatrix.USE_SIMD ? mat4.SIMD.scale : mat4.scalar.scale;
+
+	/**
+	 * Rotates a mat4 by the given angle around the given axis
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @param {vec3} axis the axis to rotate around
+	 * @returns {mat4} out
+	 */
+	mat4.rotate = function (out, a, rad, axis) {
+	    var x = axis[0], y = axis[1], z = axis[2],
+	        len = Math.sqrt(x * x + y * y + z * z),
+	        s, c, t,
+	        a00, a01, a02, a03,
+	        a10, a11, a12, a13,
+	        a20, a21, a22, a23,
+	        b00, b01, b02,
+	        b10, b11, b12,
+	        b20, b21, b22;
+
+	    if (Math.abs(len) < glMatrix.EPSILON) { return null; }
+
+	    len = 1 / len;
+	    x *= len;
+	    y *= len;
+	    z *= len;
+
+	    s = Math.sin(rad);
+	    c = Math.cos(rad);
+	    t = 1 - c;
+
+	    a00 = a[0]; a01 = a[1]; a02 = a[2]; a03 = a[3];
+	    a10 = a[4]; a11 = a[5]; a12 = a[6]; a13 = a[7];
+	    a20 = a[8]; a21 = a[9]; a22 = a[10]; a23 = a[11];
+
+	    // Construct the elements of the rotation matrix
+	    b00 = x * x * t + c; b01 = y * x * t + z * s; b02 = z * x * t - y * s;
+	    b10 = x * y * t - z * s; b11 = y * y * t + c; b12 = z * y * t + x * s;
+	    b20 = x * z * t + y * s; b21 = y * z * t - x * s; b22 = z * z * t + c;
+
+	    // Perform rotation-specific matrix multiplication
+	    out[0] = a00 * b00 + a10 * b01 + a20 * b02;
+	    out[1] = a01 * b00 + a11 * b01 + a21 * b02;
+	    out[2] = a02 * b00 + a12 * b01 + a22 * b02;
+	    out[3] = a03 * b00 + a13 * b01 + a23 * b02;
+	    out[4] = a00 * b10 + a10 * b11 + a20 * b12;
+	    out[5] = a01 * b10 + a11 * b11 + a21 * b12;
+	    out[6] = a02 * b10 + a12 * b11 + a22 * b12;
+	    out[7] = a03 * b10 + a13 * b11 + a23 * b12;
+	    out[8] = a00 * b20 + a10 * b21 + a20 * b22;
+	    out[9] = a01 * b20 + a11 * b21 + a21 * b22;
+	    out[10] = a02 * b20 + a12 * b21 + a22 * b22;
+	    out[11] = a03 * b20 + a13 * b21 + a23 * b22;
+
+	    if (a !== out) { // If the source and destination differ, copy the unchanged last row
+	        out[12] = a[12];
+	        out[13] = a[13];
+	        out[14] = a[14];
+	        out[15] = a[15];
+	    }
+	    return out;
+	};
+
+	/**
+	 * Rotates a matrix by the given angle around the X axis not using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat4} out
+	 */
+	mat4.scalar.rotateX = function (out, a, rad) {
+	    var s = Math.sin(rad),
+	        c = Math.cos(rad),
+	        a10 = a[4],
+	        a11 = a[5],
+	        a12 = a[6],
+	        a13 = a[7],
+	        a20 = a[8],
+	        a21 = a[9],
+	        a22 = a[10],
+	        a23 = a[11];
+
+	    if (a !== out) { // If the source and destination differ, copy the unchanged rows
+	        out[0]  = a[0];
+	        out[1]  = a[1];
+	        out[2]  = a[2];
+	        out[3]  = a[3];
+	        out[12] = a[12];
+	        out[13] = a[13];
+	        out[14] = a[14];
+	        out[15] = a[15];
+	    }
+
+	    // Perform axis-specific matrix multiplication
+	    out[4] = a10 * c + a20 * s;
+	    out[5] = a11 * c + a21 * s;
+	    out[6] = a12 * c + a22 * s;
+	    out[7] = a13 * c + a23 * s;
+	    out[8] = a20 * c - a10 * s;
+	    out[9] = a21 * c - a11 * s;
+	    out[10] = a22 * c - a12 * s;
+	    out[11] = a23 * c - a13 * s;
+	    return out;
+	};
+
+	/**
+	 * Rotates a matrix by the given angle around the X axis using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat4} out
+	 */
+	mat4.SIMD.rotateX = function (out, a, rad) {
+	    var s = SIMD.Float32x4.splat(Math.sin(rad)),
+	        c = SIMD.Float32x4.splat(Math.cos(rad));
+
+	    if (a !== out) { // If the source and destination differ, copy the unchanged rows
+	      out[0]  = a[0];
+	      out[1]  = a[1];
+	      out[2]  = a[2];
+	      out[3]  = a[3];
+	      out[12] = a[12];
+	      out[13] = a[13];
+	      out[14] = a[14];
+	      out[15] = a[15];
+	    }
+
+	    // Perform axis-specific matrix multiplication
+	    var a_1 = SIMD.Float32x4.load(a, 4);
+	    var a_2 = SIMD.Float32x4.load(a, 8);
+	    SIMD.Float32x4.store(out, 4,
+	                         SIMD.Float32x4.add(SIMD.Float32x4.mul(a_1, c), SIMD.Float32x4.mul(a_2, s)));
+	    SIMD.Float32x4.store(out, 8,
+	                         SIMD.Float32x4.sub(SIMD.Float32x4.mul(a_2, c), SIMD.Float32x4.mul(a_1, s)));
+	    return out;
+	};
+
+	/**
+	 * Rotates a matrix by the given angle around the X axis using SIMD if availabe and enabled
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat4} out
+	 */
+	mat4.rotateX = glMatrix.USE_SIMD ? mat4.SIMD.rotateX : mat4.scalar.rotateX;
+
+	/**
+	 * Rotates a matrix by the given angle around the Y axis not using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat4} out
+	 */
+	mat4.scalar.rotateY = function (out, a, rad) {
+	    var s = Math.sin(rad),
+	        c = Math.cos(rad),
+	        a00 = a[0],
+	        a01 = a[1],
+	        a02 = a[2],
+	        a03 = a[3],
+	        a20 = a[8],
+	        a21 = a[9],
+	        a22 = a[10],
+	        a23 = a[11];
+
+	    if (a !== out) { // If the source and destination differ, copy the unchanged rows
+	        out[4]  = a[4];
+	        out[5]  = a[5];
+	        out[6]  = a[6];
+	        out[7]  = a[7];
+	        out[12] = a[12];
+	        out[13] = a[13];
+	        out[14] = a[14];
+	        out[15] = a[15];
+	    }
+
+	    // Perform axis-specific matrix multiplication
+	    out[0] = a00 * c - a20 * s;
+	    out[1] = a01 * c - a21 * s;
+	    out[2] = a02 * c - a22 * s;
+	    out[3] = a03 * c - a23 * s;
+	    out[8] = a00 * s + a20 * c;
+	    out[9] = a01 * s + a21 * c;
+	    out[10] = a02 * s + a22 * c;
+	    out[11] = a03 * s + a23 * c;
+	    return out;
+	};
+
+	/**
+	 * Rotates a matrix by the given angle around the Y axis using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat4} out
+	 */
+	mat4.SIMD.rotateY = function (out, a, rad) {
+	    var s = SIMD.Float32x4.splat(Math.sin(rad)),
+	        c = SIMD.Float32x4.splat(Math.cos(rad));
+
+	    if (a !== out) { // If the source and destination differ, copy the unchanged rows
+	        out[4]  = a[4];
+	        out[5]  = a[5];
+	        out[6]  = a[6];
+	        out[7]  = a[7];
+	        out[12] = a[12];
+	        out[13] = a[13];
+	        out[14] = a[14];
+	        out[15] = a[15];
+	    }
+
+	    // Perform axis-specific matrix multiplication
+	    var a_0 = SIMD.Float32x4.load(a, 0);
+	    var a_2 = SIMD.Float32x4.load(a, 8);
+	    SIMD.Float32x4.store(out, 0,
+	                         SIMD.Float32x4.sub(SIMD.Float32x4.mul(a_0, c), SIMD.Float32x4.mul(a_2, s)));
+	    SIMD.Float32x4.store(out, 8,
+	                         SIMD.Float32x4.add(SIMD.Float32x4.mul(a_0, s), SIMD.Float32x4.mul(a_2, c)));
+	    return out;
+	};
+
+	/**
+	 * Rotates a matrix by the given angle around the Y axis if SIMD available and enabled
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat4} out
+	 */
+	 mat4.rotateY = glMatrix.USE_SIMD ? mat4.SIMD.rotateY : mat4.scalar.rotateY;
+
+	/**
+	 * Rotates a matrix by the given angle around the Z axis not using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat4} out
+	 */
+	mat4.scalar.rotateZ = function (out, a, rad) {
+	    var s = Math.sin(rad),
+	        c = Math.cos(rad),
+	        a00 = a[0],
+	        a01 = a[1],
+	        a02 = a[2],
+	        a03 = a[3],
+	        a10 = a[4],
+	        a11 = a[5],
+	        a12 = a[6],
+	        a13 = a[7];
+
+	    if (a !== out) { // If the source and destination differ, copy the unchanged last row
+	        out[8]  = a[8];
+	        out[9]  = a[9];
+	        out[10] = a[10];
+	        out[11] = a[11];
+	        out[12] = a[12];
+	        out[13] = a[13];
+	        out[14] = a[14];
+	        out[15] = a[15];
+	    }
+
+	    // Perform axis-specific matrix multiplication
+	    out[0] = a00 * c + a10 * s;
+	    out[1] = a01 * c + a11 * s;
+	    out[2] = a02 * c + a12 * s;
+	    out[3] = a03 * c + a13 * s;
+	    out[4] = a10 * c - a00 * s;
+	    out[5] = a11 * c - a01 * s;
+	    out[6] = a12 * c - a02 * s;
+	    out[7] = a13 * c - a03 * s;
+	    return out;
+	};
+
+	/**
+	 * Rotates a matrix by the given angle around the Z axis using SIMD
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat4} out
+	 */
+	mat4.SIMD.rotateZ = function (out, a, rad) {
+	    var s = SIMD.Float32x4.splat(Math.sin(rad)),
+	        c = SIMD.Float32x4.splat(Math.cos(rad));
+
+	    if (a !== out) { // If the source and destination differ, copy the unchanged last row
+	        out[8]  = a[8];
+	        out[9]  = a[9];
+	        out[10] = a[10];
+	        out[11] = a[11];
+	        out[12] = a[12];
+	        out[13] = a[13];
+	        out[14] = a[14];
+	        out[15] = a[15];
+	    }
+
+	    // Perform axis-specific matrix multiplication
+	    var a_0 = SIMD.Float32x4.load(a, 0);
+	    var a_1 = SIMD.Float32x4.load(a, 4);
+	    SIMD.Float32x4.store(out, 0,
+	                         SIMD.Float32x4.add(SIMD.Float32x4.mul(a_0, c), SIMD.Float32x4.mul(a_1, s)));
+	    SIMD.Float32x4.store(out, 4,
+	                         SIMD.Float32x4.sub(SIMD.Float32x4.mul(a_1, c), SIMD.Float32x4.mul(a_0, s)));
+	    return out;
+	};
+
+	/**
+	 * Rotates a matrix by the given angle around the Z axis if SIMD available and enabled
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat4} out
+	 */
+	 mat4.rotateZ = glMatrix.USE_SIMD ? mat4.SIMD.rotateZ : mat4.scalar.rotateZ;
+
+	/**
+	 * Creates a matrix from a vector translation
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat4.identity(dest);
+	 *     mat4.translate(dest, dest, vec);
+	 *
+	 * @param {mat4} out mat4 receiving operation result
+	 * @param {vec3} v Translation vector
+	 * @returns {mat4} out
+	 */
+	mat4.fromTranslation = function(out, v) {
+	    out[0] = 1;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 0;
+	    out[4] = 0;
+	    out[5] = 1;
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = 0;
+	    out[9] = 0;
+	    out[10] = 1;
+	    out[11] = 0;
+	    out[12] = v[0];
+	    out[13] = v[1];
+	    out[14] = v[2];
+	    out[15] = 1;
+	    return out;
+	}
+
+	/**
+	 * Creates a matrix from a vector scaling
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat4.identity(dest);
+	 *     mat4.scale(dest, dest, vec);
+	 *
+	 * @param {mat4} out mat4 receiving operation result
+	 * @param {vec3} v Scaling vector
+	 * @returns {mat4} out
+	 */
+	mat4.fromScaling = function(out, v) {
+	    out[0] = v[0];
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 0;
+	    out[4] = 0;
+	    out[5] = v[1];
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = 0;
+	    out[9] = 0;
+	    out[10] = v[2];
+	    out[11] = 0;
+	    out[12] = 0;
+	    out[13] = 0;
+	    out[14] = 0;
+	    out[15] = 1;
+	    return out;
+	}
+
+	/**
+	 * Creates a matrix from a given angle around a given axis
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat4.identity(dest);
+	 *     mat4.rotate(dest, dest, rad, axis);
+	 *
+	 * @param {mat4} out mat4 receiving operation result
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @param {vec3} axis the axis to rotate around
+	 * @returns {mat4} out
+	 */
+	mat4.fromRotation = function(out, rad, axis) {
+	    var x = axis[0], y = axis[1], z = axis[2],
+	        len = Math.sqrt(x * x + y * y + z * z),
+	        s, c, t;
+
+	    if (Math.abs(len) < glMatrix.EPSILON) { return null; }
+
+	    len = 1 / len;
+	    x *= len;
+	    y *= len;
+	    z *= len;
+
+	    s = Math.sin(rad);
+	    c = Math.cos(rad);
+	    t = 1 - c;
+
+	    // Perform rotation-specific matrix multiplication
+	    out[0] = x * x * t + c;
+	    out[1] = y * x * t + z * s;
+	    out[2] = z * x * t - y * s;
+	    out[3] = 0;
+	    out[4] = x * y * t - z * s;
+	    out[5] = y * y * t + c;
+	    out[6] = z * y * t + x * s;
+	    out[7] = 0;
+	    out[8] = x * z * t + y * s;
+	    out[9] = y * z * t - x * s;
+	    out[10] = z * z * t + c;
+	    out[11] = 0;
+	    out[12] = 0;
+	    out[13] = 0;
+	    out[14] = 0;
+	    out[15] = 1;
+	    return out;
+	}
+
+	/**
+	 * Creates a matrix from the given angle around the X axis
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat4.identity(dest);
+	 *     mat4.rotateX(dest, dest, rad);
+	 *
+	 * @param {mat4} out mat4 receiving operation result
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat4} out
+	 */
+	mat4.fromXRotation = function(out, rad) {
+	    var s = Math.sin(rad),
+	        c = Math.cos(rad);
+
+	    // Perform axis-specific matrix multiplication
+	    out[0]  = 1;
+	    out[1]  = 0;
+	    out[2]  = 0;
+	    out[3]  = 0;
+	    out[4] = 0;
+	    out[5] = c;
+	    out[6] = s;
+	    out[7] = 0;
+	    out[8] = 0;
+	    out[9] = -s;
+	    out[10] = c;
+	    out[11] = 0;
+	    out[12] = 0;
+	    out[13] = 0;
+	    out[14] = 0;
+	    out[15] = 1;
+	    return out;
+	}
+
+	/**
+	 * Creates a matrix from the given angle around the Y axis
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat4.identity(dest);
+	 *     mat4.rotateY(dest, dest, rad);
+	 *
+	 * @param {mat4} out mat4 receiving operation result
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat4} out
+	 */
+	mat4.fromYRotation = function(out, rad) {
+	    var s = Math.sin(rad),
+	        c = Math.cos(rad);
+
+	    // Perform axis-specific matrix multiplication
+	    out[0]  = c;
+	    out[1]  = 0;
+	    out[2]  = -s;
+	    out[3]  = 0;
+	    out[4] = 0;
+	    out[5] = 1;
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = s;
+	    out[9] = 0;
+	    out[10] = c;
+	    out[11] = 0;
+	    out[12] = 0;
+	    out[13] = 0;
+	    out[14] = 0;
+	    out[15] = 1;
+	    return out;
+	}
+
+	/**
+	 * Creates a matrix from the given angle around the Z axis
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat4.identity(dest);
+	 *     mat4.rotateZ(dest, dest, rad);
+	 *
+	 * @param {mat4} out mat4 receiving operation result
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat4} out
+	 */
+	mat4.fromZRotation = function(out, rad) {
+	    var s = Math.sin(rad),
+	        c = Math.cos(rad);
+
+	    // Perform axis-specific matrix multiplication
+	    out[0]  = c;
+	    out[1]  = s;
+	    out[2]  = 0;
+	    out[3]  = 0;
+	    out[4] = -s;
+	    out[5] = c;
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = 0;
+	    out[9] = 0;
+	    out[10] = 1;
+	    out[11] = 0;
+	    out[12] = 0;
+	    out[13] = 0;
+	    out[14] = 0;
+	    out[15] = 1;
+	    return out;
+	}
+
+	/**
+	 * Creates a matrix from a quaternion rotation and vector translation
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat4.identity(dest);
+	 *     mat4.translate(dest, vec);
+	 *     var quatMat = mat4.create();
+	 *     quat4.toMat4(quat, quatMat);
+	 *     mat4.multiply(dest, quatMat);
+	 *
+	 * @param {mat4} out mat4 receiving operation result
+	 * @param {quat4} q Rotation quaternion
+	 * @param {vec3} v Translation vector
+	 * @returns {mat4} out
+	 */
+	mat4.fromRotationTranslation = function (out, q, v) {
+	    // Quaternion math
+	    var x = q[0], y = q[1], z = q[2], w = q[3],
+	        x2 = x + x,
+	        y2 = y + y,
+	        z2 = z + z,
+
+	        xx = x * x2,
+	        xy = x * y2,
+	        xz = x * z2,
+	        yy = y * y2,
+	        yz = y * z2,
+	        zz = z * z2,
+	        wx = w * x2,
+	        wy = w * y2,
+	        wz = w * z2;
+
+	    out[0] = 1 - (yy + zz);
+	    out[1] = xy + wz;
+	    out[2] = xz - wy;
+	    out[3] = 0;
+	    out[4] = xy - wz;
+	    out[5] = 1 - (xx + zz);
+	    out[6] = yz + wx;
+	    out[7] = 0;
+	    out[8] = xz + wy;
+	    out[9] = yz - wx;
+	    out[10] = 1 - (xx + yy);
+	    out[11] = 0;
+	    out[12] = v[0];
+	    out[13] = v[1];
+	    out[14] = v[2];
+	    out[15] = 1;
+
+	    return out;
+	};
+
+	/**
+	 * Returns the translation vector component of a transformation
+	 *  matrix. If a matrix is built with fromRotationTranslation,
+	 *  the returned vector will be the same as the translation vector
+	 *  originally supplied.
+	 * @param  {vec3} out Vector to receive translation component
+	 * @param  {mat4} mat Matrix to be decomposed (input)
+	 * @return {vec3} out
+	 */
+	mat4.getTranslation = function (out, mat) {
+	  out[0] = mat[12];
+	  out[1] = mat[13];
+	  out[2] = mat[14];
+
+	  return out;
+	};
+
+	/**
+	 * Returns a quaternion representing the rotational component
+	 *  of a transformation matrix. If a matrix is built with
+	 *  fromRotationTranslation, the returned quaternion will be the
+	 *  same as the quaternion originally supplied.
+	 * @param {quat} out Quaternion to receive the rotation component
+	 * @param {mat4} mat Matrix to be decomposed (input)
+	 * @return {quat} out
+	 */
+	mat4.getRotation = function (out, mat) {
+	  // Algorithm taken from http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+	  var trace = mat[0] + mat[5] + mat[10];
+	  var S = 0;
+
+	  if (trace > 0) { 
+	    S = Math.sqrt(trace + 1.0) * 2;
+	    out[3] = 0.25 * S;
+	    out[0] = (mat[6] - mat[9]) / S;
+	    out[1] = (mat[8] - mat[2]) / S; 
+	    out[2] = (mat[1] - mat[4]) / S; 
+	  } else if ((mat[0] > mat[5])&(mat[0] > mat[10])) { 
+	    S = Math.sqrt(1.0 + mat[0] - mat[5] - mat[10]) * 2;
+	    out[3] = (mat[6] - mat[9]) / S;
+	    out[0] = 0.25 * S;
+	    out[1] = (mat[1] + mat[4]) / S; 
+	    out[2] = (mat[8] + mat[2]) / S; 
+	  } else if (mat[5] > mat[10]) { 
+	    S = Math.sqrt(1.0 + mat[5] - mat[0] - mat[10]) * 2;
+	    out[3] = (mat[8] - mat[2]) / S;
+	    out[0] = (mat[1] + mat[4]) / S; 
+	    out[1] = 0.25 * S;
+	    out[2] = (mat[6] + mat[9]) / S; 
+	  } else { 
+	    S = Math.sqrt(1.0 + mat[10] - mat[0] - mat[5]) * 2;
+	    out[3] = (mat[1] - mat[4]) / S;
+	    out[0] = (mat[8] + mat[2]) / S;
+	    out[1] = (mat[6] + mat[9]) / S;
+	    out[2] = 0.25 * S;
+	  }
+
+	  return out;
+	};
+
+	/**
+	 * Creates a matrix from a quaternion rotation, vector translation and vector scale
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat4.identity(dest);
+	 *     mat4.translate(dest, vec);
+	 *     var quatMat = mat4.create();
+	 *     quat4.toMat4(quat, quatMat);
+	 *     mat4.multiply(dest, quatMat);
+	 *     mat4.scale(dest, scale)
+	 *
+	 * @param {mat4} out mat4 receiving operation result
+	 * @param {quat4} q Rotation quaternion
+	 * @param {vec3} v Translation vector
+	 * @param {vec3} s Scaling vector
+	 * @returns {mat4} out
+	 */
+	mat4.fromRotationTranslationScale = function (out, q, v, s) {
+	    // Quaternion math
+	    var x = q[0], y = q[1], z = q[2], w = q[3],
+	        x2 = x + x,
+	        y2 = y + y,
+	        z2 = z + z,
+
+	        xx = x * x2,
+	        xy = x * y2,
+	        xz = x * z2,
+	        yy = y * y2,
+	        yz = y * z2,
+	        zz = z * z2,
+	        wx = w * x2,
+	        wy = w * y2,
+	        wz = w * z2,
+	        sx = s[0],
+	        sy = s[1],
+	        sz = s[2];
+
+	    out[0] = (1 - (yy + zz)) * sx;
+	    out[1] = (xy + wz) * sx;
+	    out[2] = (xz - wy) * sx;
+	    out[3] = 0;
+	    out[4] = (xy - wz) * sy;
+	    out[5] = (1 - (xx + zz)) * sy;
+	    out[6] = (yz + wx) * sy;
+	    out[7] = 0;
+	    out[8] = (xz + wy) * sz;
+	    out[9] = (yz - wx) * sz;
+	    out[10] = (1 - (xx + yy)) * sz;
+	    out[11] = 0;
+	    out[12] = v[0];
+	    out[13] = v[1];
+	    out[14] = v[2];
+	    out[15] = 1;
+
+	    return out;
+	};
+
+	/**
+	 * Creates a matrix from a quaternion rotation, vector translation and vector scale, rotating and scaling around the given origin
+	 * This is equivalent to (but much faster than):
+	 *
+	 *     mat4.identity(dest);
+	 *     mat4.translate(dest, vec);
+	 *     mat4.translate(dest, origin);
+	 *     var quatMat = mat4.create();
+	 *     quat4.toMat4(quat, quatMat);
+	 *     mat4.multiply(dest, quatMat);
+	 *     mat4.scale(dest, scale)
+	 *     mat4.translate(dest, negativeOrigin);
+	 *
+	 * @param {mat4} out mat4 receiving operation result
+	 * @param {quat4} q Rotation quaternion
+	 * @param {vec3} v Translation vector
+	 * @param {vec3} s Scaling vector
+	 * @param {vec3} o The origin vector around which to scale and rotate
+	 * @returns {mat4} out
+	 */
+	mat4.fromRotationTranslationScaleOrigin = function (out, q, v, s, o) {
+	  // Quaternion math
+	  var x = q[0], y = q[1], z = q[2], w = q[3],
+	      x2 = x + x,
+	      y2 = y + y,
+	      z2 = z + z,
+
+	      xx = x * x2,
+	      xy = x * y2,
+	      xz = x * z2,
+	      yy = y * y2,
+	      yz = y * z2,
+	      zz = z * z2,
+	      wx = w * x2,
+	      wy = w * y2,
+	      wz = w * z2,
+
+	      sx = s[0],
+	      sy = s[1],
+	      sz = s[2],
+
+	      ox = o[0],
+	      oy = o[1],
+	      oz = o[2];
+
+	  out[0] = (1 - (yy + zz)) * sx;
+	  out[1] = (xy + wz) * sx;
+	  out[2] = (xz - wy) * sx;
+	  out[3] = 0;
+	  out[4] = (xy - wz) * sy;
+	  out[5] = (1 - (xx + zz)) * sy;
+	  out[6] = (yz + wx) * sy;
+	  out[7] = 0;
+	  out[8] = (xz + wy) * sz;
+	  out[9] = (yz - wx) * sz;
+	  out[10] = (1 - (xx + yy)) * sz;
+	  out[11] = 0;
+	  out[12] = v[0] + ox - (out[0] * ox + out[4] * oy + out[8] * oz);
+	  out[13] = v[1] + oy - (out[1] * ox + out[5] * oy + out[9] * oz);
+	  out[14] = v[2] + oz - (out[2] * ox + out[6] * oy + out[10] * oz);
+	  out[15] = 1;
+
+	  return out;
+	};
+
+	/**
+	 * Calculates a 4x4 matrix from the given quaternion
+	 *
+	 * @param {mat4} out mat4 receiving operation result
+	 * @param {quat} q Quaternion to create matrix from
+	 *
+	 * @returns {mat4} out
+	 */
+	mat4.fromQuat = function (out, q) {
+	    var x = q[0], y = q[1], z = q[2], w = q[3],
+	        x2 = x + x,
+	        y2 = y + y,
+	        z2 = z + z,
+
+	        xx = x * x2,
+	        yx = y * x2,
+	        yy = y * y2,
+	        zx = z * x2,
+	        zy = z * y2,
+	        zz = z * z2,
+	        wx = w * x2,
+	        wy = w * y2,
+	        wz = w * z2;
+
+	    out[0] = 1 - yy - zz;
+	    out[1] = yx + wz;
+	    out[2] = zx - wy;
+	    out[3] = 0;
+
+	    out[4] = yx - wz;
+	    out[5] = 1 - xx - zz;
+	    out[6] = zy + wx;
+	    out[7] = 0;
+
+	    out[8] = zx + wy;
+	    out[9] = zy - wx;
+	    out[10] = 1 - xx - yy;
+	    out[11] = 0;
+
+	    out[12] = 0;
+	    out[13] = 0;
+	    out[14] = 0;
+	    out[15] = 1;
+
+	    return out;
+	};
+
+	/**
+	 * Generates a frustum matrix with the given bounds
+	 *
+	 * @param {mat4} out mat4 frustum matrix will be written into
+	 * @param {Number} left Left bound of the frustum
+	 * @param {Number} right Right bound of the frustum
+	 * @param {Number} bottom Bottom bound of the frustum
+	 * @param {Number} top Top bound of the frustum
+	 * @param {Number} near Near bound of the frustum
+	 * @param {Number} far Far bound of the frustum
+	 * @returns {mat4} out
+	 */
+	mat4.frustum = function (out, left, right, bottom, top, near, far) {
+	    var rl = 1 / (right - left),
+	        tb = 1 / (top - bottom),
+	        nf = 1 / (near - far);
+	    out[0] = (near * 2) * rl;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 0;
+	    out[4] = 0;
+	    out[5] = (near * 2) * tb;
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = (right + left) * rl;
+	    out[9] = (top + bottom) * tb;
+	    out[10] = (far + near) * nf;
+	    out[11] = -1;
+	    out[12] = 0;
+	    out[13] = 0;
+	    out[14] = (far * near * 2) * nf;
+	    out[15] = 0;
+	    return out;
+	};
+
+	/**
+	 * Generates a perspective projection matrix with the given bounds
+	 *
+	 * @param {mat4} out mat4 frustum matrix will be written into
+	 * @param {number} fovy Vertical field of view in radians
+	 * @param {number} aspect Aspect ratio. typically viewport width/height
+	 * @param {number} near Near bound of the frustum
+	 * @param {number} far Far bound of the frustum
+	 * @returns {mat4} out
+	 */
+	mat4.perspective = function (out, fovy, aspect, near, far) {
+	    var f = 1.0 / Math.tan(fovy / 2),
+	        nf = 1 / (near - far);
+	    out[0] = f / aspect;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 0;
+	    out[4] = 0;
+	    out[5] = f;
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = 0;
+	    out[9] = 0;
+	    out[10] = (far + near) * nf;
+	    out[11] = -1;
+	    out[12] = 0;
+	    out[13] = 0;
+	    out[14] = (2 * far * near) * nf;
+	    out[15] = 0;
+	    return out;
+	};
+
+	/**
+	 * Generates a perspective projection matrix with the given field of view.
+	 * This is primarily useful for generating projection matrices to be used
+	 * with the still experiemental WebVR API.
+	 *
+	 * @param {mat4} out mat4 frustum matrix will be written into
+	 * @param {Object} fov Object containing the following values: upDegrees, downDegrees, leftDegrees, rightDegrees
+	 * @param {number} near Near bound of the frustum
+	 * @param {number} far Far bound of the frustum
+	 * @returns {mat4} out
+	 */
+	mat4.perspectiveFromFieldOfView = function (out, fov, near, far) {
+	    var upTan = Math.tan(fov.upDegrees * Math.PI/180.0),
+	        downTan = Math.tan(fov.downDegrees * Math.PI/180.0),
+	        leftTan = Math.tan(fov.leftDegrees * Math.PI/180.0),
+	        rightTan = Math.tan(fov.rightDegrees * Math.PI/180.0),
+	        xScale = 2.0 / (leftTan + rightTan),
+	        yScale = 2.0 / (upTan + downTan);
+
+	    out[0] = xScale;
+	    out[1] = 0.0;
+	    out[2] = 0.0;
+	    out[3] = 0.0;
+	    out[4] = 0.0;
+	    out[5] = yScale;
+	    out[6] = 0.0;
+	    out[7] = 0.0;
+	    out[8] = -((leftTan - rightTan) * xScale * 0.5);
+	    out[9] = ((upTan - downTan) * yScale * 0.5);
+	    out[10] = far / (near - far);
+	    out[11] = -1.0;
+	    out[12] = 0.0;
+	    out[13] = 0.0;
+	    out[14] = (far * near) / (near - far);
+	    out[15] = 0.0;
+	    return out;
+	}
+
+	/**
+	 * Generates a orthogonal projection matrix with the given bounds
+	 *
+	 * @param {mat4} out mat4 frustum matrix will be written into
+	 * @param {number} left Left bound of the frustum
+	 * @param {number} right Right bound of the frustum
+	 * @param {number} bottom Bottom bound of the frustum
+	 * @param {number} top Top bound of the frustum
+	 * @param {number} near Near bound of the frustum
+	 * @param {number} far Far bound of the frustum
+	 * @returns {mat4} out
+	 */
+	mat4.ortho = function (out, left, right, bottom, top, near, far) {
+	    var lr = 1 / (left - right),
+	        bt = 1 / (bottom - top),
+	        nf = 1 / (near - far);
+	    out[0] = -2 * lr;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 0;
+	    out[4] = 0;
+	    out[5] = -2 * bt;
+	    out[6] = 0;
+	    out[7] = 0;
+	    out[8] = 0;
+	    out[9] = 0;
+	    out[10] = 2 * nf;
+	    out[11] = 0;
+	    out[12] = (left + right) * lr;
+	    out[13] = (top + bottom) * bt;
+	    out[14] = (far + near) * nf;
+	    out[15] = 1;
+	    return out;
+	};
+
+	/**
+	 * Generates a look-at matrix with the given eye position, focal point, and up axis
+	 *
+	 * @param {mat4} out mat4 frustum matrix will be written into
+	 * @param {vec3} eye Position of the viewer
+	 * @param {vec3} center Point the viewer is looking at
+	 * @param {vec3} up vec3 pointing up
+	 * @returns {mat4} out
+	 */
+	mat4.lookAt = function (out, eye, center, up) {
+	    var x0, x1, x2, y0, y1, y2, z0, z1, z2, len,
+	        eyex = eye[0],
+	        eyey = eye[1],
+	        eyez = eye[2],
+	        upx = up[0],
+	        upy = up[1],
+	        upz = up[2],
+	        centerx = center[0],
+	        centery = center[1],
+	        centerz = center[2];
+
+	    if (Math.abs(eyex - centerx) < glMatrix.EPSILON &&
+	        Math.abs(eyey - centery) < glMatrix.EPSILON &&
+	        Math.abs(eyez - centerz) < glMatrix.EPSILON) {
+	        return mat4.identity(out);
+	    }
+
+	    z0 = eyex - centerx;
+	    z1 = eyey - centery;
+	    z2 = eyez - centerz;
+
+	    len = 1 / Math.sqrt(z0 * z0 + z1 * z1 + z2 * z2);
+	    z0 *= len;
+	    z1 *= len;
+	    z2 *= len;
+
+	    x0 = upy * z2 - upz * z1;
+	    x1 = upz * z0 - upx * z2;
+	    x2 = upx * z1 - upy * z0;
+	    len = Math.sqrt(x0 * x0 + x1 * x1 + x2 * x2);
+	    if (!len) {
+	        x0 = 0;
+	        x1 = 0;
+	        x2 = 0;
+	    } else {
+	        len = 1 / len;
+	        x0 *= len;
+	        x1 *= len;
+	        x2 *= len;
+	    }
+
+	    y0 = z1 * x2 - z2 * x1;
+	    y1 = z2 * x0 - z0 * x2;
+	    y2 = z0 * x1 - z1 * x0;
+
+	    len = Math.sqrt(y0 * y0 + y1 * y1 + y2 * y2);
+	    if (!len) {
+	        y0 = 0;
+	        y1 = 0;
+	        y2 = 0;
+	    } else {
+	        len = 1 / len;
+	        y0 *= len;
+	        y1 *= len;
+	        y2 *= len;
+	    }
+
+	    out[0] = x0;
+	    out[1] = y0;
+	    out[2] = z0;
+	    out[3] = 0;
+	    out[4] = x1;
+	    out[5] = y1;
+	    out[6] = z1;
+	    out[7] = 0;
+	    out[8] = x2;
+	    out[9] = y2;
+	    out[10] = z2;
+	    out[11] = 0;
+	    out[12] = -(x0 * eyex + x1 * eyey + x2 * eyez);
+	    out[13] = -(y0 * eyex + y1 * eyey + y2 * eyez);
+	    out[14] = -(z0 * eyex + z1 * eyey + z2 * eyez);
+	    out[15] = 1;
+
+	    return out;
+	};
+
+	/**
+	 * Returns a string representation of a mat4
+	 *
+	 * @param {mat4} a matrix to represent as a string
+	 * @returns {String} string representation of the matrix
+	 */
+	mat4.str = function (a) {
+	    return 'mat4(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' + a[3] + ', ' +
+	                    a[4] + ', ' + a[5] + ', ' + a[6] + ', ' + a[7] + ', ' +
+	                    a[8] + ', ' + a[9] + ', ' + a[10] + ', ' + a[11] + ', ' +
+	                    a[12] + ', ' + a[13] + ', ' + a[14] + ', ' + a[15] + ')';
+	};
+
+	/**
+	 * Returns Frobenius norm of a mat4
+	 *
+	 * @param {mat4} a the matrix to calculate Frobenius norm of
+	 * @returns {Number} Frobenius norm
+	 */
+	mat4.frob = function (a) {
+	    return(Math.sqrt(Math.pow(a[0], 2) + Math.pow(a[1], 2) + Math.pow(a[2], 2) + Math.pow(a[3], 2) + Math.pow(a[4], 2) + Math.pow(a[5], 2) + Math.pow(a[6], 2) + Math.pow(a[7], 2) + Math.pow(a[8], 2) + Math.pow(a[9], 2) + Math.pow(a[10], 2) + Math.pow(a[11], 2) + Math.pow(a[12], 2) + Math.pow(a[13], 2) + Math.pow(a[14], 2) + Math.pow(a[15], 2) ))
+	};
+
+	/**
+	 * Adds two mat4's
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the first operand
+	 * @param {mat4} b the second operand
+	 * @returns {mat4} out
+	 */
+	mat4.add = function(out, a, b) {
+	    out[0] = a[0] + b[0];
+	    out[1] = a[1] + b[1];
+	    out[2] = a[2] + b[2];
+	    out[3] = a[3] + b[3];
+	    out[4] = a[4] + b[4];
+	    out[5] = a[5] + b[5];
+	    out[6] = a[6] + b[6];
+	    out[7] = a[7] + b[7];
+	    out[8] = a[8] + b[8];
+	    out[9] = a[9] + b[9];
+	    out[10] = a[10] + b[10];
+	    out[11] = a[11] + b[11];
+	    out[12] = a[12] + b[12];
+	    out[13] = a[13] + b[13];
+	    out[14] = a[14] + b[14];
+	    out[15] = a[15] + b[15];
+	    return out;
+	};
+
+	/**
+	 * Subtracts matrix b from matrix a
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the first operand
+	 * @param {mat4} b the second operand
+	 * @returns {mat4} out
+	 */
+	mat4.subtract = function(out, a, b) {
+	    out[0] = a[0] - b[0];
+	    out[1] = a[1] - b[1];
+	    out[2] = a[2] - b[2];
+	    out[3] = a[3] - b[3];
+	    out[4] = a[4] - b[4];
+	    out[5] = a[5] - b[5];
+	    out[6] = a[6] - b[6];
+	    out[7] = a[7] - b[7];
+	    out[8] = a[8] - b[8];
+	    out[9] = a[9] - b[9];
+	    out[10] = a[10] - b[10];
+	    out[11] = a[11] - b[11];
+	    out[12] = a[12] - b[12];
+	    out[13] = a[13] - b[13];
+	    out[14] = a[14] - b[14];
+	    out[15] = a[15] - b[15];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link mat4.subtract}
+	 * @function
+	 */
+	mat4.sub = mat4.subtract;
+
+	/**
+	 * Multiply each element of the matrix by a scalar.
+	 *
+	 * @param {mat4} out the receiving matrix
+	 * @param {mat4} a the matrix to scale
+	 * @param {Number} b amount to scale the matrix's elements by
+	 * @returns {mat4} out
+	 */
+	mat4.multiplyScalar = function(out, a, b) {
+	    out[0] = a[0] * b;
+	    out[1] = a[1] * b;
+	    out[2] = a[2] * b;
+	    out[3] = a[3] * b;
+	    out[4] = a[4] * b;
+	    out[5] = a[5] * b;
+	    out[6] = a[6] * b;
+	    out[7] = a[7] * b;
+	    out[8] = a[8] * b;
+	    out[9] = a[9] * b;
+	    out[10] = a[10] * b;
+	    out[11] = a[11] * b;
+	    out[12] = a[12] * b;
+	    out[13] = a[13] * b;
+	    out[14] = a[14] * b;
+	    out[15] = a[15] * b;
+	    return out;
+	};
+
+	/**
+	 * Adds two mat4's after multiplying each element of the second operand by a scalar value.
+	 *
+	 * @param {mat4} out the receiving vector
+	 * @param {mat4} a the first operand
+	 * @param {mat4} b the second operand
+	 * @param {Number} scale the amount to scale b's elements by before adding
+	 * @returns {mat4} out
+	 */
+	mat4.multiplyScalarAndAdd = function(out, a, b, scale) {
+	    out[0] = a[0] + (b[0] * scale);
+	    out[1] = a[1] + (b[1] * scale);
+	    out[2] = a[2] + (b[2] * scale);
+	    out[3] = a[3] + (b[3] * scale);
+	    out[4] = a[4] + (b[4] * scale);
+	    out[5] = a[5] + (b[5] * scale);
+	    out[6] = a[6] + (b[6] * scale);
+	    out[7] = a[7] + (b[7] * scale);
+	    out[8] = a[8] + (b[8] * scale);
+	    out[9] = a[9] + (b[9] * scale);
+	    out[10] = a[10] + (b[10] * scale);
+	    out[11] = a[11] + (b[11] * scale);
+	    out[12] = a[12] + (b[12] * scale);
+	    out[13] = a[13] + (b[13] * scale);
+	    out[14] = a[14] + (b[14] * scale);
+	    out[15] = a[15] + (b[15] * scale);
+	    return out;
+	};
+
+	/**
+	 * Returns whether or not the matrices have exactly the same elements in the same position (when compared with ===)
+	 *
+	 * @param {mat4} a The first matrix.
+	 * @param {mat4} b The second matrix.
+	 * @returns {Boolean} True if the matrices are equal, false otherwise.
+	 */
+	mat4.exactEquals = function (a, b) {
+	    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3] && 
+	           a[4] === b[4] && a[5] === b[5] && a[6] === b[6] && a[7] === b[7] && 
+	           a[8] === b[8] && a[9] === b[9] && a[10] === b[10] && a[11] === b[11] &&
+	           a[12] === b[12] && a[13] === b[13] && a[14] === b[14] && a[15] === b[15];
+	};
+
+	/**
+	 * Returns whether or not the matrices have approximately the same elements in the same position.
+	 *
+	 * @param {mat4} a The first matrix.
+	 * @param {mat4} b The second matrix.
+	 * @returns {Boolean} True if the matrices are equal, false otherwise.
+	 */
+	mat4.equals = function (a, b) {
+	    var a0  = a[0],  a1  = a[1],  a2  = a[2],  a3  = a[3],
+	        a4  = a[4],  a5  = a[5],  a6  = a[6],  a7  = a[7], 
+	        a8  = a[8],  a9  = a[9],  a10 = a[10], a11 = a[11], 
+	        a12 = a[12], a13 = a[13], a14 = a[14], a15 = a[15];
+
+	    var b0  = b[0],  b1  = b[1],  b2  = b[2],  b3  = b[3],
+	        b4  = b[4],  b5  = b[5],  b6  = b[6],  b7  = b[7], 
+	        b8  = b[8],  b9  = b[9],  b10 = b[10], b11 = b[11], 
+	        b12 = b[12], b13 = b[13], b14 = b[14], b15 = b[15];
+
+	    return (Math.abs(a0 - b0) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
+	            Math.abs(a1 - b1) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a1), Math.abs(b1)) &&
+	            Math.abs(a2 - b2) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a2), Math.abs(b2)) &&
+	            Math.abs(a3 - b3) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a3), Math.abs(b3)) &&
+	            Math.abs(a4 - b4) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a4), Math.abs(b4)) &&
+	            Math.abs(a5 - b5) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a5), Math.abs(b5)) &&
+	            Math.abs(a6 - b6) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a6), Math.abs(b6)) &&
+	            Math.abs(a7 - b7) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a7), Math.abs(b7)) &&
+	            Math.abs(a8 - b8) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a8), Math.abs(b8)) &&
+	            Math.abs(a9 - b9) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a9), Math.abs(b9)) &&
+	            Math.abs(a10 - b10) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a10), Math.abs(b10)) &&
+	            Math.abs(a11 - b11) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a11), Math.abs(b11)) &&
+	            Math.abs(a12 - b12) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a12), Math.abs(b12)) &&
+	            Math.abs(a13 - b13) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a13), Math.abs(b13)) &&
+	            Math.abs(a14 - b14) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a14), Math.abs(b14)) &&
+	            Math.abs(a15 - b15) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a15), Math.abs(b15)));
+	};
+
+
+
+	module.exports = mat4;
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE. */
+
+	var glMatrix = __webpack_require__(1);
+	var mat3 = __webpack_require__(4);
+	var vec3 = __webpack_require__(7);
+	var vec4 = __webpack_require__(8);
+
+	/**
+	 * @class Quaternion
+	 * @name quat
+	 */
+	var quat = {};
+
+	/**
+	 * Creates a new identity quat
+	 *
+	 * @returns {quat} a new quaternion
+	 */
+	quat.create = function() {
+	    var out = new glMatrix.ARRAY_TYPE(4);
+	    out[0] = 0;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 1;
+	    return out;
+	};
+
+	/**
+	 * Sets a quaternion to represent the shortest rotation from one
+	 * vector to another.
+	 *
+	 * Both vectors are assumed to be unit length.
+	 *
+	 * @param {quat} out the receiving quaternion.
+	 * @param {vec3} a the initial vector
+	 * @param {vec3} b the destination vector
+	 * @returns {quat} out
+	 */
+	quat.rotationTo = (function() {
+	    var tmpvec3 = vec3.create();
+	    var xUnitVec3 = vec3.fromValues(1,0,0);
+	    var yUnitVec3 = vec3.fromValues(0,1,0);
+
+	    return function(out, a, b) {
+	        var dot = vec3.dot(a, b);
+	        if (dot < -0.999999) {
+	            vec3.cross(tmpvec3, xUnitVec3, a);
+	            if (vec3.length(tmpvec3) < 0.000001)
+	                vec3.cross(tmpvec3, yUnitVec3, a);
+	            vec3.normalize(tmpvec3, tmpvec3);
+	            quat.setAxisAngle(out, tmpvec3, Math.PI);
+	            return out;
+	        } else if (dot > 0.999999) {
+	            out[0] = 0;
+	            out[1] = 0;
+	            out[2] = 0;
+	            out[3] = 1;
+	            return out;
+	        } else {
+	            vec3.cross(tmpvec3, a, b);
+	            out[0] = tmpvec3[0];
+	            out[1] = tmpvec3[1];
+	            out[2] = tmpvec3[2];
+	            out[3] = 1 + dot;
+	            return quat.normalize(out, out);
+	        }
+	    };
+	})();
+
+	/**
+	 * Sets the specified quaternion with values corresponding to the given
+	 * axes. Each axis is a vec3 and is expected to be unit length and
+	 * perpendicular to all other specified axes.
+	 *
+	 * @param {vec3} view  the vector representing the viewing direction
+	 * @param {vec3} right the vector representing the local "right" direction
+	 * @param {vec3} up    the vector representing the local "up" direction
+	 * @returns {quat} out
+	 */
+	quat.setAxes = (function() {
+	    var matr = mat3.create();
+
+	    return function(out, view, right, up) {
+	        matr[0] = right[0];
+	        matr[3] = right[1];
+	        matr[6] = right[2];
+
+	        matr[1] = up[0];
+	        matr[4] = up[1];
+	        matr[7] = up[2];
+
+	        matr[2] = -view[0];
+	        matr[5] = -view[1];
+	        matr[8] = -view[2];
+
+	        return quat.normalize(out, quat.fromMat3(out, matr));
+	    };
+	})();
+
+	/**
+	 * Creates a new quat initialized with values from an existing quaternion
+	 *
+	 * @param {quat} a quaternion to clone
+	 * @returns {quat} a new quaternion
+	 * @function
+	 */
+	quat.clone = vec4.clone;
+
+	/**
+	 * Creates a new quat initialized with the given values
+	 *
+	 * @param {Number} x X component
+	 * @param {Number} y Y component
+	 * @param {Number} z Z component
+	 * @param {Number} w W component
+	 * @returns {quat} a new quaternion
+	 * @function
+	 */
+	quat.fromValues = vec4.fromValues;
+
+	/**
+	 * Copy the values from one quat to another
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {quat} a the source quaternion
+	 * @returns {quat} out
+	 * @function
+	 */
+	quat.copy = vec4.copy;
+
+	/**
+	 * Set the components of a quat to the given values
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {Number} x X component
+	 * @param {Number} y Y component
+	 * @param {Number} z Z component
+	 * @param {Number} w W component
+	 * @returns {quat} out
+	 * @function
+	 */
+	quat.set = vec4.set;
+
+	/**
+	 * Set a quat to the identity quaternion
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @returns {quat} out
+	 */
+	quat.identity = function(out) {
+	    out[0] = 0;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 1;
+	    return out;
+	};
+
+	/**
+	 * Sets a quat from the given angle and rotation axis,
+	 * then returns it.
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {vec3} axis the axis around which to rotate
+	 * @param {Number} rad the angle in radians
+	 * @returns {quat} out
+	 **/
+	quat.setAxisAngle = function(out, axis, rad) {
+	    rad = rad * 0.5;
+	    var s = Math.sin(rad);
+	    out[0] = s * axis[0];
+	    out[1] = s * axis[1];
+	    out[2] = s * axis[2];
+	    out[3] = Math.cos(rad);
+	    return out;
+	};
+
+	/**
+	 * Gets the rotation axis and angle for a given
+	 *  quaternion. If a quaternion is created with
+	 *  setAxisAngle, this method will return the same
+	 *  values as providied in the original parameter list
+	 *  OR functionally equivalent values.
+	 * Example: The quaternion formed by axis [0, 0, 1] and
+	 *  angle -90 is the same as the quaternion formed by
+	 *  [0, 0, 1] and 270. This method favors the latter.
+	 * @param  {vec3} out_axis  Vector receiving the axis of rotation
+	 * @param  {quat} q     Quaternion to be decomposed
+	 * @return {Number}     Angle, in radians, of the rotation
+	 */
+	quat.getAxisAngle = function(out_axis, q) {
+	    var rad = Math.acos(q[3]) * 2.0;
+	    var s = Math.sin(rad / 2.0);
+	    if (s != 0.0) {
+	        out_axis[0] = q[0] / s;
+	        out_axis[1] = q[1] / s;
+	        out_axis[2] = q[2] / s;
+	    } else {
+	        // If s is zero, return any axis (no rotation - axis does not matter)
+	        out_axis[0] = 1;
+	        out_axis[1] = 0;
+	        out_axis[2] = 0;
+	    }
+	    return rad;
+	};
+
+	/**
+	 * Adds two quat's
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {quat} a the first operand
+	 * @param {quat} b the second operand
+	 * @returns {quat} out
+	 * @function
+	 */
+	quat.add = vec4.add;
+
+	/**
+	 * Multiplies two quat's
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {quat} a the first operand
+	 * @param {quat} b the second operand
+	 * @returns {quat} out
+	 */
+	quat.multiply = function(out, a, b) {
+	    var ax = a[0], ay = a[1], az = a[2], aw = a[3],
+	        bx = b[0], by = b[1], bz = b[2], bw = b[3];
+
+	    out[0] = ax * bw + aw * bx + ay * bz - az * by;
+	    out[1] = ay * bw + aw * by + az * bx - ax * bz;
+	    out[2] = az * bw + aw * bz + ax * by - ay * bx;
+	    out[3] = aw * bw - ax * bx - ay * by - az * bz;
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link quat.multiply}
+	 * @function
+	 */
+	quat.mul = quat.multiply;
+
+	/**
+	 * Scales a quat by a scalar number
+	 *
+	 * @param {quat} out the receiving vector
+	 * @param {quat} a the vector to scale
+	 * @param {Number} b amount to scale the vector by
+	 * @returns {quat} out
+	 * @function
+	 */
+	quat.scale = vec4.scale;
+
+	/**
+	 * Rotates a quaternion by the given angle about the X axis
+	 *
+	 * @param {quat} out quat receiving operation result
+	 * @param {quat} a quat to rotate
+	 * @param {number} rad angle (in radians) to rotate
+	 * @returns {quat} out
+	 */
+	quat.rotateX = function (out, a, rad) {
+	    rad *= 0.5; 
+
+	    var ax = a[0], ay = a[1], az = a[2], aw = a[3],
+	        bx = Math.sin(rad), bw = Math.cos(rad);
+
+	    out[0] = ax * bw + aw * bx;
+	    out[1] = ay * bw + az * bx;
+	    out[2] = az * bw - ay * bx;
+	    out[3] = aw * bw - ax * bx;
+	    return out;
+	};
+
+	/**
+	 * Rotates a quaternion by the given angle about the Y axis
+	 *
+	 * @param {quat} out quat receiving operation result
+	 * @param {quat} a quat to rotate
+	 * @param {number} rad angle (in radians) to rotate
+	 * @returns {quat} out
+	 */
+	quat.rotateY = function (out, a, rad) {
+	    rad *= 0.5; 
+
+	    var ax = a[0], ay = a[1], az = a[2], aw = a[3],
+	        by = Math.sin(rad), bw = Math.cos(rad);
+
+	    out[0] = ax * bw - az * by;
+	    out[1] = ay * bw + aw * by;
+	    out[2] = az * bw + ax * by;
+	    out[3] = aw * bw - ay * by;
+	    return out;
+	};
+
+	/**
+	 * Rotates a quaternion by the given angle about the Z axis
+	 *
+	 * @param {quat} out quat receiving operation result
+	 * @param {quat} a quat to rotate
+	 * @param {number} rad angle (in radians) to rotate
+	 * @returns {quat} out
+	 */
+	quat.rotateZ = function (out, a, rad) {
+	    rad *= 0.5; 
+
+	    var ax = a[0], ay = a[1], az = a[2], aw = a[3],
+	        bz = Math.sin(rad), bw = Math.cos(rad);
+
+	    out[0] = ax * bw + ay * bz;
+	    out[1] = ay * bw - ax * bz;
+	    out[2] = az * bw + aw * bz;
+	    out[3] = aw * bw - az * bz;
+	    return out;
+	};
+
+	/**
+	 * Calculates the W component of a quat from the X, Y, and Z components.
+	 * Assumes that quaternion is 1 unit in length.
+	 * Any existing W component will be ignored.
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {quat} a quat to calculate W component of
+	 * @returns {quat} out
+	 */
+	quat.calculateW = function (out, a) {
+	    var x = a[0], y = a[1], z = a[2];
+
+	    out[0] = x;
+	    out[1] = y;
+	    out[2] = z;
+	    out[3] = Math.sqrt(Math.abs(1.0 - x * x - y * y - z * z));
+	    return out;
+	};
+
+	/**
+	 * Calculates the dot product of two quat's
+	 *
+	 * @param {quat} a the first operand
+	 * @param {quat} b the second operand
+	 * @returns {Number} dot product of a and b
+	 * @function
+	 */
+	quat.dot = vec4.dot;
+
+	/**
+	 * Performs a linear interpolation between two quat's
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {quat} a the first operand
+	 * @param {quat} b the second operand
+	 * @param {Number} t interpolation amount between the two inputs
+	 * @returns {quat} out
+	 * @function
+	 */
+	quat.lerp = vec4.lerp;
+
+	/**
+	 * Performs a spherical linear interpolation between two quat
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {quat} a the first operand
+	 * @param {quat} b the second operand
+	 * @param {Number} t interpolation amount between the two inputs
+	 * @returns {quat} out
+	 */
+	quat.slerp = function (out, a, b, t) {
+	    // benchmarks:
+	    //    http://jsperf.com/quaternion-slerp-implementations
+
+	    var ax = a[0], ay = a[1], az = a[2], aw = a[3],
+	        bx = b[0], by = b[1], bz = b[2], bw = b[3];
+
+	    var        omega, cosom, sinom, scale0, scale1;
+
+	    // calc cosine
+	    cosom = ax * bx + ay * by + az * bz + aw * bw;
+	    // adjust signs (if necessary)
+	    if ( cosom < 0.0 ) {
+	        cosom = -cosom;
+	        bx = - bx;
+	        by = - by;
+	        bz = - bz;
+	        bw = - bw;
+	    }
+	    // calculate coefficients
+	    if ( (1.0 - cosom) > 0.000001 ) {
+	        // standard case (slerp)
+	        omega  = Math.acos(cosom);
+	        sinom  = Math.sin(omega);
+	        scale0 = Math.sin((1.0 - t) * omega) / sinom;
+	        scale1 = Math.sin(t * omega) / sinom;
+	    } else {        
+	        // "from" and "to" quaternions are very close 
+	        //  ... so we can do a linear interpolation
+	        scale0 = 1.0 - t;
+	        scale1 = t;
+	    }
+	    // calculate final values
+	    out[0] = scale0 * ax + scale1 * bx;
+	    out[1] = scale0 * ay + scale1 * by;
+	    out[2] = scale0 * az + scale1 * bz;
+	    out[3] = scale0 * aw + scale1 * bw;
+	    
+	    return out;
+	};
+
+	/**
+	 * Performs a spherical linear interpolation with two control points
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {quat} a the first operand
+	 * @param {quat} b the second operand
+	 * @param {quat} c the third operand
+	 * @param {quat} d the fourth operand
+	 * @param {Number} t interpolation amount
+	 * @returns {quat} out
+	 */
+	quat.sqlerp = (function () {
+	  var temp1 = quat.create();
+	  var temp2 = quat.create();
+	  
+	  return function (out, a, b, c, d, t) {
+	    quat.slerp(temp1, a, d, t);
+	    quat.slerp(temp2, b, c, t);
+	    quat.slerp(out, temp1, temp2, 2 * t * (1 - t));
+	    
+	    return out;
+	  };
+	}());
+
+	/**
+	 * Calculates the inverse of a quat
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {quat} a quat to calculate inverse of
+	 * @returns {quat} out
+	 */
+	quat.invert = function(out, a) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3],
+	        dot = a0*a0 + a1*a1 + a2*a2 + a3*a3,
+	        invDot = dot ? 1.0/dot : 0;
+	    
+	    // TODO: Would be faster to return [0,0,0,0] immediately if dot == 0
+
+	    out[0] = -a0*invDot;
+	    out[1] = -a1*invDot;
+	    out[2] = -a2*invDot;
+	    out[3] = a3*invDot;
+	    return out;
+	};
+
+	/**
+	 * Calculates the conjugate of a quat
+	 * If the quaternion is normalized, this function is faster than quat.inverse and produces the same result.
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {quat} a quat to calculate conjugate of
+	 * @returns {quat} out
+	 */
+	quat.conjugate = function (out, a) {
+	    out[0] = -a[0];
+	    out[1] = -a[1];
+	    out[2] = -a[2];
+	    out[3] = a[3];
+	    return out;
+	};
+
+	/**
+	 * Calculates the length of a quat
+	 *
+	 * @param {quat} a vector to calculate length of
+	 * @returns {Number} length of a
+	 * @function
+	 */
+	quat.length = vec4.length;
+
+	/**
+	 * Alias for {@link quat.length}
+	 * @function
+	 */
+	quat.len = quat.length;
+
+	/**
+	 * Calculates the squared length of a quat
+	 *
+	 * @param {quat} a vector to calculate squared length of
+	 * @returns {Number} squared length of a
+	 * @function
+	 */
+	quat.squaredLength = vec4.squaredLength;
+
+	/**
+	 * Alias for {@link quat.squaredLength}
+	 * @function
+	 */
+	quat.sqrLen = quat.squaredLength;
+
+	/**
+	 * Normalize a quat
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {quat} a quaternion to normalize
+	 * @returns {quat} out
+	 * @function
+	 */
+	quat.normalize = vec4.normalize;
+
+	/**
+	 * Creates a quaternion from the given 3x3 rotation matrix.
+	 *
+	 * NOTE: The resultant quaternion is not normalized, so you should be sure
+	 * to renormalize the quaternion yourself where necessary.
+	 *
+	 * @param {quat} out the receiving quaternion
+	 * @param {mat3} m rotation matrix
+	 * @returns {quat} out
+	 * @function
+	 */
+	quat.fromMat3 = function(out, m) {
+	    // Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
+	    // article "Quaternion Calculus and Fast Animation".
+	    var fTrace = m[0] + m[4] + m[8];
+	    var fRoot;
+
+	    if ( fTrace > 0.0 ) {
+	        // |w| > 1/2, may as well choose w > 1/2
+	        fRoot = Math.sqrt(fTrace + 1.0);  // 2w
+	        out[3] = 0.5 * fRoot;
+	        fRoot = 0.5/fRoot;  // 1/(4w)
+	        out[0] = (m[5]-m[7])*fRoot;
+	        out[1] = (m[6]-m[2])*fRoot;
+	        out[2] = (m[1]-m[3])*fRoot;
+	    } else {
+	        // |w| <= 1/2
+	        var i = 0;
+	        if ( m[4] > m[0] )
+	          i = 1;
+	        if ( m[8] > m[i*3+i] )
+	          i = 2;
+	        var j = (i+1)%3;
+	        var k = (i+2)%3;
+	        
+	        fRoot = Math.sqrt(m[i*3+i]-m[j*3+j]-m[k*3+k] + 1.0);
+	        out[i] = 0.5 * fRoot;
+	        fRoot = 0.5 / fRoot;
+	        out[3] = (m[j*3+k] - m[k*3+j]) * fRoot;
+	        out[j] = (m[j*3+i] + m[i*3+j]) * fRoot;
+	        out[k] = (m[k*3+i] + m[i*3+k]) * fRoot;
+	    }
+	    
+	    return out;
+	};
+
+	/**
+	 * Returns a string representation of a quatenion
+	 *
+	 * @param {quat} a vector to represent as a string
+	 * @returns {String} string representation of the vector
+	 */
+	quat.str = function (a) {
+	    return 'quat(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' + a[3] + ')';
+	};
+
+	/**
+	 * Returns whether or not the quaternions have exactly the same elements in the same position (when compared with ===)
+	 *
+	 * @param {quat} a The first quaternion.
+	 * @param {quat} b The second quaternion.
+	 * @returns {Boolean} True if the vectors are equal, false otherwise.
+	 */
+	quat.exactEquals = vec4.exactEquals;
+
+	/**
+	 * Returns whether or not the quaternions have approximately the same elements in the same position.
+	 *
+	 * @param {quat} a The first vector.
+	 * @param {quat} b The second vector.
+	 * @returns {Boolean} True if the vectors are equal, false otherwise.
+	 */
+	quat.equals = vec4.equals;
+
+	module.exports = quat;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE. */
+
+	var glMatrix = __webpack_require__(1);
+
+	/**
+	 * @class 3 Dimensional Vector
+	 * @name vec3
+	 */
+	var vec3 = {};
+
+	/**
+	 * Creates a new, empty vec3
+	 *
+	 * @returns {vec3} a new 3D vector
+	 */
+	vec3.create = function() {
+	    var out = new glMatrix.ARRAY_TYPE(3);
+	    out[0] = 0;
+	    out[1] = 0;
+	    out[2] = 0;
+	    return out;
+	};
+
+	/**
+	 * Creates a new vec3 initialized with values from an existing vector
+	 *
+	 * @param {vec3} a vector to clone
+	 * @returns {vec3} a new 3D vector
+	 */
+	vec3.clone = function(a) {
+	    var out = new glMatrix.ARRAY_TYPE(3);
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    return out;
+	};
+
+	/**
+	 * Creates a new vec3 initialized with the given values
+	 *
+	 * @param {Number} x X component
+	 * @param {Number} y Y component
+	 * @param {Number} z Z component
+	 * @returns {vec3} a new 3D vector
+	 */
+	vec3.fromValues = function(x, y, z) {
+	    var out = new glMatrix.ARRAY_TYPE(3);
+	    out[0] = x;
+	    out[1] = y;
+	    out[2] = z;
+	    return out;
+	};
+
+	/**
+	 * Copy the values from one vec3 to another
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the source vector
+	 * @returns {vec3} out
+	 */
+	vec3.copy = function(out, a) {
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    return out;
+	};
+
+	/**
+	 * Set the components of a vec3 to the given values
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {Number} x X component
+	 * @param {Number} y Y component
+	 * @param {Number} z Z component
+	 * @returns {vec3} out
+	 */
+	vec3.set = function(out, x, y, z) {
+	    out[0] = x;
+	    out[1] = y;
+	    out[2] = z;
+	    return out;
+	};
+
+	/**
+	 * Adds two vec3's
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @returns {vec3} out
+	 */
+	vec3.add = function(out, a, b) {
+	    out[0] = a[0] + b[0];
+	    out[1] = a[1] + b[1];
+	    out[2] = a[2] + b[2];
+	    return out;
+	};
+
+	/**
+	 * Subtracts vector b from vector a
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @returns {vec3} out
+	 */
+	vec3.subtract = function(out, a, b) {
+	    out[0] = a[0] - b[0];
+	    out[1] = a[1] - b[1];
+	    out[2] = a[2] - b[2];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link vec3.subtract}
+	 * @function
+	 */
+	vec3.sub = vec3.subtract;
+
+	/**
+	 * Multiplies two vec3's
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @returns {vec3} out
+	 */
+	vec3.multiply = function(out, a, b) {
+	    out[0] = a[0] * b[0];
+	    out[1] = a[1] * b[1];
+	    out[2] = a[2] * b[2];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link vec3.multiply}
+	 * @function
+	 */
+	vec3.mul = vec3.multiply;
+
+	/**
+	 * Divides two vec3's
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @returns {vec3} out
+	 */
+	vec3.divide = function(out, a, b) {
+	    out[0] = a[0] / b[0];
+	    out[1] = a[1] / b[1];
+	    out[2] = a[2] / b[2];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link vec3.divide}
+	 * @function
+	 */
+	vec3.div = vec3.divide;
+
+	/**
+	 * Math.ceil the components of a vec3
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a vector to ceil
+	 * @returns {vec3} out
+	 */
+	vec3.ceil = function (out, a) {
+	    out[0] = Math.ceil(a[0]);
+	    out[1] = Math.ceil(a[1]);
+	    out[2] = Math.ceil(a[2]);
+	    return out;
+	};
+
+	/**
+	 * Math.floor the components of a vec3
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a vector to floor
+	 * @returns {vec3} out
+	 */
+	vec3.floor = function (out, a) {
+	    out[0] = Math.floor(a[0]);
+	    out[1] = Math.floor(a[1]);
+	    out[2] = Math.floor(a[2]);
+	    return out;
+	};
+
+	/**
+	 * Returns the minimum of two vec3's
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @returns {vec3} out
+	 */
+	vec3.min = function(out, a, b) {
+	    out[0] = Math.min(a[0], b[0]);
+	    out[1] = Math.min(a[1], b[1]);
+	    out[2] = Math.min(a[2], b[2]);
+	    return out;
+	};
+
+	/**
+	 * Returns the maximum of two vec3's
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @returns {vec3} out
+	 */
+	vec3.max = function(out, a, b) {
+	    out[0] = Math.max(a[0], b[0]);
+	    out[1] = Math.max(a[1], b[1]);
+	    out[2] = Math.max(a[2], b[2]);
+	    return out;
+	};
+
+	/**
+	 * Math.round the components of a vec3
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a vector to round
+	 * @returns {vec3} out
+	 */
+	vec3.round = function (out, a) {
+	    out[0] = Math.round(a[0]);
+	    out[1] = Math.round(a[1]);
+	    out[2] = Math.round(a[2]);
+	    return out;
+	};
+
+	/**
+	 * Scales a vec3 by a scalar number
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the vector to scale
+	 * @param {Number} b amount to scale the vector by
+	 * @returns {vec3} out
+	 */
+	vec3.scale = function(out, a, b) {
+	    out[0] = a[0] * b;
+	    out[1] = a[1] * b;
+	    out[2] = a[2] * b;
+	    return out;
+	};
+
+	/**
+	 * Adds two vec3's after scaling the second operand by a scalar value
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @param {Number} scale the amount to scale b by before adding
+	 * @returns {vec3} out
+	 */
+	vec3.scaleAndAdd = function(out, a, b, scale) {
+	    out[0] = a[0] + (b[0] * scale);
+	    out[1] = a[1] + (b[1] * scale);
+	    out[2] = a[2] + (b[2] * scale);
+	    return out;
+	};
+
+	/**
+	 * Calculates the euclidian distance between two vec3's
+	 *
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @returns {Number} distance between a and b
+	 */
+	vec3.distance = function(a, b) {
+	    var x = b[0] - a[0],
+	        y = b[1] - a[1],
+	        z = b[2] - a[2];
+	    return Math.sqrt(x*x + y*y + z*z);
+	};
+
+	/**
+	 * Alias for {@link vec3.distance}
+	 * @function
+	 */
+	vec3.dist = vec3.distance;
+
+	/**
+	 * Calculates the squared euclidian distance between two vec3's
+	 *
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @returns {Number} squared distance between a and b
+	 */
+	vec3.squaredDistance = function(a, b) {
+	    var x = b[0] - a[0],
+	        y = b[1] - a[1],
+	        z = b[2] - a[2];
+	    return x*x + y*y + z*z;
+	};
+
+	/**
+	 * Alias for {@link vec3.squaredDistance}
+	 * @function
+	 */
+	vec3.sqrDist = vec3.squaredDistance;
+
+	/**
+	 * Calculates the length of a vec3
+	 *
+	 * @param {vec3} a vector to calculate length of
+	 * @returns {Number} length of a
+	 */
+	vec3.length = function (a) {
+	    var x = a[0],
+	        y = a[1],
+	        z = a[2];
+	    return Math.sqrt(x*x + y*y + z*z);
+	};
+
+	/**
+	 * Alias for {@link vec3.length}
+	 * @function
+	 */
+	vec3.len = vec3.length;
+
+	/**
+	 * Calculates the squared length of a vec3
+	 *
+	 * @param {vec3} a vector to calculate squared length of
+	 * @returns {Number} squared length of a
+	 */
+	vec3.squaredLength = function (a) {
+	    var x = a[0],
+	        y = a[1],
+	        z = a[2];
+	    return x*x + y*y + z*z;
+	};
+
+	/**
+	 * Alias for {@link vec3.squaredLength}
+	 * @function
+	 */
+	vec3.sqrLen = vec3.squaredLength;
+
+	/**
+	 * Negates the components of a vec3
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a vector to negate
+	 * @returns {vec3} out
+	 */
+	vec3.negate = function(out, a) {
+	    out[0] = -a[0];
+	    out[1] = -a[1];
+	    out[2] = -a[2];
+	    return out;
+	};
+
+	/**
+	 * Returns the inverse of the components of a vec3
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a vector to invert
+	 * @returns {vec3} out
+	 */
+	vec3.inverse = function(out, a) {
+	  out[0] = 1.0 / a[0];
+	  out[1] = 1.0 / a[1];
+	  out[2] = 1.0 / a[2];
+	  return out;
+	};
+
+	/**
+	 * Normalize a vec3
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a vector to normalize
+	 * @returns {vec3} out
+	 */
+	vec3.normalize = function(out, a) {
+	    var x = a[0],
+	        y = a[1],
+	        z = a[2];
+	    var len = x*x + y*y + z*z;
+	    if (len > 0) {
+	        //TODO: evaluate use of glm_invsqrt here?
+	        len = 1 / Math.sqrt(len);
+	        out[0] = a[0] * len;
+	        out[1] = a[1] * len;
+	        out[2] = a[2] * len;
+	    }
+	    return out;
+	};
+
+	/**
+	 * Calculates the dot product of two vec3's
+	 *
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @returns {Number} dot product of a and b
+	 */
+	vec3.dot = function (a, b) {
+	    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+	};
+
+	/**
+	 * Computes the cross product of two vec3's
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @returns {vec3} out
+	 */
+	vec3.cross = function(out, a, b) {
+	    var ax = a[0], ay = a[1], az = a[2],
+	        bx = b[0], by = b[1], bz = b[2];
+
+	    out[0] = ay * bz - az * by;
+	    out[1] = az * bx - ax * bz;
+	    out[2] = ax * by - ay * bx;
+	    return out;
+	};
+
+	/**
+	 * Performs a linear interpolation between two vec3's
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @param {Number} t interpolation amount between the two inputs
+	 * @returns {vec3} out
+	 */
+	vec3.lerp = function (out, a, b, t) {
+	    var ax = a[0],
+	        ay = a[1],
+	        az = a[2];
+	    out[0] = ax + t * (b[0] - ax);
+	    out[1] = ay + t * (b[1] - ay);
+	    out[2] = az + t * (b[2] - az);
+	    return out;
+	};
+
+	/**
+	 * Performs a hermite interpolation with two control points
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @param {vec3} c the third operand
+	 * @param {vec3} d the fourth operand
+	 * @param {Number} t interpolation amount between the two inputs
+	 * @returns {vec3} out
+	 */
+	vec3.hermite = function (out, a, b, c, d, t) {
+	  var factorTimes2 = t * t,
+	      factor1 = factorTimes2 * (2 * t - 3) + 1,
+	      factor2 = factorTimes2 * (t - 2) + t,
+	      factor3 = factorTimes2 * (t - 1),
+	      factor4 = factorTimes2 * (3 - 2 * t);
+	  
+	  out[0] = a[0] * factor1 + b[0] * factor2 + c[0] * factor3 + d[0] * factor4;
+	  out[1] = a[1] * factor1 + b[1] * factor2 + c[1] * factor3 + d[1] * factor4;
+	  out[2] = a[2] * factor1 + b[2] * factor2 + c[2] * factor3 + d[2] * factor4;
+	  
+	  return out;
+	};
+
+	/**
+	 * Performs a bezier interpolation with two control points
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the first operand
+	 * @param {vec3} b the second operand
+	 * @param {vec3} c the third operand
+	 * @param {vec3} d the fourth operand
+	 * @param {Number} t interpolation amount between the two inputs
+	 * @returns {vec3} out
+	 */
+	vec3.bezier = function (out, a, b, c, d, t) {
+	  var inverseFactor = 1 - t,
+	      inverseFactorTimesTwo = inverseFactor * inverseFactor,
+	      factorTimes2 = t * t,
+	      factor1 = inverseFactorTimesTwo * inverseFactor,
+	      factor2 = 3 * t * inverseFactorTimesTwo,
+	      factor3 = 3 * factorTimes2 * inverseFactor,
+	      factor4 = factorTimes2 * t;
+	  
+	  out[0] = a[0] * factor1 + b[0] * factor2 + c[0] * factor3 + d[0] * factor4;
+	  out[1] = a[1] * factor1 + b[1] * factor2 + c[1] * factor3 + d[1] * factor4;
+	  out[2] = a[2] * factor1 + b[2] * factor2 + c[2] * factor3 + d[2] * factor4;
+	  
+	  return out;
+	};
+
+	/**
+	 * Generates a random vector with the given scale
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {Number} [scale] Length of the resulting vector. If ommitted, a unit vector will be returned
+	 * @returns {vec3} out
+	 */
+	vec3.random = function (out, scale) {
+	    scale = scale || 1.0;
+
+	    var r = glMatrix.RANDOM() * 2.0 * Math.PI;
+	    var z = (glMatrix.RANDOM() * 2.0) - 1.0;
+	    var zScale = Math.sqrt(1.0-z*z) * scale;
+
+	    out[0] = Math.cos(r) * zScale;
+	    out[1] = Math.sin(r) * zScale;
+	    out[2] = z * scale;
+	    return out;
+	};
+
+	/**
+	 * Transforms the vec3 with a mat4.
+	 * 4th vector component is implicitly '1'
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the vector to transform
+	 * @param {mat4} m matrix to transform with
+	 * @returns {vec3} out
+	 */
+	vec3.transformMat4 = function(out, a, m) {
+	    var x = a[0], y = a[1], z = a[2],
+	        w = m[3] * x + m[7] * y + m[11] * z + m[15];
+	    w = w || 1.0;
+	    out[0] = (m[0] * x + m[4] * y + m[8] * z + m[12]) / w;
+	    out[1] = (m[1] * x + m[5] * y + m[9] * z + m[13]) / w;
+	    out[2] = (m[2] * x + m[6] * y + m[10] * z + m[14]) / w;
+	    return out;
+	};
+
+	/**
+	 * Transforms the vec3 with a mat3.
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the vector to transform
+	 * @param {mat4} m the 3x3 matrix to transform with
+	 * @returns {vec3} out
+	 */
+	vec3.transformMat3 = function(out, a, m) {
+	    var x = a[0], y = a[1], z = a[2];
+	    out[0] = x * m[0] + y * m[3] + z * m[6];
+	    out[1] = x * m[1] + y * m[4] + z * m[7];
+	    out[2] = x * m[2] + y * m[5] + z * m[8];
+	    return out;
+	};
+
+	/**
+	 * Transforms the vec3 with a quat
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec3} a the vector to transform
+	 * @param {quat} q quaternion to transform with
+	 * @returns {vec3} out
+	 */
+	vec3.transformQuat = function(out, a, q) {
+	    // benchmarks: http://jsperf.com/quaternion-transform-vec3-implementations
+
+	    var x = a[0], y = a[1], z = a[2],
+	        qx = q[0], qy = q[1], qz = q[2], qw = q[3],
+
+	        // calculate quat * vec
+	        ix = qw * x + qy * z - qz * y,
+	        iy = qw * y + qz * x - qx * z,
+	        iz = qw * z + qx * y - qy * x,
+	        iw = -qx * x - qy * y - qz * z;
+
+	    // calculate result * inverse quat
+	    out[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+	    out[1] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+	    out[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+	    return out;
+	};
+
+	/**
+	 * Rotate a 3D vector around the x-axis
+	 * @param {vec3} out The receiving vec3
+	 * @param {vec3} a The vec3 point to rotate
+	 * @param {vec3} b The origin of the rotation
+	 * @param {Number} c The angle of rotation
+	 * @returns {vec3} out
+	 */
+	vec3.rotateX = function(out, a, b, c){
+	   var p = [], r=[];
+		  //Translate point to the origin
+		  p[0] = a[0] - b[0];
+		  p[1] = a[1] - b[1];
+	  	p[2] = a[2] - b[2];
+
+		  //perform rotation
+		  r[0] = p[0];
+		  r[1] = p[1]*Math.cos(c) - p[2]*Math.sin(c);
+		  r[2] = p[1]*Math.sin(c) + p[2]*Math.cos(c);
+
+		  //translate to correct position
+		  out[0] = r[0] + b[0];
+		  out[1] = r[1] + b[1];
+		  out[2] = r[2] + b[2];
+
+	  	return out;
+	};
+
+	/**
+	 * Rotate a 3D vector around the y-axis
+	 * @param {vec3} out The receiving vec3
+	 * @param {vec3} a The vec3 point to rotate
+	 * @param {vec3} b The origin of the rotation
+	 * @param {Number} c The angle of rotation
+	 * @returns {vec3} out
+	 */
+	vec3.rotateY = function(out, a, b, c){
+	  	var p = [], r=[];
+	  	//Translate point to the origin
+	  	p[0] = a[0] - b[0];
+	  	p[1] = a[1] - b[1];
+	  	p[2] = a[2] - b[2];
+	  
+	  	//perform rotation
+	  	r[0] = p[2]*Math.sin(c) + p[0]*Math.cos(c);
+	  	r[1] = p[1];
+	  	r[2] = p[2]*Math.cos(c) - p[0]*Math.sin(c);
+	  
+	  	//translate to correct position
+	  	out[0] = r[0] + b[0];
+	  	out[1] = r[1] + b[1];
+	  	out[2] = r[2] + b[2];
+	  
+	  	return out;
+	};
+
+	/**
+	 * Rotate a 3D vector around the z-axis
+	 * @param {vec3} out The receiving vec3
+	 * @param {vec3} a The vec3 point to rotate
+	 * @param {vec3} b The origin of the rotation
+	 * @param {Number} c The angle of rotation
+	 * @returns {vec3} out
+	 */
+	vec3.rotateZ = function(out, a, b, c){
+	  	var p = [], r=[];
+	  	//Translate point to the origin
+	  	p[0] = a[0] - b[0];
+	  	p[1] = a[1] - b[1];
+	  	p[2] = a[2] - b[2];
+	  
+	  	//perform rotation
+	  	r[0] = p[0]*Math.cos(c) - p[1]*Math.sin(c);
+	  	r[1] = p[0]*Math.sin(c) + p[1]*Math.cos(c);
+	  	r[2] = p[2];
+	  
+	  	//translate to correct position
+	  	out[0] = r[0] + b[0];
+	  	out[1] = r[1] + b[1];
+	  	out[2] = r[2] + b[2];
+	  
+	  	return out;
+	};
+
+	/**
+	 * Perform some operation over an array of vec3s.
+	 *
+	 * @param {Array} a the array of vectors to iterate over
+	 * @param {Number} stride Number of elements between the start of each vec3. If 0 assumes tightly packed
+	 * @param {Number} offset Number of elements to skip at the beginning of the array
+	 * @param {Number} count Number of vec3s to iterate over. If 0 iterates over entire array
+	 * @param {Function} fn Function to call for each vector in the array
+	 * @param {Object} [arg] additional argument to pass to fn
+	 * @returns {Array} a
+	 * @function
+	 */
+	vec3.forEach = (function() {
+	    var vec = vec3.create();
+
+	    return function(a, stride, offset, count, fn, arg) {
+	        var i, l;
+	        if(!stride) {
+	            stride = 3;
+	        }
+
+	        if(!offset) {
+	            offset = 0;
+	        }
+	        
+	        if(count) {
+	            l = Math.min((count * stride) + offset, a.length);
+	        } else {
+	            l = a.length;
+	        }
+
+	        for(i = offset; i < l; i += stride) {
+	            vec[0] = a[i]; vec[1] = a[i+1]; vec[2] = a[i+2];
+	            fn(vec, vec, arg);
+	            a[i] = vec[0]; a[i+1] = vec[1]; a[i+2] = vec[2];
+	        }
+	        
+	        return a;
+	    };
+	})();
+
+	/**
+	 * Get the angle between two 3D vectors
+	 * @param {vec3} a The first operand
+	 * @param {vec3} b The second operand
+	 * @returns {Number} The angle in radians
+	 */
+	vec3.angle = function(a, b) {
+	   
+	    var tempA = vec3.fromValues(a[0], a[1], a[2]);
+	    var tempB = vec3.fromValues(b[0], b[1], b[2]);
+	 
+	    vec3.normalize(tempA, tempA);
+	    vec3.normalize(tempB, tempB);
+	 
+	    var cosine = vec3.dot(tempA, tempB);
+
+	    if(cosine > 1.0){
+	        return 0;
+	    } else {
+	        return Math.acos(cosine);
+	    }     
+	};
+
+	/**
+	 * Returns a string representation of a vector
+	 *
+	 * @param {vec3} a vector to represent as a string
+	 * @returns {String} string representation of the vector
+	 */
+	vec3.str = function (a) {
+	    return 'vec3(' + a[0] + ', ' + a[1] + ', ' + a[2] + ')';
+	};
+
+	/**
+	 * Returns whether or not the vectors have exactly the same elements in the same position (when compared with ===)
+	 *
+	 * @param {vec3} a The first vector.
+	 * @param {vec3} b The second vector.
+	 * @returns {Boolean} True if the vectors are equal, false otherwise.
+	 */
+	vec3.exactEquals = function (a, b) {
+	    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+	};
+
+	/**
+	 * Returns whether or not the vectors have approximately the same elements in the same position.
+	 *
+	 * @param {vec3} a The first vector.
+	 * @param {vec3} b The second vector.
+	 * @returns {Boolean} True if the vectors are equal, false otherwise.
+	 */
+	vec3.equals = function (a, b) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2];
+	    var b0 = b[0], b1 = b[1], b2 = b[2];
+	    return (Math.abs(a0 - b0) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
+	            Math.abs(a1 - b1) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a1), Math.abs(b1)) &&
+	            Math.abs(a2 - b2) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a2), Math.abs(b2)));
+	};
+
+	module.exports = vec3;
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE. */
+
+	var glMatrix = __webpack_require__(1);
+
+	/**
+	 * @class 4 Dimensional Vector
+	 * @name vec4
+	 */
+	var vec4 = {};
+
+	/**
+	 * Creates a new, empty vec4
+	 *
+	 * @returns {vec4} a new 4D vector
+	 */
+	vec4.create = function() {
+	    var out = new glMatrix.ARRAY_TYPE(4);
+	    out[0] = 0;
+	    out[1] = 0;
+	    out[2] = 0;
+	    out[3] = 0;
+	    return out;
+	};
+
+	/**
+	 * Creates a new vec4 initialized with values from an existing vector
+	 *
+	 * @param {vec4} a vector to clone
+	 * @returns {vec4} a new 4D vector
+	 */
+	vec4.clone = function(a) {
+	    var out = new glMatrix.ARRAY_TYPE(4);
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    out[3] = a[3];
+	    return out;
+	};
+
+	/**
+	 * Creates a new vec4 initialized with the given values
+	 *
+	 * @param {Number} x X component
+	 * @param {Number} y Y component
+	 * @param {Number} z Z component
+	 * @param {Number} w W component
+	 * @returns {vec4} a new 4D vector
+	 */
+	vec4.fromValues = function(x, y, z, w) {
+	    var out = new glMatrix.ARRAY_TYPE(4);
+	    out[0] = x;
+	    out[1] = y;
+	    out[2] = z;
+	    out[3] = w;
+	    return out;
+	};
+
+	/**
+	 * Copy the values from one vec4 to another
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a the source vector
+	 * @returns {vec4} out
+	 */
+	vec4.copy = function(out, a) {
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    out[2] = a[2];
+	    out[3] = a[3];
+	    return out;
+	};
+
+	/**
+	 * Set the components of a vec4 to the given values
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {Number} x X component
+	 * @param {Number} y Y component
+	 * @param {Number} z Z component
+	 * @param {Number} w W component
+	 * @returns {vec4} out
+	 */
+	vec4.set = function(out, x, y, z, w) {
+	    out[0] = x;
+	    out[1] = y;
+	    out[2] = z;
+	    out[3] = w;
+	    return out;
+	};
+
+	/**
+	 * Adds two vec4's
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a the first operand
+	 * @param {vec4} b the second operand
+	 * @returns {vec4} out
+	 */
+	vec4.add = function(out, a, b) {
+	    out[0] = a[0] + b[0];
+	    out[1] = a[1] + b[1];
+	    out[2] = a[2] + b[2];
+	    out[3] = a[3] + b[3];
+	    return out;
+	};
+
+	/**
+	 * Subtracts vector b from vector a
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a the first operand
+	 * @param {vec4} b the second operand
+	 * @returns {vec4} out
+	 */
+	vec4.subtract = function(out, a, b) {
+	    out[0] = a[0] - b[0];
+	    out[1] = a[1] - b[1];
+	    out[2] = a[2] - b[2];
+	    out[3] = a[3] - b[3];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link vec4.subtract}
+	 * @function
+	 */
+	vec4.sub = vec4.subtract;
+
+	/**
+	 * Multiplies two vec4's
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a the first operand
+	 * @param {vec4} b the second operand
+	 * @returns {vec4} out
+	 */
+	vec4.multiply = function(out, a, b) {
+	    out[0] = a[0] * b[0];
+	    out[1] = a[1] * b[1];
+	    out[2] = a[2] * b[2];
+	    out[3] = a[3] * b[3];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link vec4.multiply}
+	 * @function
+	 */
+	vec4.mul = vec4.multiply;
+
+	/**
+	 * Divides two vec4's
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a the first operand
+	 * @param {vec4} b the second operand
+	 * @returns {vec4} out
+	 */
+	vec4.divide = function(out, a, b) {
+	    out[0] = a[0] / b[0];
+	    out[1] = a[1] / b[1];
+	    out[2] = a[2] / b[2];
+	    out[3] = a[3] / b[3];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link vec4.divide}
+	 * @function
+	 */
+	vec4.div = vec4.divide;
+
+	/**
+	 * Math.ceil the components of a vec4
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a vector to ceil
+	 * @returns {vec4} out
+	 */
+	vec4.ceil = function (out, a) {
+	    out[0] = Math.ceil(a[0]);
+	    out[1] = Math.ceil(a[1]);
+	    out[2] = Math.ceil(a[2]);
+	    out[3] = Math.ceil(a[3]);
+	    return out;
+	};
+
+	/**
+	 * Math.floor the components of a vec4
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a vector to floor
+	 * @returns {vec4} out
+	 */
+	vec4.floor = function (out, a) {
+	    out[0] = Math.floor(a[0]);
+	    out[1] = Math.floor(a[1]);
+	    out[2] = Math.floor(a[2]);
+	    out[3] = Math.floor(a[3]);
+	    return out;
+	};
+
+	/**
+	 * Returns the minimum of two vec4's
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a the first operand
+	 * @param {vec4} b the second operand
+	 * @returns {vec4} out
+	 */
+	vec4.min = function(out, a, b) {
+	    out[0] = Math.min(a[0], b[0]);
+	    out[1] = Math.min(a[1], b[1]);
+	    out[2] = Math.min(a[2], b[2]);
+	    out[3] = Math.min(a[3], b[3]);
+	    return out;
+	};
+
+	/**
+	 * Returns the maximum of two vec4's
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a the first operand
+	 * @param {vec4} b the second operand
+	 * @returns {vec4} out
+	 */
+	vec4.max = function(out, a, b) {
+	    out[0] = Math.max(a[0], b[0]);
+	    out[1] = Math.max(a[1], b[1]);
+	    out[2] = Math.max(a[2], b[2]);
+	    out[3] = Math.max(a[3], b[3]);
+	    return out;
+	};
+
+	/**
+	 * Math.round the components of a vec4
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a vector to round
+	 * @returns {vec4} out
+	 */
+	vec4.round = function (out, a) {
+	    out[0] = Math.round(a[0]);
+	    out[1] = Math.round(a[1]);
+	    out[2] = Math.round(a[2]);
+	    out[3] = Math.round(a[3]);
+	    return out;
+	};
+
+	/**
+	 * Scales a vec4 by a scalar number
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a the vector to scale
+	 * @param {Number} b amount to scale the vector by
+	 * @returns {vec4} out
+	 */
+	vec4.scale = function(out, a, b) {
+	    out[0] = a[0] * b;
+	    out[1] = a[1] * b;
+	    out[2] = a[2] * b;
+	    out[3] = a[3] * b;
+	    return out;
+	};
+
+	/**
+	 * Adds two vec4's after scaling the second operand by a scalar value
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a the first operand
+	 * @param {vec4} b the second operand
+	 * @param {Number} scale the amount to scale b by before adding
+	 * @returns {vec4} out
+	 */
+	vec4.scaleAndAdd = function(out, a, b, scale) {
+	    out[0] = a[0] + (b[0] * scale);
+	    out[1] = a[1] + (b[1] * scale);
+	    out[2] = a[2] + (b[2] * scale);
+	    out[3] = a[3] + (b[3] * scale);
+	    return out;
+	};
+
+	/**
+	 * Calculates the euclidian distance between two vec4's
+	 *
+	 * @param {vec4} a the first operand
+	 * @param {vec4} b the second operand
+	 * @returns {Number} distance between a and b
+	 */
+	vec4.distance = function(a, b) {
+	    var x = b[0] - a[0],
+	        y = b[1] - a[1],
+	        z = b[2] - a[2],
+	        w = b[3] - a[3];
+	    return Math.sqrt(x*x + y*y + z*z + w*w);
+	};
+
+	/**
+	 * Alias for {@link vec4.distance}
+	 * @function
+	 */
+	vec4.dist = vec4.distance;
+
+	/**
+	 * Calculates the squared euclidian distance between two vec4's
+	 *
+	 * @param {vec4} a the first operand
+	 * @param {vec4} b the second operand
+	 * @returns {Number} squared distance between a and b
+	 */
+	vec4.squaredDistance = function(a, b) {
+	    var x = b[0] - a[0],
+	        y = b[1] - a[1],
+	        z = b[2] - a[2],
+	        w = b[3] - a[3];
+	    return x*x + y*y + z*z + w*w;
+	};
+
+	/**
+	 * Alias for {@link vec4.squaredDistance}
+	 * @function
+	 */
+	vec4.sqrDist = vec4.squaredDistance;
+
+	/**
+	 * Calculates the length of a vec4
+	 *
+	 * @param {vec4} a vector to calculate length of
+	 * @returns {Number} length of a
+	 */
+	vec4.length = function (a) {
+	    var x = a[0],
+	        y = a[1],
+	        z = a[2],
+	        w = a[3];
+	    return Math.sqrt(x*x + y*y + z*z + w*w);
+	};
+
+	/**
+	 * Alias for {@link vec4.length}
+	 * @function
+	 */
+	vec4.len = vec4.length;
+
+	/**
+	 * Calculates the squared length of a vec4
+	 *
+	 * @param {vec4} a vector to calculate squared length of
+	 * @returns {Number} squared length of a
+	 */
+	vec4.squaredLength = function (a) {
+	    var x = a[0],
+	        y = a[1],
+	        z = a[2],
+	        w = a[3];
+	    return x*x + y*y + z*z + w*w;
+	};
+
+	/**
+	 * Alias for {@link vec4.squaredLength}
+	 * @function
+	 */
+	vec4.sqrLen = vec4.squaredLength;
+
+	/**
+	 * Negates the components of a vec4
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a vector to negate
+	 * @returns {vec4} out
+	 */
+	vec4.negate = function(out, a) {
+	    out[0] = -a[0];
+	    out[1] = -a[1];
+	    out[2] = -a[2];
+	    out[3] = -a[3];
+	    return out;
+	};
+
+	/**
+	 * Returns the inverse of the components of a vec4
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a vector to invert
+	 * @returns {vec4} out
+	 */
+	vec4.inverse = function(out, a) {
+	  out[0] = 1.0 / a[0];
+	  out[1] = 1.0 / a[1];
+	  out[2] = 1.0 / a[2];
+	  out[3] = 1.0 / a[3];
+	  return out;
+	};
+
+	/**
+	 * Normalize a vec4
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a vector to normalize
+	 * @returns {vec4} out
+	 */
+	vec4.normalize = function(out, a) {
+	    var x = a[0],
+	        y = a[1],
+	        z = a[2],
+	        w = a[3];
+	    var len = x*x + y*y + z*z + w*w;
+	    if (len > 0) {
+	        len = 1 / Math.sqrt(len);
+	        out[0] = x * len;
+	        out[1] = y * len;
+	        out[2] = z * len;
+	        out[3] = w * len;
+	    }
+	    return out;
+	};
+
+	/**
+	 * Calculates the dot product of two vec4's
+	 *
+	 * @param {vec4} a the first operand
+	 * @param {vec4} b the second operand
+	 * @returns {Number} dot product of a and b
+	 */
+	vec4.dot = function (a, b) {
+	    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+	};
+
+	/**
+	 * Performs a linear interpolation between two vec4's
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a the first operand
+	 * @param {vec4} b the second operand
+	 * @param {Number} t interpolation amount between the two inputs
+	 * @returns {vec4} out
+	 */
+	vec4.lerp = function (out, a, b, t) {
+	    var ax = a[0],
+	        ay = a[1],
+	        az = a[2],
+	        aw = a[3];
+	    out[0] = ax + t * (b[0] - ax);
+	    out[1] = ay + t * (b[1] - ay);
+	    out[2] = az + t * (b[2] - az);
+	    out[3] = aw + t * (b[3] - aw);
+	    return out;
+	};
+
+	/**
+	 * Generates a random vector with the given scale
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {Number} [scale] Length of the resulting vector. If ommitted, a unit vector will be returned
+	 * @returns {vec4} out
+	 */
+	vec4.random = function (out, scale) {
+	    scale = scale || 1.0;
+
+	    //TODO: This is a pretty awful way of doing this. Find something better.
+	    out[0] = glMatrix.RANDOM();
+	    out[1] = glMatrix.RANDOM();
+	    out[2] = glMatrix.RANDOM();
+	    out[3] = glMatrix.RANDOM();
+	    vec4.normalize(out, out);
+	    vec4.scale(out, out, scale);
+	    return out;
+	};
+
+	/**
+	 * Transforms the vec4 with a mat4.
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a the vector to transform
+	 * @param {mat4} m matrix to transform with
+	 * @returns {vec4} out
+	 */
+	vec4.transformMat4 = function(out, a, m) {
+	    var x = a[0], y = a[1], z = a[2], w = a[3];
+	    out[0] = m[0] * x + m[4] * y + m[8] * z + m[12] * w;
+	    out[1] = m[1] * x + m[5] * y + m[9] * z + m[13] * w;
+	    out[2] = m[2] * x + m[6] * y + m[10] * z + m[14] * w;
+	    out[3] = m[3] * x + m[7] * y + m[11] * z + m[15] * w;
+	    return out;
+	};
+
+	/**
+	 * Transforms the vec4 with a quat
+	 *
+	 * @param {vec4} out the receiving vector
+	 * @param {vec4} a the vector to transform
+	 * @param {quat} q quaternion to transform with
+	 * @returns {vec4} out
+	 */
+	vec4.transformQuat = function(out, a, q) {
+	    var x = a[0], y = a[1], z = a[2],
+	        qx = q[0], qy = q[1], qz = q[2], qw = q[3],
+
+	        // calculate quat * vec
+	        ix = qw * x + qy * z - qz * y,
+	        iy = qw * y + qz * x - qx * z,
+	        iz = qw * z + qx * y - qy * x,
+	        iw = -qx * x - qy * y - qz * z;
+
+	    // calculate result * inverse quat
+	    out[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+	    out[1] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+	    out[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+	    out[3] = a[3];
+	    return out;
+	};
+
+	/**
+	 * Perform some operation over an array of vec4s.
+	 *
+	 * @param {Array} a the array of vectors to iterate over
+	 * @param {Number} stride Number of elements between the start of each vec4. If 0 assumes tightly packed
+	 * @param {Number} offset Number of elements to skip at the beginning of the array
+	 * @param {Number} count Number of vec4s to iterate over. If 0 iterates over entire array
+	 * @param {Function} fn Function to call for each vector in the array
+	 * @param {Object} [arg] additional argument to pass to fn
+	 * @returns {Array} a
+	 * @function
+	 */
+	vec4.forEach = (function() {
+	    var vec = vec4.create();
+
+	    return function(a, stride, offset, count, fn, arg) {
+	        var i, l;
+	        if(!stride) {
+	            stride = 4;
+	        }
+
+	        if(!offset) {
+	            offset = 0;
+	        }
+	        
+	        if(count) {
+	            l = Math.min((count * stride) + offset, a.length);
+	        } else {
+	            l = a.length;
+	        }
+
+	        for(i = offset; i < l; i += stride) {
+	            vec[0] = a[i]; vec[1] = a[i+1]; vec[2] = a[i+2]; vec[3] = a[i+3];
+	            fn(vec, vec, arg);
+	            a[i] = vec[0]; a[i+1] = vec[1]; a[i+2] = vec[2]; a[i+3] = vec[3];
+	        }
+	        
+	        return a;
+	    };
+	})();
+
+	/**
+	 * Returns a string representation of a vector
+	 *
+	 * @param {vec4} a vector to represent as a string
+	 * @returns {String} string representation of the vector
+	 */
+	vec4.str = function (a) {
+	    return 'vec4(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' + a[3] + ')';
+	};
+
+	/**
+	 * Returns whether or not the vectors have exactly the same elements in the same position (when compared with ===)
+	 *
+	 * @param {vec4} a The first vector.
+	 * @param {vec4} b The second vector.
+	 * @returns {Boolean} True if the vectors are equal, false otherwise.
+	 */
+	vec4.exactEquals = function (a, b) {
+	    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
+	};
+
+	/**
+	 * Returns whether or not the vectors have approximately the same elements in the same position.
+	 *
+	 * @param {vec4} a The first vector.
+	 * @param {vec4} b The second vector.
+	 * @returns {Boolean} True if the vectors are equal, false otherwise.
+	 */
+	vec4.equals = function (a, b) {
+	    var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
+	    var b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+	    return (Math.abs(a0 - b0) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
+	            Math.abs(a1 - b1) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a1), Math.abs(b1)) &&
+	            Math.abs(a2 - b2) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a2), Math.abs(b2)) &&
+	            Math.abs(a3 - b3) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a3), Math.abs(b3)));
+	};
+
+	module.exports = vec4;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE. */
+
+	var glMatrix = __webpack_require__(1);
+
+	/**
+	 * @class 2 Dimensional Vector
+	 * @name vec2
+	 */
+	var vec2 = {};
+
+	/**
+	 * Creates a new, empty vec2
+	 *
+	 * @returns {vec2} a new 2D vector
+	 */
+	vec2.create = function() {
+	    var out = new glMatrix.ARRAY_TYPE(2);
+	    out[0] = 0;
+	    out[1] = 0;
+	    return out;
+	};
+
+	/**
+	 * Creates a new vec2 initialized with values from an existing vector
+	 *
+	 * @param {vec2} a vector to clone
+	 * @returns {vec2} a new 2D vector
+	 */
+	vec2.clone = function(a) {
+	    var out = new glMatrix.ARRAY_TYPE(2);
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    return out;
+	};
+
+	/**
+	 * Creates a new vec2 initialized with the given values
+	 *
+	 * @param {Number} x X component
+	 * @param {Number} y Y component
+	 * @returns {vec2} a new 2D vector
+	 */
+	vec2.fromValues = function(x, y) {
+	    var out = new glMatrix.ARRAY_TYPE(2);
+	    out[0] = x;
+	    out[1] = y;
+	    return out;
+	};
+
+	/**
+	 * Copy the values from one vec2 to another
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the source vector
+	 * @returns {vec2} out
+	 */
+	vec2.copy = function(out, a) {
+	    out[0] = a[0];
+	    out[1] = a[1];
+	    return out;
+	};
+
+	/**
+	 * Set the components of a vec2 to the given values
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {Number} x X component
+	 * @param {Number} y Y component
+	 * @returns {vec2} out
+	 */
+	vec2.set = function(out, x, y) {
+	    out[0] = x;
+	    out[1] = y;
+	    return out;
+	};
+
+	/**
+	 * Adds two vec2's
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the first operand
+	 * @param {vec2} b the second operand
+	 * @returns {vec2} out
+	 */
+	vec2.add = function(out, a, b) {
+	    out[0] = a[0] + b[0];
+	    out[1] = a[1] + b[1];
+	    return out;
+	};
+
+	/**
+	 * Subtracts vector b from vector a
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the first operand
+	 * @param {vec2} b the second operand
+	 * @returns {vec2} out
+	 */
+	vec2.subtract = function(out, a, b) {
+	    out[0] = a[0] - b[0];
+	    out[1] = a[1] - b[1];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link vec2.subtract}
+	 * @function
+	 */
+	vec2.sub = vec2.subtract;
+
+	/**
+	 * Multiplies two vec2's
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the first operand
+	 * @param {vec2} b the second operand
+	 * @returns {vec2} out
+	 */
+	vec2.multiply = function(out, a, b) {
+	    out[0] = a[0] * b[0];
+	    out[1] = a[1] * b[1];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link vec2.multiply}
+	 * @function
+	 */
+	vec2.mul = vec2.multiply;
+
+	/**
+	 * Divides two vec2's
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the first operand
+	 * @param {vec2} b the second operand
+	 * @returns {vec2} out
+	 */
+	vec2.divide = function(out, a, b) {
+	    out[0] = a[0] / b[0];
+	    out[1] = a[1] / b[1];
+	    return out;
+	};
+
+	/**
+	 * Alias for {@link vec2.divide}
+	 * @function
+	 */
+	vec2.div = vec2.divide;
+
+	/**
+	 * Math.ceil the components of a vec2
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a vector to ceil
+	 * @returns {vec2} out
+	 */
+	vec2.ceil = function (out, a) {
+	    out[0] = Math.ceil(a[0]);
+	    out[1] = Math.ceil(a[1]);
+	    return out;
+	};
+
+	/**
+	 * Math.floor the components of a vec2
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a vector to floor
+	 * @returns {vec2} out
+	 */
+	vec2.floor = function (out, a) {
+	    out[0] = Math.floor(a[0]);
+	    out[1] = Math.floor(a[1]);
+	    return out;
+	};
+
+	/**
+	 * Returns the minimum of two vec2's
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the first operand
+	 * @param {vec2} b the second operand
+	 * @returns {vec2} out
+	 */
+	vec2.min = function(out, a, b) {
+	    out[0] = Math.min(a[0], b[0]);
+	    out[1] = Math.min(a[1], b[1]);
+	    return out;
+	};
+
+	/**
+	 * Returns the maximum of two vec2's
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the first operand
+	 * @param {vec2} b the second operand
+	 * @returns {vec2} out
+	 */
+	vec2.max = function(out, a, b) {
+	    out[0] = Math.max(a[0], b[0]);
+	    out[1] = Math.max(a[1], b[1]);
+	    return out;
+	};
+
+	/**
+	 * Math.round the components of a vec2
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a vector to round
+	 * @returns {vec2} out
+	 */
+	vec2.round = function (out, a) {
+	    out[0] = Math.round(a[0]);
+	    out[1] = Math.round(a[1]);
+	    return out;
+	};
+
+	/**
+	 * Scales a vec2 by a scalar number
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the vector to scale
+	 * @param {Number} b amount to scale the vector by
+	 * @returns {vec2} out
+	 */
+	vec2.scale = function(out, a, b) {
+	    out[0] = a[0] * b;
+	    out[1] = a[1] * b;
+	    return out;
+	};
+
+	/**
+	 * Adds two vec2's after scaling the second operand by a scalar value
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the first operand
+	 * @param {vec2} b the second operand
+	 * @param {Number} scale the amount to scale b by before adding
+	 * @returns {vec2} out
+	 */
+	vec2.scaleAndAdd = function(out, a, b, scale) {
+	    out[0] = a[0] + (b[0] * scale);
+	    out[1] = a[1] + (b[1] * scale);
+	    return out;
+	};
+
+	/**
+	 * Calculates the euclidian distance between two vec2's
+	 *
+	 * @param {vec2} a the first operand
+	 * @param {vec2} b the second operand
+	 * @returns {Number} distance between a and b
+	 */
+	vec2.distance = function(a, b) {
+	    var x = b[0] - a[0],
+	        y = b[1] - a[1];
+	    return Math.sqrt(x*x + y*y);
+	};
+
+	/**
+	 * Alias for {@link vec2.distance}
+	 * @function
+	 */
+	vec2.dist = vec2.distance;
+
+	/**
+	 * Calculates the squared euclidian distance between two vec2's
+	 *
+	 * @param {vec2} a the first operand
+	 * @param {vec2} b the second operand
+	 * @returns {Number} squared distance between a and b
+	 */
+	vec2.squaredDistance = function(a, b) {
+	    var x = b[0] - a[0],
+	        y = b[1] - a[1];
+	    return x*x + y*y;
+	};
+
+	/**
+	 * Alias for {@link vec2.squaredDistance}
+	 * @function
+	 */
+	vec2.sqrDist = vec2.squaredDistance;
+
+	/**
+	 * Calculates the length of a vec2
+	 *
+	 * @param {vec2} a vector to calculate length of
+	 * @returns {Number} length of a
+	 */
+	vec2.length = function (a) {
+	    var x = a[0],
+	        y = a[1];
+	    return Math.sqrt(x*x + y*y);
+	};
+
+	/**
+	 * Alias for {@link vec2.length}
+	 * @function
+	 */
+	vec2.len = vec2.length;
+
+	/**
+	 * Calculates the squared length of a vec2
+	 *
+	 * @param {vec2} a vector to calculate squared length of
+	 * @returns {Number} squared length of a
+	 */
+	vec2.squaredLength = function (a) {
+	    var x = a[0],
+	        y = a[1];
+	    return x*x + y*y;
+	};
+
+	/**
+	 * Alias for {@link vec2.squaredLength}
+	 * @function
+	 */
+	vec2.sqrLen = vec2.squaredLength;
+
+	/**
+	 * Negates the components of a vec2
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a vector to negate
+	 * @returns {vec2} out
+	 */
+	vec2.negate = function(out, a) {
+	    out[0] = -a[0];
+	    out[1] = -a[1];
+	    return out;
+	};
+
+	/**
+	 * Returns the inverse of the components of a vec2
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a vector to invert
+	 * @returns {vec2} out
+	 */
+	vec2.inverse = function(out, a) {
+	  out[0] = 1.0 / a[0];
+	  out[1] = 1.0 / a[1];
+	  return out;
+	};
+
+	/**
+	 * Normalize a vec2
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a vector to normalize
+	 * @returns {vec2} out
+	 */
+	vec2.normalize = function(out, a) {
+	    var x = a[0],
+	        y = a[1];
+	    var len = x*x + y*y;
+	    if (len > 0) {
+	        //TODO: evaluate use of glm_invsqrt here?
+	        len = 1 / Math.sqrt(len);
+	        out[0] = a[0] * len;
+	        out[1] = a[1] * len;
+	    }
+	    return out;
+	};
+
+	/**
+	 * Calculates the dot product of two vec2's
+	 *
+	 * @param {vec2} a the first operand
+	 * @param {vec2} b the second operand
+	 * @returns {Number} dot product of a and b
+	 */
+	vec2.dot = function (a, b) {
+	    return a[0] * b[0] + a[1] * b[1];
+	};
+
+	/**
+	 * Computes the cross product of two vec2's
+	 * Note that the cross product must by definition produce a 3D vector
+	 *
+	 * @param {vec3} out the receiving vector
+	 * @param {vec2} a the first operand
+	 * @param {vec2} b the second operand
+	 * @returns {vec3} out
+	 */
+	vec2.cross = function(out, a, b) {
+	    var z = a[0] * b[1] - a[1] * b[0];
+	    out[0] = out[1] = 0;
+	    out[2] = z;
+	    return out;
+	};
+
+	/**
+	 * Performs a linear interpolation between two vec2's
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the first operand
+	 * @param {vec2} b the second operand
+	 * @param {Number} t interpolation amount between the two inputs
+	 * @returns {vec2} out
+	 */
+	vec2.lerp = function (out, a, b, t) {
+	    var ax = a[0],
+	        ay = a[1];
+	    out[0] = ax + t * (b[0] - ax);
+	    out[1] = ay + t * (b[1] - ay);
+	    return out;
+	};
+
+	/**
+	 * Generates a random vector with the given scale
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {Number} [scale] Length of the resulting vector. If ommitted, a unit vector will be returned
+	 * @returns {vec2} out
+	 */
+	vec2.random = function (out, scale) {
+	    scale = scale || 1.0;
+	    var r = glMatrix.RANDOM() * 2.0 * Math.PI;
+	    out[0] = Math.cos(r) * scale;
+	    out[1] = Math.sin(r) * scale;
+	    return out;
+	};
+
+	/**
+	 * Transforms the vec2 with a mat2
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the vector to transform
+	 * @param {mat2} m matrix to transform with
+	 * @returns {vec2} out
+	 */
+	vec2.transformMat2 = function(out, a, m) {
+	    var x = a[0],
+	        y = a[1];
+	    out[0] = m[0] * x + m[2] * y;
+	    out[1] = m[1] * x + m[3] * y;
+	    return out;
+	};
+
+	/**
+	 * Transforms the vec2 with a mat2d
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the vector to transform
+	 * @param {mat2d} m matrix to transform with
+	 * @returns {vec2} out
+	 */
+	vec2.transformMat2d = function(out, a, m) {
+	    var x = a[0],
+	        y = a[1];
+	    out[0] = m[0] * x + m[2] * y + m[4];
+	    out[1] = m[1] * x + m[3] * y + m[5];
+	    return out;
+	};
+
+	/**
+	 * Transforms the vec2 with a mat3
+	 * 3rd vector component is implicitly '1'
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the vector to transform
+	 * @param {mat3} m matrix to transform with
+	 * @returns {vec2} out
+	 */
+	vec2.transformMat3 = function(out, a, m) {
+	    var x = a[0],
+	        y = a[1];
+	    out[0] = m[0] * x + m[3] * y + m[6];
+	    out[1] = m[1] * x + m[4] * y + m[7];
+	    return out;
+	};
+
+	/**
+	 * Transforms the vec2 with a mat4
+	 * 3rd vector component is implicitly '0'
+	 * 4th vector component is implicitly '1'
+	 *
+	 * @param {vec2} out the receiving vector
+	 * @param {vec2} a the vector to transform
+	 * @param {mat4} m matrix to transform with
+	 * @returns {vec2} out
+	 */
+	vec2.transformMat4 = function(out, a, m) {
+	    var x = a[0], 
+	        y = a[1];
+	    out[0] = m[0] * x + m[4] * y + m[12];
+	    out[1] = m[1] * x + m[5] * y + m[13];
+	    return out;
+	};
+
+	/**
+	 * Perform some operation over an array of vec2s.
+	 *
+	 * @param {Array} a the array of vectors to iterate over
+	 * @param {Number} stride Number of elements between the start of each vec2. If 0 assumes tightly packed
+	 * @param {Number} offset Number of elements to skip at the beginning of the array
+	 * @param {Number} count Number of vec2s to iterate over. If 0 iterates over entire array
+	 * @param {Function} fn Function to call for each vector in the array
+	 * @param {Object} [arg] additional argument to pass to fn
+	 * @returns {Array} a
+	 * @function
+	 */
+	vec2.forEach = (function() {
+	    var vec = vec2.create();
+
+	    return function(a, stride, offset, count, fn, arg) {
+	        var i, l;
+	        if(!stride) {
+	            stride = 2;
+	        }
+
+	        if(!offset) {
+	            offset = 0;
+	        }
+	        
+	        if(count) {
+	            l = Math.min((count * stride) + offset, a.length);
+	        } else {
+	            l = a.length;
+	        }
+
+	        for(i = offset; i < l; i += stride) {
+	            vec[0] = a[i]; vec[1] = a[i+1];
+	            fn(vec, vec, arg);
+	            a[i] = vec[0]; a[i+1] = vec[1];
+	        }
+	        
+	        return a;
+	    };
+	})();
+
+	/**
+	 * Returns a string representation of a vector
+	 *
+	 * @param {vec2} a vector to represent as a string
+	 * @returns {String} string representation of the vector
+	 */
+	vec2.str = function (a) {
+	    return 'vec2(' + a[0] + ', ' + a[1] + ')';
+	};
+
+	/**
+	 * Returns whether or not the vectors exactly have the same elements in the same position (when compared with ===)
+	 *
+	 * @param {vec2} a The first vector.
+	 * @param {vec2} b The second vector.
+	 * @returns {Boolean} True if the vectors are equal, false otherwise.
+	 */
+	vec2.exactEquals = function (a, b) {
+	    return a[0] === b[0] && a[1] === b[1];
+	};
+
+	/**
+	 * Returns whether or not the vectors have approximately the same elements in the same position.
+	 *
+	 * @param {vec2} a The first vector.
+	 * @param {vec2} b The second vector.
+	 * @returns {Boolean} True if the vectors are equal, false otherwise.
+	 */
+	vec2.equals = function (a, b) {
+	    var a0 = a[0], a1 = a[1];
+	    var b0 = b[0], b1 = b[1];
+	    return (Math.abs(a0 - b0) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
+	            Math.abs(a1 - b1) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a1), Math.abs(b1)));
+	};
+
+	module.exports = vec2;
+
+
+/***/ }
+/******/ ])
+});
+;
+/******************************************************************************
+ * Creature Runtimes License
+ * 
+ * Copyright (c) 2015, Kestrel Moon Studios
+ * All rights reserved.
+ * 
+ * Preamble: This Agreement governs the relationship between Licensee and Kestrel Moon Studios(Hereinafter: Licensor).
+ * This Agreement sets the terms, rights, restrictions and obligations on using [Creature Runtimes] (hereinafter: The Software) created and owned by Licensor,
+ * as detailed herein:
+ * License Grant: Licensor hereby grants Licensee a Sublicensable, Non-assignable & non-transferable, Commercial, Royalty free,
+ * Including the rights to create but not distribute derivative works, Non-exclusive license, all with accordance with the terms set forth and
+ * other legal restrictions set forth in 3rd party software used while running Software.
+ * Limited: Licensee may use Software for the purpose of:
+ * Running Software on Licensee’s Website[s] and Server[s];
+ * Allowing 3rd Parties to run Software on Licensee’s Website[s] and Server[s];
+ * Publishing Software’s output to Licensee and 3rd Parties;
+ * Distribute verbatim copies of Software’s output (including compiled binaries);
+ * Modify Software to suit Licensee’s needs and specifications.
+ * Binary Restricted: Licensee may sublicense Software as a part of a larger work containing more than Software,
+ * distributed solely in Object or Binary form under a personal, non-sublicensable, limited license. Such redistribution shall be limited to unlimited codebases.
+ * Non Assignable & Non-Transferable: Licensee may not assign or transfer his rights and duties under this license.
+ * Commercial, Royalty Free: Licensee may use Software for any purpose, including paid-services, without any royalties
+ * Including the Right to Create Derivative Works: Licensee may create derivative works based on Software, 
+ * including amending Software’s source code, modifying it, integrating it into a larger work or removing portions of Software, 
+ * as long as no distribution of the derivative works is made
+ * 
+ * THE RUNTIMES IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE RUNTIMES OR THE USE OR OTHER DEALINGS IN THE
+ * RUNTIMES.
+ *****************************************************************************/
+
+
+// dualQuat
+
+var Q_X = 0;
+var Q_Y = 1;
+var Q_Z = 2;
+var Q_W = 3;
+
+function dualQuat()
+{
+	this.real = quat.create();
+	this.real[Q_W] = 0;
+	
+	this.imaginary = quat.create();
+	this.imaginary[Q_W] = 0;
+	
+	this.tmpQ1 = quat.create();
+};
+
+dualQuat.prototype.reset = function()
+{
+  quat.identity(this.real);
+  this.real[Q_W] = 0;
+  quat.identity(this.imaginary);
+  this.imaginary[Q_W] = 0;
+  quat.identity(this.tmpQ1);
+};
+
+dualQuat.prototype.createFromData = function(q0, t)
+{
+	this.real = q0;
+	this.imaginary = quat.create();
+	this.imaginary[Q_W] = -0.5 * ( t[Q_X] * q0[Q_X] + t[Q_Y] * q0[Q_Y] + t[Q_Z] * q0[Q_Z]);
+    this.imaginary[Q_X] =  0.5 * ( t[Q_X] * q0[Q_W] + t[Q_Y] * q0[Q_Z] - t[Q_Z] * q0[Q_Y]);
+    this.imaginary[Q_Y] =  0.5 * (-t[Q_X] * q0[Q_Z] + t[Q_Y] * q0[Q_W] + t[Q_Z] * q0[Q_X]);
+    this.imaginary[Q_Z] =  0.5 * ( t[Q_X] * q0[Q_Y] - t[Q_Y] * q0[Q_X] + t[Q_Z] * q0[Q_W]); 
+    
+};
+
+dualQuat.prototype.add = function(quat_in, real_factor, imaginary_factor)
+{
+	//real = real.add((quat_in.real.cpy().mul(real_factor)));
+	//var tmpQ = quat.clone(quat_in.real);
+	quat.copy(this.tmpQ1, quat_in.real);
+	
+	quat.scale(this.tmpQ1, this.tmpQ1, real_factor);
+	quat.add(this.real, this.tmpQ1, this.real);
+	
+    //imaginary = imaginary.add(quat_in.imaginary.cpy().mul(imaginary_factor));
+    //tmpQ = quat.clone(quat_in.imaginary);
+  quat.copy(this.tmpQ1, quat_in.imaginary);
+  quat.scale(this.tmpQ1, this.tmpQ1, imaginary_factor);
+	quat.add(this.imaginary, this.tmpQ1, this.imaginary);
+};
+
+dualQuat.prototype.normalize = function()
+{
+	var norm = quat.length(this.real);
+	
+	this.real = quat.scale(this.real, this.real, 1.0 / norm);
+	this.imaginary = quat.scale(this.imaginary, this.imaginary, 1.0 / norm);
+};
+
+var v0 = vec3.create();
+var ve = vec3.create();
+var trans = vec3.create();
+var tmpVec1 = vec3.create();
+var tmpVec2 = vec3.create();
+var tmpVec0 = vec3.create();
+var aVec = vec3.create();
+var rot = vec3.create();
+
+dualQuat.prototype.transform = function(p)
+{
+        v0[Q_X] = this.real[Q_X]; v0[Q_Y] = this.real[Q_Y]; v0[Q_Z] = this.real[Q_Z];
+
+        ve[Q_X] = this.imaginary[Q_X]; ve[Q_Y] = this.imaginary[Q_Y]; ve[Q_Z] = this.imaginary[Q_Z];
+
+        //trans = (ve*real.w - v0*imaginary.w + Vector3.Cross(v0, ve)) * 2.0f;
+
+//        var tmpVec1 = v0.cpy().scl((float)imaginary.w);
+        tmpVec1 = vec3.scale(tmpVec1, v0, this.imaginary[Q_W]);
+        
+//        var tmpVec2 = v0.cpy().crs(ve);
+		tmpVec2 = vec3.cross(tmpVec2, v0, ve);
+        
+        //var tmpVec0 = ve.cpy().scl(real.w);
+        //trans = tmpVec0.sub(tmpVec1).add(tmpVec2);
+        //trans.scl(2.0f);
+        
+        tmpVec0 = vec3.scale(tmpVec0, ve, this.real[Q_W]);
+        
+        aVec = vec3.subtract(aVec, tmpVec0, tmpVec1);
+        trans = vec3.add(trans, aVec, tmpVec2);
+        trans = vec3.scale(trans, trans, 2.0);
+
+        //var rot = real.transform(p.cpy());
+        rot = vec3.transformQuat(rot, p, this.real);
+
+        //return rot.add(trans);
+        rot = vec3.add(rot, rot, trans);
+        
+        return rot;
+};
+
+// Utils
+var Utils = {};
+
+Utils.setAxisMatrix = function(xAxis, yAxis, zAxis)
+{
+	var retMat = mat4.create();
+	
+	var M00 = 0;
+	var M01 = 4;
+	var M02 = 8;
+	var M03 = 12;
+	var M10 = 1;
+	var M11 = 5;
+	var M12 = 9;
+	var M13 = 13;
+	var M20 = 2;
+	var M21 = 6;
+	var M22 = 10;
+	var M23 = 14;
+	var M30 = 3;
+	var M31 = 7;
+	var M32 = 11;
+	var M33 = 15;
+	
+	retMat[M00] = xAxis[Q_X];
+	retMat[M01] = xAxis[Q_Y];
+	retMat[M02] = xAxis[Q_Z];
+	retMat[M10] = yAxis[Q_X];
+	retMat[M11] = yAxis[Q_Y];
+	retMat[M12] = yAxis[Q_Z];
+	retMat[M20] = zAxis[Q_X];
+	retMat[M21] = zAxis[Q_Y];
+	retMat[M22] = zAxis[Q_Z];
+	retMat[M03] = 0;
+	retMat[M13] = 0;
+	retMat[M23] = 0;
+	retMat[M30] = 0;
+	retMat[M31] = 0;
+	retMat[M32] = 0;
+	retMat[M33] = 1;
+	
+	retMat = mat4.transpose(retMat, retMat);
+	
+	return retMat;
+};
+
+Utils.matrixToQuat = function(mat_in)
+{
+	var retQuat = quat.create();
+	var te = mat_in,
+
+    m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ],
+    m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ],
+    m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ],
+
+    trace = m11 + m22 + m33,
+    s;
+
+	if ( trace > 0 ) {
+
+  		s = 0.5 / Math.sqrt( trace + 1.0 );
+
+  		retQuat[Q_W] = 0.25 / s;
+  		retQuat[Q_X] = ( m32 - m23 ) * s;
+  		retQuat[Q_Y] = ( m13 - m31 ) * s;
+  		retQuat[Q_Z] = ( m21 - m12 ) * s;
+
+	} else if ( m11 > m22 && m11 > m33 ) {
+
+  		s = 2.0 * Math.sqrt( 1.0 + m11 - m22 - m33 );
+
+  		retQuat[Q_W] = ( m32 - m23 ) / s;
+  		retQuat[Q_X] = 0.25 * s;
+  		retQuat[Q_Y] = ( m12 + m21 ) / s;
+		retQuat[Q_Z] = ( m13 + m31 ) / s;
+
+	} else if ( m22 > m33 ) {
+
+  		s = 2.0 * Math.sqrt( 1.0 + m22 - m11 - m33 );
+
+	  	retQuat[Q_W] = ( m13 - m31 ) / s;
+	  	retQuat[Q_X] = ( m12 + m21 ) / s;
+	  	retQuat[Q_Y] = 0.25 * s;
+	  	retQuat[Q_Z] = ( m23 + m32 ) / s;
+
+	} else {
+
+  		s = 2.0 * Math.sqrt( 1.0 + m33 - m11 - m22 );
+
+  		retQuat[Q_W] = ( m21 - m12 ) / s;
+  		retQuat[Q_X] = ( m13 + m31 ) / s;
+  		retQuat[Q_Y] = ( m23 + m32 ) / s;
+  		retQuat[Q_Z] = 0.25 * s;
+
+	}	
+	
+	return retQuat;
+};
+
+Utils.rotateVec_90 = function(vec_in)
+{
+	var ret_vec = vec3.fromValues(-vec_in[Q_Y], vec_in[Q_X], vec_in[Q_Z]);
+	
+	return ret_vec;
+};
+
+Utils.calcRotateMat = function(vec_in)
+{
+	var dir = vec3.clone(vec_in);
+	dir = vec3.normalize(dir, dir);
+	
+	var pep_dir = Utils.rotateVec_90(dir);
+	
+	var cur_tangent = vec3.fromValues(dir[Q_X], dir[Q_Y], 0);
+	var cur_normal = vec3.fromValues(pep_dir[Q_X], pep_dir[Q_Y], 0);
+	var cur_binormal = vec3.fromValues(0, 0, 1);
+	
+	var cur_rotate = mat4.create();
+	cur_rotate = Utils.setAxisMatrix(cur_tangent, cur_normal, cur_binormal);
+	
+	return cur_rotate;
+};
+
+Utils.getMatTranslate = function(mat_in)
+{
+	var ret_pos = vec3.create();
+	ret_pos[Q_X] = mat_in[12];
+	ret_pos[Q_Y] = mat_in[13];
+	ret_pos[Q_Z] = mat_in[14];
+	
+	return ret_pos;
+};
+
+Utils.addMat = function(mat1, mat2)
+{
+	var retMat = mat4.create();
+	for(var i = 0; i < 16; i++)
+	{
+		retMat[i] = mat1[i] + mat2[i];
+	}
+	
+	return retMat;
+};
+
+Utils.mulMat = function(mat_in, factor)
+{
+	var retMat = mat4.create();
+	for(var i = 0; i < 16; i++)
+	{
+		retMat[i] = mat_in[i] * factor;	
+	}
+	
+	return retMat;
+};
+
+Utils.clamp = function(num, min, max) {
+    return num < min ? min : (num > max ? max : num);
+};
+
+  var newVec1 = vec3.create();
+  var newVec2 = vec3.create();
+
+Utils.vecInterp = function(vec1, vec2, ratio)
+{
+	newVec1 = vec3.scale(newVec1, vec1, 1.0 - ratio);
+	newVec2 = vec3.scale(newVec2, vec2, ratio);
+	
+	var retVec = vec3.create();
+	retVec = vec3.add(retVec, newVec1, newVec2);
+	
+	return retVec;
+};
+
+Utils.vec2Interp = function(vec_1, vec_2, ratio)
+{
+	var newVec1 = vec2.create();
+	var newVec2 = vec2.create();
+	
+	newVec1 = vec2.scale(newVec1, vec_1, 1.0 - ratio);
+	newVec2 = vec2.scale(newVec2, vec_2, ratio);
+	
+	var retVec = vec2.create();
+	retVec = vec2.add(retVec, newVec1, newVec2);
+	
+	return retVec;
+};
+
+Utils.ptsInterp = function(src_pts, target_pts, fraction)
+{
+    var ret_pts = [];
+    for (var i = 0; i < src_pts.length; i++)
+    {
+        ret_pts.push(Utils.vec2Interp(src_pts[i], target_pts[i], fraction));
+    }
+
+    return ret_pts;
+};
+
+Utils.scalarInterp = function(src_val, target_val, fraction)
+{
+    return ((1.0 - fraction) * src_val) + (fraction * target_val);
+};
+
+// MeshBone
+function MeshBone(key_in, start_pt_in, end_pt_in, parent_transform)
+{
+	this.key = key_in;
+	this.world_rest_angle = 0;
+    this.rest_parent_mat = mat4.create();
+    this.rest_parent_inv_mat = mat4.create();
+    this.rest_world_mat = mat4.create();
+    this.rest_world_inv_mat = mat4.create();
+    this.bind_world_mat = mat4.create();
+    this.bind_world_inv_mat = mat4.create();
+    this.parent_world_mat = mat4.create();
+    this.parent_world_inv_mat = mat4.create();
+    this.local_rest_start_pt = null;
+    this.local_rest_end_pt = null;
+
+    this.setRestParentMat(parent_transform, null);
+    this.setLocalRestStartPt(start_pt_in);
+    this.setLocalRestEndPt(end_pt_in);
+    this.setParentWorldInvMat(mat4.create());
+    this.setParentWorldMat(mat4.create());
+    
+    this.local_binormal_dir = vec3.fromValues(0.0,0.0,1.0);
+    this.tag_id = 0;
+    
+    this.children = [];
+};
+
+MeshBone.prototype.setRestParentMat = function(transform_in, inverse_in)
+{
+	this.rest_parent_mat = transform_in;
+        if(inverse_in == null) {
+            this.rest_parent_inv_mat = mat4.clone(this.rest_parent_mat);
+            //rest_parent_inv_mat.inv();
+            mat4.invert(this.rest_parent_inv_mat, this.rest_parent_inv_mat);
+        }
+        else {
+            this.rest_parent_inv_mat = mat4.clone(inverse_in);
+        }
+};
+
+MeshBone.prototype.setParentWorldMat = function(transform_in)
+{
+  this.parent_world_mat = transform_in;
+};
+
+MeshBone.prototype.setParentWorldInvMat = function(transform_in)
+{
+  this.parent_world_inv_mat = transform_in;
+};
+
+MeshBone.prototype.getLocalRestStartPt = function()
+{
+  return this.local_rest_start_pt;
+};
+
+MeshBone.prototype.getLocalRestEndPt = function()
+{
+  return this.local_rest_end_pt;
+};
+
+MeshBone.prototype.setLocalRestStartPt = function(world_pt_in)
+{
+  //local_rest_start_pt = Vector3.Transform(world_pt_in, rest_parent_inv_mat);
+  //this.local_rest_start_pt = world_pt_in.cpy().traMul(rest_parent_inv_mat);
+  this.local_rest_start_pt = vec3.create();
+  this.local_rest_start_pt = vec3.transformMat4(this.local_rest_start_pt, world_pt_in, this.rest_parent_inv_mat);
+  this.calcRestData();
+};
+
+MeshBone.prototype.setLocalRestEndPt = function(world_pt_in)
+{
+  //local_rest_end_pt = Vector3.Transform(world_pt_in, rest_parent_inv_mat);
+  //this.local_rest_end_pt = world_pt_in.cpy().traMul(rest_parent_inv_mat);
+  this.local_rest_end_pt = vec3.create();
+  this.local_rest_end_pt = vec3.transformMat4(this.local_rest_end_pt, world_pt_in, this.rest_parent_inv_mat);
+  this.calcRestData();
+};
+
+MeshBone.prototype.calcRestData = function()
+{
+  if(this.local_rest_start_pt == null || this.local_rest_end_pt == null)
+  {
+    return;
+  }
+
+  var calc = this.computeDirs(this.local_rest_start_pt, this.local_rest_end_pt);
+
+  this.local_rest_dir = calc.first;
+  this.local_rest_normal_dir = calc.second;
+
+  this.computeRestLength();
+};
+
+MeshBone.prototype.setWorldStartPt = function(world_pt_in)
+{
+  this.world_start_pt = world_pt_in;
+};
+
+MeshBone.prototype.setWorldEndPt = function(world_pt_in)
+{
+  this.world_end_pt = world_pt_in;
+};
+
+MeshBone.prototype.fixDQs = function(ref_dq)
+{
+  //        if( Quaternion.Dot(world_dq.real, ref_dq.real) < 0) {
+  //if( world_dq.real.dot(ref_dq.real) < 0) {
+  if(quat.dot(this.world_dq.real, ref_dq.real) < 0) {
+    //this.world_dq.real = world_dq.real.cpy().mul(-1);
+    this.world_dq.real = quat.scale(this.world_dq.real, this.world_dq.real, -1);
+    //this.world_dq.imaginary = world_dq.imaginary.cpy().mul(-1);
+    this.world_dq.imaginary = quat.scale(this.world_dq.imaginary, this.world_dq.imaginary, -1);
+  }
+
+  for(var i = 0; i < this.children.length; i++) {
+    var cur_child = this.children[i];
+    cur_child.fixDQs(this.world_dq);
+  }
+};
+
+MeshBone.prototype.initWorldPts = function()
+{
+  this.setWorldStartPt(this.getWorldRestStartPt());
+  this.setWorldEndPt(this.getWorldRestEndPt());
+
+  for(var i = 0; i < this.children.length; i++) {
+    this.children[i].initWorldPts();
+  }
+};
+
+MeshBone.prototype.getWorldRestStartPt = function()
+{
+  //Vector3 ret_vec = Vector3.Transform(local_rest_start_pt, rest_parent_mat);
+  var tmp_mat = this.rest_parent_mat;
+  var ret_vec = vec3.create();
+  ret_vec = vec3.transformMat4(ret_vec, this.local_rest_start_pt, tmp_mat);
+
+  return ret_vec;
+};
+
+MeshBone.prototype.getWorldRestEndPt = function()
+{
+  //        Vector3 ret_vec = Vector3.Transform(local_rest_end_pt, rest_parent_mat);
+  var tmp_mat = this.rest_parent_mat;
+  var ret_vec = vec3.create();
+  ret_vec = vec3.transformMat4(ret_vec, this.local_rest_end_pt, tmp_mat);
+
+  return ret_vec;
+};
+
+MeshBone.prototype.getWorldRestAngle = function()
+{
+  return this.world_rest_angle;
+};
+
+MeshBone.prototype.getWorldRestPos = function()
+{
+  return this.world_rest_pos;
+};
+
+MeshBone.prototype.getWorldStartPt = function()
+{
+  return this.world_start_pt;
+};
+
+MeshBone.prototype.getWorldEndPt = function()
+{
+  return this.world_end_pt;
+};
+
+MeshBone.prototype.getRestParentMat = function()
+{
+  return this.rest_parent_mat;
+};
+
+MeshBone.prototype.getRestWorldMat = function()
+{
+  return this.rest_world_mat;
+};
+
+MeshBone.prototype.getWorldDeltaMat = function()
+{
+  return this.world_delta_mat;
+};
+
+MeshBone.prototype.getParentWorldMat = function()
+{
+  return this.parent_world_mat;
+};
+
+MeshBone.prototype.getParentWorldInvMat = function()
+{
+  return this.parent_world_inv_mat;
+};
+
+MeshBone.prototype.getWorldDq = function()
+{
+  return this.world_dq;
+};
+
+MeshBone.prototype.computeRestParentTransforms = function()
+{
+  var cur_tangent = vec3.fromValues(this.local_rest_dir[Q_X], this.local_rest_dir[Q_Y], 0);
+  var cur_binormal = vec3.fromValues(this.local_binormal_dir[Q_X], this.local_binormal_dir[Q_Y], this.local_binormal_dir[Q_Z]);
+  var cur_normal = vec3.fromValues(this.local_rest_normal_dir[Q_X], this.local_rest_normal_dir[Q_Y], 0);
+
+  var cur_translate = mat4.create();
+  //cur_translate.setTranslation(local_rest_end_pt.x, local_rest_end_pt.y, 0);
+  mat4.translate(cur_translate, cur_translate, this.local_rest_end_pt);
+
+  var cur_rotate = mat4.create();
+  /*
+     cur_rotate.Right = cur_tangent;
+     cur_rotate.Up = cur_normal;
+     cur_rotate.Backward = cur_binormal;
+   */
+  //cur_rotate.set(cur_tangent, cur_normal, cur_binormal, new Vector3(0,0,0));
+  cur_rotate = Utils.setAxisMatrix(cur_tangent, cur_normal, cur_binormal);
+  //cur_rotate.tra();
+
+  //Matrix4 cur_final = cur_translate.cpy().mul(cur_rotate);
+  var cur_final = mat4.create();
+  cur_final = mat4.multiply(cur_final, cur_translate, cur_rotate);
+
+  //rest_world_mat = rest_parent_mat.cpy().mul(cur_final);
+  this.rest_world_mat = mat4.create();
+  this.rest_world_mat = mat4.multiply(this.rest_world_mat, this.rest_parent_mat, cur_final); 
+
+  this.rest_world_inv_mat = mat4.clone(this.rest_world_mat);
+  this.rest_world_inv_mat = mat4.invert(this.rest_world_inv_mat, this.rest_world_inv_mat);
+  //Matrix4.Invert(ref rest_world_mat, out rest_world_inv_mat);
+
+//  var world_rest_dir = getWorldRestEndPt().cpy().sub( getWorldRestStartPt());
+  var world_rest_dir = vec3.clone(this.getWorldRestEndPt());
+  world_rest_dir = vec3.subtract(world_rest_dir, world_rest_dir, this.getWorldRestStartPt());
+  
+  world_rest_dir = vec3.normalize(world_rest_dir, world_rest_dir);
+  this.world_rest_pos = this.getWorldRestStartPt();
+
+
+  var bind_translate = mat4.create();
+  //bind_translate.setTranslation(getWorldRestStartPt().x, getWorldRestStartPt().y, 0);
+  bind_translate = mat4.translate(bind_translate, bind_translate, this.getWorldRestStartPt());
+
+  var tVec = vec3.create();
+  tVec = vec3.sub(tVec, this.getWorldRestEndPt(), this.getWorldRestStartPt());
+  var bind_rotate = Utils.calcRotateMat(tVec);
+  //Matrix4 cur_bind_final = bind_translate.cpy().mul(bind_rotate);
+  var cur_bind_final = mat4.create();
+  cur_bind_final = mat4.multiply(cur_bind_final, bind_translate, bind_rotate);
+
+  this.bind_world_mat = mat4.clone(cur_bind_final);
+  this.bind_world_inv_mat = mat4.clone(this.bind_world_mat);
+  this.bind_world_inv_mat = mat4.invert(this.bind_world_inv_mat, this.bind_world_inv_mat);
+  //Matrix4.Invert(ref bind_world_mat, out bind_world_inv_mat);
+
+  for(var i = 0; i < this.children.length; i++) {
+    var cur_bone = this.children[i];
+    cur_bone.setRestParentMat(this.rest_world_mat, this.rest_world_inv_mat);
+    cur_bone.computeRestParentTransforms();
+  }
+};
+
+MeshBone.prototype.computeParentTransforms = function()
+{
+  var translate_parent = mat4.create();
+  translate_parent = mat4.translate(translate_parent, translate_parent, this.getWorldEndPt());
+
+  var tVec = vec3.create();
+  tVec = vec3.subtract(tVec, this.getWorldEndpt(), this.getWorldStartPt());
+  var rotate_parent = Utils.calcRotateMat(tVec);
+
+  var final_transform = mat4.create();
+  final_transform = mat4.multiply(final_transform, translate_parent, rotate_parent);
+
+  var final_inv_transform = mat4.clone(final_transform);
+  //final_inv_transform.inv();
+  final_inv_transform = mat4.invert(final_inv_transform, final_inv_transform);
+
+  for(var i = 0; i < children.length; i++) {
+    var cur_bone = children[i];
+    cur_bone.setParentWorldMat(final_transform);
+    cur_bone.setParentWorldInvMat(final_inv_transform);
+    cur_bone.computeParentTransforms();
+  }
+};
+
+MeshBone.prototype.computeWorldDeltaTransforms = function()
+{
+  var calc = this.computeDirs(this.world_start_pt, this.world_end_pt);
+  var cur_tangent = vec3.fromValues(calc["first"][Q_X], calc["first"][Q_Y], 0);
+  var cur_normal = vec3.fromValues(calc["second"][Q_X], calc["second"][Q_Y], 0);
+  var cur_binormal = vec3.fromValues(this.local_binormal_dir[Q_X], this.local_binormal_dir[Q_Y], this.local_binormal_dir[Q_Z]);
+
+  var cur_rotate = mat4.create();
+  /*
+     cur_rotate.Right = cur_tangent;
+     cur_rotate.Up = cur_normal;
+     cur_rotate.Backward = cur_binormal;
+   */
+  //cur_rotate.set(cur_tangent, cur_normal, cur_binormal, new Vector3(0,0,0));
+  cur_rotate = Utils.setAxisMatrix(cur_tangent, cur_normal, cur_binormal);
+  
+  //cur_rotate.tra();
+
+  var cur_translate = mat4.create();
+  //cur_translate.setTranslation(world_start_pt.x, world_start_pt.y, 0);
+  cur_translate = mat4.translate(cur_translate, cur_translate, this.world_start_pt);
+
+  /*
+     world_delta_mat = (cur_translate * cur_rotate)
+   * bind_world_inv_mat;
+   */
+
+  this.world_delta_mat = mat4.create();
+//  world_delta_mat = (cur_translate.cpy().mul(cur_rotate)).mul(bind_world_inv_mat);
+  this.world_delta_mat = mat4.multiply(this.world_delta_mat, cur_translate, cur_rotate);
+  this.world_delta_mat = mat4.multiply(this.world_delta_mat, this.world_delta_mat, this.bind_world_inv_mat);
+
+
+  //        Quaternion cur_quat = XnaGeometry.Quaternion.CreateFromRotationMatrix(world_delta_mat);
+  //var tmpMat = mat3.create();
+  //tmpMat = mat3.fromMat4(tmpMat, this.world_delta_mat);
+  var cur_quat = Utils.matrixToQuat(this.world_delta_mat);
+
+
+  var tmp_pos =  Utils.getMatTranslate(this.world_delta_mat);
+  this.world_dq = new dualQuat();
+  this.world_dq.createFromData(cur_quat, tmp_pos);
+
+  for(var i = 0; i < this.children.length; i++) {
+    var cur_bone = this.children[i];
+    cur_bone.computeWorldDeltaTransforms();
+  }
+};
+
+MeshBone.prototype.addChild = function(bone_in)
+{
+  bone_in.setRestParentMat(this.rest_world_mat, this.rest_world_inv_mat);
+  this.children.push(bone_in);
+};
+
+MeshBone.prototype.getChildren = function() 
+{
+  return this.children;
+};
+
+MeshBone.prototype.hasBone = function(bone_in)
+{
+  for(var i = 0; i < this.children.length; i++) {
+    var cur_bone = this.children[i];
+    if(cur_bone == bone_in) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+MeshBone.prototype.getChildByKey = function(search_key)
+{
+  if(this.key === search_key) {
+    return this;
+  }
+
+  var ret_data = null;
+  for(var i = 0; i < this.children.length; i++) {
+    var cur_bone = this.children[i];
+
+    var result = cur_bone.getChildByKey(search_key);
+    if(result != null) {
+      ret_data = result;
+      break;
+    }
+  }
+
+  return ret_data;
+};
+
+MeshBone.prototype.getKey = function()
+{
+  return this.key;
+};
+
+MeshBone.prototype.getAllBoneKeys = function()
+{
+  var ret_data = [];
+  ret_data.push(this.getKey());
+
+  for(var i = 0; i < this.children.length; i++) {
+    var append_data = this.children[i].getAllBoneKeys();
+    ret_data = ret_data.concat(append_data);
+  }
+
+  return ret_data;
+};
+
+MeshBone.prototype.getAllChildren = function()
+{
+  var ret_data = [];
+  ret_data.push(this);
+  for(var i = 0; i < this.children.length; i++) {
+    var append_data = this.children[i].getAllChildren();
+    ret_data = ret_data.concat(append_data);
+  }
+
+  return ret_data;
+};
+
+MeshBone.prototype.getBoneDepth = function(bone_in, depth)
+{
+  if(bone_in == this) {
+    return depth;
+  }
+
+  for(var i = 0; i < this.children.length; i++) {
+    var cur_bone = this.children[i];
+    var ret_val = cur_bone.getBoneDepth(bone_in, depth + 1);
+    if(ret_val != -1) {
+      return ret_val;
+    }
+  }
+
+  return -1;
+};
+
+MeshBone.prototype.isLeaf = function() 
+{
+  return this.children.length == 0;
+};
+
+MeshBone.prototype.deleteChildren = function()
+{
+  for(var i = 0; i < this.children.length; i++) {
+    var cur_bone = this.children[i];
+    cur_bone.deleteChildren();
+  }
+
+  this.children = [];
+};
+
+MeshBone.prototype.setTagId = function(value_in)
+{
+  this.tag_id = value_in;
+};
+
+MeshBone.prototype.getTagId = function()
+{
+  return this.tag_id;
+};
+
+MeshBone.prototype.computeDirs = function(start_pt, end_pt)
+{
+  var tangent = vec3.create();
+  tangent = vec3.subtract(tangent, end_pt, start_pt);
+  tangent = vec3.normalize(tangent, tangent);
+
+  var normal = Utils.rotateVec_90(tangent);
+
+  var retData = {};
+  retData["first"] = tangent;
+  retData["second"] = normal;
+  
+  return retData;
+};
+
+MeshBone.prototype.computeRestLength = function()
+{
+  var tmp_dir = vec3.create();
+  //Vector3 tmp_dir = local_rest_end_pt.cpy().sub(local_rest_start_pt);
+  tmp_dir = vec3.subtract(tmp_dir, this.local_rest_end_pt, this.local_rest_start_pt);
+  
+  this.rest_length = vec3.length(tmp_dir);
+};
+
+// MeshRenderRegion
+function MeshRenderRegion(indices_in, rest_pts_in, uvs_in, start_pt_index_in, end_pt_index_in,
+									start_index_in, end_index_in)
+{
+	this.store_indices = indices_in;
+	this.store_rest_pts = rest_pts_in;
+	this.store_uvs = uvs_in;
+
+	this.use_local_displacements = false;
+	this.use_post_displacements = false;
+	this.use_uv_warp = false;
+	this.uv_warp_local_offset = vec2.fromValues(0,0);
+	this.uv_warp_global_offset = vec2.fromValues(0,0);
+	this.uv_warp_scale = vec2.fromValues(1,1);
+	this.opacity = 100.0;
+	this.start_pt_index = start_pt_index_in;
+	this.end_pt_index = end_pt_index_in;
+	this.start_index = start_index_in;
+	this.end_index = end_index_in;
+	this.main_bone = null;
+	this.local_displacements = [];
+	this.post_displacements = [];
+	this.uv_warp_ref_uvs = [];
+	this.normal_weight_map = {};
+	this.fast_normal_weight_map = [];
+	this.fast_bones_map = [];
+	this.relevant_bones_indices = [];
+	this.use_dq = true;
+	this.tag_id = -1;
+
+	this.initUvWarp();	
+};
+
+MeshRenderRegion.prototype.getIndicesIndex = function()
+{
+  // return store_indices + (start_index);
+  return this.start_index;
+};
+
+MeshRenderRegion.prototype.getRestPtsIndex = function()
+{
+  // return store_rest_pts + (3 * start_pt_index);
+  return 3 * this.start_pt_index;
+};
+
+MeshRenderRegion.prototype.getUVsIndex = function()
+{
+  // return store_uvs + (2  * start_pt_index);
+  return 2  * this.start_pt_index;
+};
+
+MeshRenderRegion.prototype.getNumPts = function()
+{
+  return this.end_pt_index - this.start_pt_index + 1;
+};
+
+MeshRenderRegion.prototype.getStartPtIndex = function()
+{
+  return this.start_pt_index;
+};
+
+MeshRenderRegion.prototype.getEndPtIndex = function()
+{
+  return this.end_pt_index;
+};
+
+MeshRenderRegion.prototype.getNumIndices = function()
+{
+  return this.end_index - this.start_index + 1;
+};
+
+MeshRenderRegion.prototype.getStartIndex = function()
+{
+  return this.start_index;
+};
+
+MeshRenderRegion.prototype.getEndIndex = function()
+{
+  return this.end_index;
+};
+
+var accum_dq = new dualQuat();
+var accum_mat = mat4.create();
+var final_pt = vec3.create();
+var tmp1 = vec3.create();
+var tmp2 = vec3.create();
+
+MeshRenderRegion.prototype.poseFinalPts = function(output_pts, output_start_index, bones_map)
+{
+  var read_pt_index = this.getRestPtsIndex();
+  var write_pt_index = output_start_index;
+
+  // point posing
+  for(var i = 0; i < 16; i++)
+  {
+  	accum_mat[i] = 0.0;
+  }
+
+  var boneKeys = Object.keys(bones_map);
+  var boneKeyLength = boneKeys.length;
+  
+  for(var i = 0, l = this.getNumPts(); i < l; i++) {
+    var cur_rest_pt =
+      vec3.set(tmp1, this.store_rest_pts[0 + read_pt_index],
+          this.store_rest_pts[1 + read_pt_index],
+          this.store_rest_pts[2 + read_pt_index]);
+      // vec3.fromValues(this.store_rest_pts[0 + read_pt_index],
+      //     this.store_rest_pts[1 + read_pt_index],
+      //     this.store_rest_pts[2 + read_pt_index]);
+
+    if(this.use_local_displacements == true) {
+      cur_rest_pt[Q_X] += this.local_displacements[i][Q_X];
+      cur_rest_pt[Q_Y] += this.local_displacements[i][Q_Y];
+    }
+
+  	for(var j = 0; j < 16; j++)
+  	{
+	  	accum_mat[j] = 0.0;
+  	}
+    // reuse
+    // var accum_dq = new dualQuat();
+    accum_dq.reset();
+
+	var curBoneIndices = this.relevant_bones_indices[i];
+  	var relevantIndicesLength = curBoneIndices.length;
+    for (var j = 0; j < relevantIndicesLength; j++)
+    {
+      var idx_lookup = curBoneIndices[j];
+      var cur_bone = this.fast_bones_map[idx_lookup];
+      var cur_weight_val = this.fast_normal_weight_map[idx_lookup][i];
+      var cur_im_weight_val = cur_weight_val;
+
+       var world_dq = cur_bone.getWorldDq();
+       accum_dq.add(world_dq, cur_weight_val, cur_im_weight_val);
+    }
+
+    accum_dq.normalize();
+    var tmp_pt = vec3.set(tmp2, cur_rest_pt[Q_X], cur_rest_pt[Q_Y], cur_rest_pt[Q_Z]);
+    // var tmp_pt = vec3.fromValues(cur_rest_pt[Q_X], cur_rest_pt[Q_Y], cur_rest_pt[Q_Z]);
+    final_pt = accum_dq.transform(tmp_pt);
+
+    // debug start
+
+    // debug end
+
+    if(this.use_post_displacements == true) {
+      final_pt[Q_X] += this.post_displacements[i][Q_X];
+      final_pt[Q_Y] += this.post_displacements[i][Q_Y];
+    }
+
+    output_pts[0 + write_pt_index] = final_pt[Q_X];
+    output_pts[1 + write_pt_index] = final_pt[Q_Y];
+    output_pts[2 + write_pt_index] = final_pt[Q_Z];
+
+
+
+    read_pt_index += 3;
+    write_pt_index += 3;
+  }
+
+  // uv warping
+  if(this.use_uv_warp == true) {
+    this.runUvWarp();
+  }
+};
+
+MeshRenderRegion.prototype.setMainBoneKey = function(key_in)
+{
+  this.main_bone_key = key_in;
+};
+
+MeshRenderRegion.prototype.determineMainBone = function(root_bone_in)
+{
+  this.main_bone = root_bone_in.getChildByKey(this.main_bone_key);
+};
+
+MeshRenderRegion.prototype.setUseDq = function(flag_in)
+{
+  this.use_dq = flag_in;
+};
+
+MeshRenderRegion.prototype.setName = function(name_in)
+{
+  this.name = name_in;
+};
+
+MeshRenderRegion.prototype.getName = function()
+{
+  return this.name;
+};
+
+MeshRenderRegion.prototype.setUseLocalDisplacements = function(flag_in)
+{
+  this.use_local_displacements = flag_in;
+  if((this.local_displacements.length != this.getNumPts())
+      && this.use_local_displacements)
+  {
+    this.local_displacements = [];
+    for(var i = 0; i < this.getNumPts(); i++) {
+      this.local_displacements.push (vec2.create());
+    }
+  }
+};
+
+MeshRenderRegion.prototype. getUseLocalDisplacements = function()
+{
+  return this.use_local_displacements;
+};
+
+MeshRenderRegion.prototype.setUsePostDisplacements = function(flag_in)
+{
+  this.use_post_displacements = flag_in;
+  if((this.post_displacements.length != this.getNumPts())
+      && this.use_post_displacements)
+  {
+    this.post_displacements = [];
+    for(var i = 0; i < this.getNumPts(); i++) {
+      this.post_displacements.push(vec2.create());
+    }
+  }
+};
+
+MeshRenderRegion.prototype.getUsePostDisplacements = function()
+{
+  return this.use_post_displacements;
+};
+
+MeshRenderRegion.prototype.getRestLocalPt = function(index_in)
+{
+  var read_pt_index = this.getRestPtsIndex() + (3 * index_in);
+  var return_pt = vec2.fromValues(this.store_rest_pts[0 + read_pt_index],
+      this.store_rest_pts[1 + read_pt_index]);
+  return return_pt;
+};
+
+MeshRenderRegion.prototype.getLocalIndex = function(index_in)
+{
+  var read_index = this.getIndicesIndex() + index_in;
+  return this.store_indices[read_index];
+};
+
+MeshRenderRegion.prototype.clearLocalDisplacements = function()
+{
+  for(var i = 0; i < this.local_displacements.length; i++) {
+    this.local_displacements[i] = vec2.create();
+  }
+};
+
+MeshRenderRegion.prototype.clearPostDisplacements = function()
+{
+  for(var i = 0; i < this.post_displacements.length; i++) {
+    this.post_displacements[i] = vec2.create();
+  }
+};
+
+MeshRenderRegion.prototype.setUseUvWarp = function(flag_in)
+{
+  this.use_uv_warp = flag_in;
+  if(this.use_uv_warp == false) {
+    this.restoreRefUv();
+  }
+};
+
+MeshRenderRegion.prototype. getUseUvWarp = function()
+{
+  return this.use_uv_warp;
+};
+
+MeshRenderRegion.prototype.setUvWarpLocalOffset = function(vec_in)
+{
+  this.uv_warp_local_offset = vec_in;
+};
+
+MeshRenderRegion.prototype.setUvWarpGlobalOffset = function(vec_in)
+{
+  this.uv_warp_global_offset = vec_in;
+};
+
+MeshRenderRegion.prototype.setUvWarpScale = function(vec_in)
+{
+  this.uv_warp_scale = vec_in;
+};
+
+MeshRenderRegion.prototype. getUvWarpLocalOffset = function()
+{
+  return this.uv_warp_local_offset;
+};
+
+MeshRenderRegion.prototype. getUvWarpGlobalOffset = function()
+{
+  return this.uv_warp_global_offset;
+};
+
+MeshRenderRegion.prototype. getUvWarpScale = function()
+{
+  return this.uv_warp_scale;
+};
+
+MeshRenderRegion.prototype.runUvWarp = function()
+{
+  var cur_uvs_index = this.getUVsIndex();
+  for(var i = 0; i < this.uv_warp_ref_uvs.length; i++) {
+    var set_uv = vec2.clone(this.uv_warp_ref_uvs[i]);
+    
+   
+    set_uv = vec2.subtract(set_uv, set_uv, this.uv_warp_local_offset);
+    set_uv[Q_X] *= this.uv_warp_scale[Q_X];
+    set_uv[Q_Y] *= this.uv_warp_scale[Q_Y];
+    set_uv = vec2.add(set_uv, set_uv, this.uv_warp_global_offset);
+    
+   
+    /*
+    set_uv.sub(uv_warp_local_offset);
+    set_uv.scl(uv_warp_scale);
+    set_uv.add(uv_warp_global_offset);
+    */
+
+
+    this.store_uvs[0 + cur_uvs_index] = set_uv[Q_X];
+    this.store_uvs[1 + cur_uvs_index] = set_uv[Q_Y];
+
+
+    cur_uvs_index += 2;
+  }
+};
+
+MeshRenderRegion.prototype.restoreRefUv = function()
+{
+  var cur_uvs_index = this.getUVsIndex();
+  for(var i = 0; i < this.uv_warp_ref_uvs.length; i++) {
+    var set_uv = this.uv_warp_ref_uvs[i];
+
+    this.store_uvs[0 + cur_uvs_index] = set_uv[Q_X];
+    this.store_uvs[1 + cur_uvs_index] = set_uv[Q_Y];
+
+    cur_uvs_index += 2;
+  }
+};
+
+MeshRenderRegion.prototype.getTagId = function()
+{
+  return this.tag_id;
+};
+
+MeshRenderRegion.prototype.setTagId = function(value_in)
+{
+  this.tag_id = value_in;
+};
+
+MeshRenderRegion.prototype.initFastNormalWeightMap = function(bones_map)
+{
+  this.relevant_bones_indices = [];
+  
+  // fast normal weight map lookup, avoids hash lookups
+  for (var cur_key in bones_map) {
+    var values = this.normal_weight_map[cur_key];
+    this.fast_normal_weight_map.push(values);
+  }
+  
+  // relevant bone indices
+  var cutoff_val = 0.05;
+   for(var i = 0; i < this.getNumPts(); i++) {
+  	var curIndicesArray = [];
+   	for (var j = 0; j < this.fast_normal_weight_map.length; j++)
+  	{
+  		var cur_val = this.fast_normal_weight_map[j][i];
+  		if(cur_val > cutoff_val)
+  		{
+  			curIndicesArray.push(j);
+  		}  		
+  	}
+  	
+  	this.relevant_bones_indices.push(curIndicesArray);
+  }
+  
+  // fast bone map lookup
+    for (var cur_key in bones_map) {
+    	var cur_bone = bones_map[cur_key];
+    	this.fast_bones_map.push(cur_bone);
+    }
+};
+
+MeshRenderRegion.prototype.initUvWarp = function()
+{
+  var cur_uvs_index = this.getUVsIndex();
+  //        uv_warp_ref_uvs = new java.util.Vector<Vector2>(new Vector2[getNumPts()]);
+  this.uv_warp_ref_uvs = [];;
+
+  for(var i = 0; i < this.getNumPts(); i++) {
+    this.uv_warp_ref_uvs.push(vec2.create());
+    
+    this.uv_warp_ref_uvs[i] = vec2.fromValues(this.store_uvs[cur_uvs_index],
+    										this.store_uvs[cur_uvs_index + 1]);
+     
+
+
+    cur_uvs_index += 2;
+  }
+};
+
+
+// MeshRenderBoneComposition
+function MeshRenderBoneComposition()
+{
+	this.root_bone = null;
+    this.bones_map = {};
+    this.regions = [];
+    this.regions_map = {};
+};
+
+MeshRenderBoneComposition.prototype.addRegion = function(region_in)
+{
+  this.regions.push(region_in);
+};
+
+MeshRenderBoneComposition.prototype.setRootBone = function(root_bone_in)
+{
+  this.root_bone = root_bone_in;
+};
+
+MeshRenderBoneComposition.prototype.getRootBone = function()
+{
+  return this.root_bone;
+};
+
+MeshRenderBoneComposition.prototype.initBoneMap = function()
+{
+  this.bones_map = MeshRenderBoneComposition.genBoneMap(this.root_bone);
+};
+
+MeshRenderBoneComposition.prototype.initRegionsMap = function()
+{
+  this.regions_map = {};
+  for(var i = 0; i < this.regions.length; i++) {
+    cur_key = this.regions[i].getName();
+    this.regions_map[cur_key] = this.regions[i];
+  }
+};
+
+MeshRenderBoneComposition.genBoneMap = function(input_bone)
+{
+  var ret_map = {};
+  var all_keys = input_bone.getAllBoneKeys();
+  for(var i = 0; i < all_keys.length; i++) {
+    var cur_key = all_keys[i];
+    ret_map[cur_key] = input_bone.getChildByKey(cur_key);
+  }
+
+  return ret_map;
+};
+
+MeshRenderBoneComposition.prototype.getBonesMap = function()
+{
+  return this.bones_map;
+};
+
+MeshRenderBoneComposition.prototype.getRegionsMap = function()
+{
+  return this.regions_map;
+};
+
+MeshRenderBoneComposition.prototype.getRegions = function()
+{
+  return this.regions;
+};
+
+MeshRenderBoneComposition.prototype.getRegionWithId = function(id_in)
+{
+  for(var i = 0; i < this.regions.length; i++) {
+    var cur_region = this.regions[i];
+    if(cur_region.getTagId() == id_in) {
+      return cur_region;
+    }
+  }
+
+  return null;
+};
+
+MeshRenderBoneComposition.prototype.resetToWorldRestPts = function()
+{
+  this.getRootBone().initWorldPts();
+};
+
+MeshRenderBoneComposition.prototype.updateAllTransforms = function(update_parent_xf)
+{
+  if(update_parent_xf) {
+    this.getRootBone().computeParentTransforms();
+  }
+
+  this.getRootBone().computeWorldDeltaTransforms();
+  this.getRootBone().fixDQs(this.getRootBone().getWorldDq());
+};
+
+// MeshBoneCache
+function MeshBoneCache(key_in)
+{
+	this.key = key_in;
+};
+
+MeshBoneCache.prototype.setWorldStartPt = function(pt_in) {
+  this.world_start_pt = pt_in;
+};
+
+MeshBoneCache.prototype.setWorldEndPt = function(pt_in) {
+  this.world_end_pt = pt_in;
+};
+
+MeshBoneCache.prototype.getWorldStartPt = function() {
+  return this.world_start_pt;
+};
+
+MeshBoneCache.prototype.getWorldEndPt = function() {
+  return this.world_end_pt;
+};
+
+MeshBoneCache.prototype.getKey = function() {
+  return this.key;
+};
+
+// MeshDisplacementCache
+function MeshDisplacementCache(key_in)
+{
+	this.key = key_in;
+	this.local_displacements = [];
+	this.post_displacements = [];
+};
+
+MeshDisplacementCache.prototype.setLocalDisplacements = function(displacements_in)
+{
+  this.local_displacements = displacements_in;
+};
+
+MeshDisplacementCache.prototype.setPostDisplacements = function(displacements_in)
+{
+  this.post_displacements = displacements_in;
+};
+
+MeshDisplacementCache.prototype.getKey = function() {
+  return this.key;
+};
+
+MeshDisplacementCache.prototype.getLocalDisplacements = function()
+{
+  return this.local_displacements;
+};
+
+MeshDisplacementCache.prototype.getPostDisplacements = function()
+{
+  return this.post_displacements;
+};
+
+
+// MeshUVWarpCache
+function MeshUVWarpCache(key_in)
+{
+	this.uv_warp_global_offset = vec2.create();
+    this.uv_warp_local_offset = vec2.create();
+    this.uv_warp_scale = vec2.fromValues(-1,-1);
+    this.key = key_in;
+    this.enabled = false;
+};
+
+MeshUVWarpCache.prototype.setUvWarpLocalOffset = function(vec_in)
+{
+  this.uv_warp_local_offset = vec_in;
+};
+
+MeshUVWarpCache.prototype.setUvWarpGlobalOffset = function(vec_in)
+{
+  this.uv_warp_global_offset = vec_in;
+};
+
+MeshUVWarpCache.prototype.setUvWarpScale = function(vec_in)
+{
+  this.uv_warp_scale = vec_in;
+};
+
+MeshUVWarpCache.prototype.getUvWarpLocalOffset = function()
+{
+  return this.uv_warp_local_offset;
+};
+
+MeshUVWarpCache.prototype.getUvWarpGlobalOffset = function()
+{
+  return this.uv_warp_global_offset;
+};
+
+MeshUVWarpCache.prototype.getUvWarpScale = function()
+{
+  return this.uv_warp_scale;
+};
+
+MeshUVWarpCache.prototype.getKey = function() {
+  return this.key;
+};
+
+MeshUVWarpCache.prototype.setEnabled = function(flag_in)
+{
+  this.enabled = flag_in;
+};
+
+MeshUVWarpCache.prototype.getEnabled = function() {
+  return this.enabled;
+};
+
+// MeshOpacityCache
+function MeshOpacityCache(key_in)
+{
+  this.opacity = 100.0;
+  this.key = key_in;
+};
+
+MeshOpacityCache.prototype.setOpacity = function(value_in)
+{
+  this.opacity = value_in;
+};
+
+MeshOpacityCache.prototype.getOpacity = function()
+{
+  return this.opacity;
+};
+
+MeshOpacityCache.prototype.getKey = function() {
+  return this.key;
+};
+
+// MeshBoneCacheManager
+function MeshBoneCacheManager()
+{
+	this.is_ready = false;
+	this.bone_cache_table = null;
+	this.bone_cache_data_ready = null;
+	this.bone_cache_table = [];
+	this.bone_cache_data_ready = [];
+};
+
+MeshBoneCacheManager.prototype.init = function(start_time_in, end_time_in)
+{
+  this.start_time = start_time_in;
+  this.end_time = end_time_in;
+
+  var num_frames = this.end_time - this.start_time + 1;
+  this.bone_cache_table = [];
+
+  this.bone_cache_data_ready = [];
+  for(var i = 0; i < num_frames; i++) {
+    this.bone_cache_table.push([]);
+    this.bone_cache_data_ready.push(false);
+  }
+
+  this.is_ready = false;
+};
+
+MeshBoneCacheManager.prototype.getStartTime = function()
+{
+  return this.start_time;
+};
+
+MeshBoneCacheManager.prototype.getEndime = function()
+{
+  return this.end_time;
+};
+
+MeshBoneCacheManager.prototype.getIndexByTime = function(time_in)
+{
+  var retval = time_in - this.start_time;
+  retval = Utils.clamp(retval, 0, (this.bone_cache_table.length) - 1);
+
+  return retval;
+};
+
+MeshBoneCacheManager.prototype.retrieveValuesAtTime = function(time_in, bone_map)
+{
+  var base_time = this.getIndexByTime(Math.floor(time_in));
+  var end_time = this.getIndexByTime(Math.ceil(time_in));
+
+  var ratio = (time_in - Math.floor(time_in));
+
+  if(this.bone_cache_data_ready.length == 0) {
+    return;
+  }
+
+  if((this.bone_cache_data_ready[base_time] == false)
+      || ((this.bone_cache_data_ready[end_time] == false)))
+  {
+    return;
+  }
+
+  var base_cache = this.bone_cache_table[base_time];
+  var end_cache = this.bone_cache_table[end_time];
+
+  for(var i = 0, l = base_cache.length; i < l; i++) {
+    var base_data = base_cache[i];
+    var end_data = end_cache[i];
+    var cur_key = base_data.getKey();
+
+    var final_world_start_pt = Utils.vecInterp(base_data.getWorldStartPt(), end_data.getWorldStartPt(), ratio);
+
+    var final_world_end_pt = Utils.vecInterp(base_data.getWorldEndPt(), end_data.getWorldEndPt(), ratio);
+
+    /*
+       Vector3 final_world_start_pt = ((1.0f - ratio) * base_data.getWorldStartPt()) +
+       (ratio * end_data.getWorldStartPt());
+
+       Vector3 final_world_end_pt = ((1.0f - ratio) * base_data.getWorldEndPt()) +
+       (ratio * end_data.getWorldEndPt());
+     */
+
+    bone_map[cur_key].setWorldStartPt(final_world_start_pt);
+    bone_map[cur_key].setWorldEndPt(final_world_end_pt);
+  }
+};
+
+MeshBoneCacheManager.prototype.allReady = function()
+{
+  if(this.is_ready) {
+    return true;
+  }
+  else {
+    var num_frames = this.end_time - this.start_time + 1;
+    var ready_cnt = 0;
+    for(var i = 0; i < this.bone_cache_data_ready.size(); i++) {
+      if(this.bone_cache_data_ready[i]) {
+        ready_cnt++;
+      }
+    }
+
+    if(ready_cnt == num_frames) {
+      this.is_ready = true;
+    }
+  }
+
+  return this.is_ready;
+};
+
+MeshBoneCacheManager.prototype.makeAllReady = function()
+{
+  for(var i = 0; i < this.bone_cache_data_ready.length; i++) {
+    this.bone_cache_data_ready[i] = true;
+  }
+};
+
+// MeshDisplacementCacheManager
+function MeshDisplacementCacheManager()
+{
+	this.is_ready = false;
+    this.displacement_cache_table = null;
+    this.displacement_cache_data_ready = null;
+    this.displacement_cache_table = [];
+    this.displacement_cache_data_ready = [];
+};
+
+MeshDisplacementCacheManager.prototype.init = function(start_time_in, end_time_in)
+{
+  this.start_time = start_time_in;
+  this.end_time = end_time_in;
+
+  var num_frames = this.end_time - this.start_time + 1;
+  this.displacement_cache_table = [];
+
+  this.displacement_cache_data_ready = [];
+  for(var i = 0; i < num_frames; i++) {
+    this.displacement_cache_table.push([]);
+    this.displacement_cache_data_ready.push(false);
+  }
+
+  this.is_ready = false;
+};
+
+MeshDisplacementCacheManager.prototype.getStartTime = function()
+{
+  return this.start_time;
+};
+
+MeshDisplacementCacheManager.prototype.getEndime = function()
+{
+  return this.end_time;
+};
+
+MeshDisplacementCacheManager.prototype.getIndexByTime = function(time_in)
+{
+  var retval = time_in - this.start_time;
+  retval = Utils.clamp(retval, 0, (this.displacement_cache_table.length) - 1);
+
+  return retval;
+};
+
+MeshDisplacementCacheManager.prototype.retrieveValuesAtTime = function(time_in, regions_map)
+{
+  var base_time = this.getIndexByTime(Math.floor(time_in));
+  var end_time = this.getIndexByTime(Math.ceil(time_in));
+
+  var ratio = (time_in - Math.floor(time_in));
+
+  if(this.displacement_cache_data_ready.length == 0) {
+    return;
+  }
+
+  if((this.displacement_cache_data_ready[base_time] == false)
+      || (this.displacement_cache_data_ready[end_time] == false))
+  {
+    return;
+  }
+
+  var base_cache = this.displacement_cache_table[base_time];
+  var end_cache = this.displacement_cache_table[end_time];
+
+  for(var i = 0; i < base_cache.length; i++) {
+    var base_data = base_cache[i];
+    var end_data = end_cache[i];
+    var cur_key = base_data.getKey();
+
+    var set_region = regions_map[cur_key];
+
+    if(set_region.getUseLocalDisplacements()) {
+      var displacements =
+        set_region.local_displacements;
+      if((base_data.getLocalDisplacements().length == displacements.length)
+          && (end_data.getLocalDisplacements().length == displacements.length))
+      {
+        for(var j = 0; j < displacements.length; j++) {
+          var interp_val = Utils.vec2Interp(base_data.getLocalDisplacements()[j], 
+          									end_data.getLocalDisplacements()[j],
+          									ratio);
+                
+          /*
+             Vector2 interp_val =
+             ((1.0f - ratio) * base_data.getLocalDisplacements().get(j)) +
+             (ratio * end_data.getLocalDisplacements().get(j));
+           */
+
+          displacements[j] = interp_val;
+        }
+      }
+      else {
+        for(var j = 0; j < displacements.length; j++) {
+          displacements[j] = vec2.create();
+        }
+      }
+    }
+
+    if(set_region.getUsePostDisplacements()) {
+      var displacements =
+        set_region.post_displacements;
+      if((base_data.getPostDisplacements().length == displacements.length)
+          && (end_data.getPostDisplacements().length == displacements.length))
+      {
+
+        for(var j = 0; j < displacements.length; j++) {
+          var interp_val = Utils.vec2Interp(base_data.getPostDisplacements()[j], 
+          									end_data.getPostDisplacements()[j],
+          									ratio);                
+                
+          /*
+             Vector2 interp_val =
+             ((1.0f - ratio) * base_data.getPostDisplacements()[j]) +
+             (ratio * end_data.getPostDisplacements()[j]);
+           */
+          displacements[j] = interp_val;
+        }
+      }
+      else {
+        for(var j = 0; j < displacements.length; j++) {
+          displacements[j] = vec2.create();
+        }
+      }
+    }
+  }
+};
+
+MeshDisplacementCacheManager.prototype.allReady = function()
+{
+  if(this.is_ready) {
+    return true;
+  }
+  else {
+    var num_frames = this.end_time - this.start_time + 1;
+    var ready_cnt = 0;
+    for(var i = 0; i < this.displacement_cache_data_ready.length; i++) {
+      if(this.displacement_cache_data_ready[i]) {
+        ready_cnt++;
+      }
+    }
+
+    if(ready_cnt == num_frames) {
+      this.is_ready = true;
+    }
+  }
+
+  return this.is_ready;
+};
+
+MeshDisplacementCacheManager.prototype.makeAllReady = function()
+{
+  for(var i = 0; i < this.displacement_cache_data_ready.length; i++) {
+    this.displacement_cache_data_ready[i] = true;
+  }
+};
+
+// MeshUVWarpCacheManager
+function MeshUVWarpCacheManager()
+{
+	this.is_ready = false;
+    this.uv_cache_table = null;
+    this.uv_cache_data_ready = null;
+    this.uv_cache_table = [];
+    this.uv_cache_data_ready = [];	
+};
+
+MeshUVWarpCacheManager.prototype.init = function(start_time_in, end_time_in)
+{
+  this.start_time = start_time_in;
+  this.end_time = end_time_in;
+
+  var num_frames = this.end_time - this.start_time + 1;
+  this.uv_cache_table = [];
+
+  this.uv_cache_data_ready = [];
+  for(var i = 0; i < num_frames; i++) {
+    this.uv_cache_table.push([]);
+    this.uv_cache_data_ready.push(false);
+  }
+
+  this.is_ready = false;
+};
+
+MeshUVWarpCacheManager.prototype.getStartTime = function()
+{
+  return this.start_time;
+};
+
+MeshUVWarpCacheManager.prototype.getEndime = function()
+{
+  return this.end_time;
+};
+
+MeshUVWarpCacheManager.prototype.getIndexByTime = function(time_in)
+{
+  var retval = time_in - this.start_time;
+  retval = Utils.clamp(retval, 0, (this.uv_cache_table.length) - 1);
+
+  return retval;
+};
+
+MeshUVWarpCacheManager.prototype.retrieveValuesAtTime = function(time_in, regions_map)
+{
+  var base_time = this.getIndexByTime(Math.floor(time_in));
+  var end_time = this.getIndexByTime(Math.ceil(time_in));
+
+  var ratio = (time_in - Math.floor(time_in));
+
+  if(this.uv_cache_data_ready.length == 0) {
+    return;
+  }
+
+  if((this.uv_cache_data_ready[base_time] == false)
+      || (this.uv_cache_data_ready[end_time] == false))
+  {
+    return;
+  }
+
+  var base_cache = this.uv_cache_table[base_time];
+  var end_cache = this.uv_cache_table[end_time];
+
+  for(var i = 0; i < base_cache.length; i++) {
+    var base_data = base_cache[i];
+    var end_data = end_cache[i];
+    var cur_key = base_data.getKey();
+
+    var set_region = regions_map[cur_key];
+    if(set_region.getUseUvWarp()) {
+      var final_local_offset = base_data.getUvWarpLocalOffset();
+      
+ 
+      var final_global_offset = base_data.getUvWarpGlobalOffset();
+
+      var final_scale = base_data.getUvWarpScale();
+      /*
+         Vector2 final_local_offset = ((1.0f - ratio) * base_data.getUvWarpLocalOffset()) +
+         (ratio * end_data.getUvWarpLocalOffset());
+
+         Vector2 final_global_offset = ((1.0f - ratio) * base_data.getUvWarpGlobalOffset()) +
+         (ratio * end_data.getUvWarpGlobalOffset());
+
+         Vector2 final_scale = ((1.0f - ratio) * base_data.getUvWarpScale()) +
+         (ratio * end_data.getUvWarpScale());
+
+       */
+
+
+      set_region.setUvWarpLocalOffset(final_local_offset);
+      set_region.setUvWarpGlobalOffset(final_global_offset);
+      set_region.setUvWarpScale(final_scale);
+    }
+  }
+};
+
+MeshUVWarpCacheManager.prototype.allReady = function()
+{
+  if(this.is_ready) {
+    return true;
+  }
+  else {
+    var num_frames = this.end_time - this.start_time + 1;
+    var ready_cnt = 0;
+    for(var i = 0; i < this.uv_cache_data_ready.length; i++) {
+      if(uv_cache_data_ready[i]) {
+        ready_cnt++;
+      }
+    }
+
+    if(ready_cnt == num_frames) {
+      this.is_ready = true;
+    }
+  }
+
+  return this.is_ready;
+};
+
+MeshUVWarpCacheManager.prototype.makeAllReady = function()
+{
+  for(var i = 0; i < this.uv_cache_data_ready.length; i++) {
+    this.uv_cache_data_ready[i] = true;
+  }
+};
+
+// MeshOpacityCacheManager
+function MeshOpacityCacheManager()
+{
+  this.is_ready = false;
+  this.opacity_cache_table = null;
+  this.opacity_cache_data_ready = null;
+  this.opacity_cache_table = [];
+  this.opacity_cache_data_ready = [];	
+};
+
+MeshOpacityCacheManager.prototype.init = function(start_time_in, end_time_in)
+{
+  this.start_time = start_time_in;
+  this.end_time = end_time_in;
+
+  var num_frames = this.end_time - this.start_time + 1;
+  this.opacity_cache_table = [];
+
+  this.opacity_cache_data_ready = [];
+  for(var i = 0; i < num_frames; i++) {
+    this.opacity_cache_table.push([]);
+    this.opacity_cache_data_ready.push(false);
+  }
+
+  this.is_ready = false;
+};
+
+MeshOpacityCacheManager.prototype.getStartTime = function()
+{
+  return this.start_time;
+};
+
+MeshOpacityCacheManager.prototype.getEndime = function()
+{
+  return this.end_time;
+};
+
+MeshOpacityCacheManager.prototype.getIndexByTime = function(time_in)
+{
+  var retval = time_in - this.start_time;
+  retval = Utils.clamp(retval, 0, (this.opacity_cache_table.length) - 1);
+
+  return retval;
+};
+
+MeshOpacityCacheManager.prototype.retrieveValuesAtTime = function(time_in, regions_map)
+{
+  var base_time = this.getIndexByTime(Math.floor(time_in));
+  var end_time = this.getIndexByTime(Math.ceil(time_in));
+
+  var ratio = (time_in - Math.floor(time_in));
+
+  if(this.opacity_cache_data_ready.length == 0) {
+    return;
+  }
+
+  if((this.opacity_cache_data_ready[base_time] == false)
+      || (this.opacity_cache_data_ready[end_time] == false))
+  {
+    return;
+  }
+
+  var base_cache = this.opacity_cache_table[base_time];
+
+  for(var i = 0; i < base_cache.length; i++) {
+    var base_data = base_cache[i];
+    var cur_key = base_data.getKey();
+
+    var set_region = regions_map[cur_key];
+    set_region.opacity = base_data.getOpacity();
+  }
+};
+
+MeshOpacityCacheManager.prototype.allReady = function()
+{
+  if(this.is_ready) {
+    return true;
+  }
+  else {
+    var num_frames = this.end_time - this.start_time + 1;
+    var ready_cnt = 0;
+    for(var i = 0; i < this.opacity_cache_data_ready.length; i++) {
+      if(opacity_cache_data_ready[i]) {
+        ready_cnt++;
+      }
+    }
+
+    if(ready_cnt == num_frames) {
+      this.is_ready = true;
+    }
+  }
+
+  return this.is_ready;
+};
+
+MeshOpacityCacheManager.prototype.makeAllReady = function()
+{
+  for(var i = 0; i < this.opacity_cache_data_ready.length; i++) {
+    this.opacity_cache_data_ready[i] = true;
+  }
+};
+
+// CreatureModuleUtils
+var CreatureModuleUtils = {};
+
+CreatureModuleUtils.LoadCreatureFlatData = function(input_bytes)
+{
+	var buf = new flatbuffers.ByteBuffer(input_bytes);
+	return CreatureFlatData.rootData.getRootAsrootData(buf);
+};
+
+CreatureModuleUtils.BuildCreatureMetaData = function(json_data)
+{
+  var meta_data = new CreatureMetaData();
+  // Skin Swap
+  if("skinSwapList" in json_data)
+  {
+    var skin_swap_obj = json_data["skinSwapList"];
+    for(var swap_name in skin_swap_obj)
+    {
+      var swap_data = skin_swap_obj[swap_name]["swap"];
+      var swap_items = swap_data["swap_items"];
+      var swap_set = {};
+      for(var i = 0; i < swap_items.length; i++)
+      {
+        var cur_item = swap_items[i];
+        swap_set[cur_item] = cur_item;
+      }
+
+      meta_data.skin_swaps[swap_name] = swap_set;
+    }
+  }
+
+  // Events Triggers
+  if("eventTriggers" in json_data)
+  {
+    var events_obj = json_data["eventTriggers"];
+    for (var cur_anim_name in events_obj)
+    {
+        var cur_events_map = {};
+        var cur_obj_array = events_obj[cur_anim_name];
+
+        for (var cur_events_obj in cur_obj_array)
+        {
+            var cur_event_name = cur_events_obj["event_name"];
+            var switch_time = Number(cur_events_obj["switch_time"]);
+
+            cur_events_map[switch_time] = cur_event_name;
+        }
+
+        meta_data.anim_events_map[cur_anim_name] = cur_events_map;
+    }
+  }  
+
+  return meta_data;
+};
+
+CreatureModuleUtils.GetAllAnimationNames = function(json_data)
+{
+  var json_animations = json_data["animation"];
+  var keys = [];
+  for (var name in json_animations)
+  {
+    keys.push(name);
+  }
+
+  return keys;
+};
+
+CreatureModuleUtils.getFloatArray = function(raw_data)
+{
+  return raw_data;
+};
+
+CreatureModuleUtils.getIntArray = function(raw_data)
+{
+  return raw_data;
+};
+
+
+CreatureModuleUtils.ReadPointsArray2DJSON = function(data, key)
+{
+  var raw_array = CreatureModuleUtils.getFloatArray(data[key]);
+  var ret_list = [];
+  var num_points = raw_array.length / 2;
+  for (var i = 0; i < num_points; i++)
+  {
+    var cur_index = i * 2;
+    ret_list.push(
+        vec2.fromValues(raw_array[0 + cur_index], raw_array[1 + cur_index]));
+  }
+
+  return ret_list;
+};
+
+CreatureModuleUtils.ReadPointsArray2DFlat = function(data)
+{
+  var raw_array = data;
+  var ret_list = [];
+  var num_points = raw_array.length / 2;
+  for (var i = 0; i < num_points; i++)
+  {
+    var cur_index = i * 2;
+    ret_list.push(
+        vec2.fromValues(raw_array[0 + cur_index], raw_array[1 + cur_index]));
+  }
+
+  return ret_list;
+};
+
+CreatureModuleUtils.ReadFloatArray3DJSON = function(data, key)
+{
+  var raw_array = CreatureModuleUtils.getFloatArray(data[key]);
+
+  var ret_list = [];
+  var num_points = raw_array.length / 2;
+  for (var i = 0; i < num_points; i++)
+  {
+    var cur_index = i * 2;
+    ret_list.push(raw_array[0 + cur_index]);
+    ret_list.push(raw_array[1 + cur_index]);
+    ret_list.push(0);
+  }
+
+  return ret_list;
+};
+
+CreatureModuleUtils.ReadFloatArray3DFlat = function(data)
+{
+  var raw_array = data;
+
+  var ret_list = [];
+  var num_points = raw_array.length / 2;
+  for (var i = 0; i < num_points; i++)
+  {
+    var cur_index = i * 2;
+    ret_list.push(raw_array[0 + cur_index]);
+    ret_list.push(raw_array[1 + cur_index]);
+    ret_list.push(0);
+  }
+
+  return ret_list;
+};
+
+CreatureModuleUtils.ReadBoolJSON = function(data, key)
+{
+  var val = data[key];
+  return val;
+};
+
+CreatureModuleUtils.ReadFloatArrayJSON = function(data, key)
+{
+  /*
+  var raw_array = getFloatArray(data.get[key]);
+  var ret_list = [];
+  for(var i = 0; i < raw_array.length; i++)
+  {
+    ret_list.push(raw_array[i]);
+  }
+
+  return ret_list;
+  */
+ 
+  return data[key];
+};
+
+CreatureModuleUtils.ReadIntArrayJSON = function(data, key)
+{
+  /*
+  int[] raw_array = getIntArray (data.get(key));
+  java.util.Vector<Integer> ret_list = new java.util.Vector<Integer>();
+
+  for(int i = 0; i < raw_array.length; i++) {
+    ret_list.add(raw_array[i]);
+  }
+
+  return ret_list;
+  */
+   return data[key];
+};
+
+CreatureModuleUtils.ReadMatrixJSON = function(data, key)
+{
+  var raw_array = CreatureModuleUtils.getFloatArray(data[key]);
+  var retMat = mat4.create();
+  for(var i = 0; i < 16; i++)
+  {
+  	retMat[i] = raw_array[i];
+  }
+  
+  return retMat;
+};
+
+CreatureModuleUtils.ReadMatrixFlat = function(data)
+{
+  var raw_array = data;
+  var retMat = mat4.create();
+  for(var i = 0; i < 16; i++)
+  {
+  	retMat[i] = raw_array[i];
+  }
+  
+  return retMat;
+};
+
+CreatureModuleUtils.ReadVector2JSON = function(data, key)
+{
+  var raw_array = CreatureModuleUtils.getFloatArray(data[key]);
+  return vec2.fromValues(raw_array[0], raw_array[1]);
+};
+
+CreatureModuleUtils.ReadVector2Flat = function(data)
+{
+  var raw_array = data;
+  return vec2.fromValues(raw_array[0], raw_array[1]);
+};
+
+CreatureModuleUtils.ReadVector3JSON = function(data, key)
+{
+  var raw_array = CreatureModuleUtils.getFloatArray(data[key]);
+  return vec3.fromValues(raw_array[0], raw_array[1], 0);
+};
+
+CreatureModuleUtils.ReadVectorFlat = function(data)
+{
+  var raw_array = data;
+  return vec3.fromValues(raw_array[0], raw_array[1], 0);
+};
+
+CreatureModuleUtils.FormBoneHierarchy = function(child_set, bone_data)
+{
+  var root_bone = null;
+  // Find root
+  for(var cur_id in bone_data)
+  {
+    if( (cur_id in child_set) == false) {
+      // not a child, so is root
+	  var cur_data = bone_data[cur_id]; 
+      root_bone = cur_data.first;
+      break;
+    }
+  }
+
+  // construct hierarchy
+  for(var cur_id in bone_data)
+  {
+ 	var cur_data = bone_data[cur_id]; 
+
+    var cur_bone = cur_data.first;
+    var children_ids = cur_data.second;
+    for(var i = 0; i < children_ids.length; i++)
+    {
+      var cur_child_id = children_ids[i];
+      var child_bone = bone_data[cur_child_id].first;
+      cur_bone.addChild(child_bone);
+    }
+
+  }
+
+  return root_bone;
+};
+
+CreatureModuleUtils.CreateBones = function(json_obj, key) {
+  var root_bone = null;
+  var base_obj = json_obj[key];
+  //var bone_data = new HashMap<Integer, Tuple<MeshBone, Vector<Integer>>>();
+  var bone_data = {};
+  var child_set = {};
+
+  // layout bones
+  for (var cur_name in base_obj)
+  {
+  	
+    var cur_node = base_obj[cur_name];
+
+    var cur_id = cur_node["id"]; //GetJSONNodeFromKey(*cur_node, "id")->value.toNumber();
+    var cur_parent_mat = CreatureModuleUtils.ReadMatrixJSON(cur_node, "restParentMat");
+
+    var cur_local_rest_start_pt = CreatureModuleUtils.ReadVector3JSON(cur_node, "localRestStartPt");
+    var cur_local_rest_end_pt = CreatureModuleUtils.ReadVector3JSON(cur_node, "localRestEndPt");
+    var cur_children_ids = CreatureModuleUtils.ReadIntArrayJSON(cur_node, "children");
+
+    var new_bone = new MeshBone(cur_name,
+        vec3.create(),
+        vec3.create(),
+        cur_parent_mat);
+    new_bone.local_rest_start_pt = cur_local_rest_start_pt;
+    new_bone.local_rest_end_pt = cur_local_rest_end_pt;
+    new_bone.calcRestData();
+    new_bone.setTagId(cur_id);
+
+    bone_data[cur_id] = {first:new_bone, second:cur_children_ids};
+
+    for(var i = 0; i < cur_children_ids.length; i++){
+      var cur_child_id = cur_children_ids[i];
+      child_set[cur_child_id] = cur_child_id;
+    }
+  }
+
+  // Find root
+  return this.FormBoneHierarchy(child_set, bone_data);
+};
+
+CreatureModuleUtils.CreateBonesFlat = function(skelIn) {
+  var root_bone = null;
+  //var bone_data = new HashMap<Integer, Tuple<MeshBone, Vector<Integer>>>();
+  var bone_data = {};
+  var child_set = {};
+
+  // layout bones
+  for (var i = 0; i < skelIn.bonesLength(); i++)
+  {
+    var cur_node = skelIn.bones(i);
+    var cur_name = cur_node.name();
+
+    var cur_id = cur_node.id(); //GetJSONNodeFromKey(*cur_node, "id")->value.toNumber();
+    var cur_parent_mat = CreatureModuleUtils.ReadMatrixFlat(cur_node.restParentMatArray());
+
+    var cur_local_rest_start_pt = CreatureModuleUtils.ReadFloatArray3DFlat(cur_node.localRestStartPtArray());
+    var cur_local_rest_end_pt = CreatureModuleUtils.ReadFloatArray3DFlat(cur_node.localRestEndPtArray());
+    var cur_children_ids = CreatureModuleUtils.getIntArray(cur_node.childrenArray());
+
+    var new_bone = new MeshBone(cur_name,
+        vec3.create(),
+        vec3.create(),
+        cur_parent_mat);
+    new_bone.local_rest_start_pt = cur_local_rest_start_pt;
+    new_bone.local_rest_end_pt = cur_local_rest_end_pt;
+    new_bone.calcRestData();
+    new_bone.setTagId(cur_id);
+
+    bone_data[cur_id] = {first:new_bone, second:cur_children_ids};
+
+    for(var j = 0; j < cur_children_ids.length; j++){
+      var cur_child_id = cur_children_ids[j];
+      child_set[cur_child_id] = cur_child_id;
+    }
+  }
+
+  // Find root
+  return this.FormBoneHierarchy(child_set, bone_data);
+};
+
+CreatureModuleUtils.CreateRegions = function(json_obj, key, indices_in, rest_pts_in, uvs_in)
+{
+  var ret_regions = [];
+  var base_obj = json_obj[key];
+
+  for (var cur_name in base_obj)
+  {
+  	var cur_node = base_obj[cur_name];
+
+    var cur_id = cur_node["id"]; //(int)GetJSONNodeFromKey(*cur_node, "id")->value.toNumber();
+    var cur_start_pt_index = cur_node["start_pt_index"]; //(int)GetJSONNodeFromKey(*cur_node, "start_pt_index")->value.toNumber();
+    var cur_end_pt_index = cur_node["end_pt_index"]; //(int)GetJSONNodeFromKey(*cur_node, "end_pt_index")->value.toNumber();
+    var cur_start_index = cur_node["start_index"]; //(int)GetJSONNodeFromKey(*cur_node, "start_index")->value.toNumber();
+    var cur_end_index = cur_node["end_index"]; //(int)GetJSONNodeFromKey(*cur_node, "end_index")->value.toNumber();
+
+    var new_region = new MeshRenderRegion(indices_in,
+        rest_pts_in,
+        uvs_in,
+        cur_start_pt_index,
+        cur_end_pt_index,
+        cur_start_index,
+        cur_end_index);
+
+    new_region.setName(cur_name);
+    new_region.setTagId(cur_id);
+
+    // Read in weights
+    var weight_map =
+      new_region.normal_weight_map;
+    var weight_obj = cur_node["weights"];
+
+    for (var w_key in weight_obj)
+    {
+      var w_node = weight_obj[w_key];
+      var values = CreatureModuleUtils.ReadFloatArrayJSON(weight_obj, w_key);
+      weight_map[w_key] = values;
+    }
+
+    ret_regions.push(new_region);
+  }
+
+  return ret_regions;
+};
+
+CreatureModuleUtils.CreateRegionsFlat = function(meshIn, indices_in, rest_pts_in, uvs_in)
+{
+  var ret_regions = [];
+
+  for (var i = 0; i < meshIn.regionsLength(); i++)
+  {
+  	var cur_node = meshIn.regions(i);
+  	var cur_name = cur_node.name();
+
+    var cur_id = cur_node.id(); //(int)GetJSONNodeFromKey(*cur_node, "id")->value.toNumber();
+    var cur_start_pt_index = cur_node.startPtIndex(); //(int)GetJSONNodeFromKey(*cur_node, "start_pt_index")->value.toNumber();
+    var cur_end_pt_index = cur_node.endPtIndex(); //(int)GetJSONNodeFromKey(*cur_node, "end_pt_index")->value.toNumber();
+    var cur_start_index = cur_node.startIndex(); //(int)GetJSONNodeFromKey(*cur_node, "start_index")->value.toNumber();
+    var cur_end_index = cur_node.endIndex(); //(int)GetJSONNodeFromKey(*cur_node, "end_index")->value.toNumber();
+
+    var new_region = new MeshRenderRegion(indices_in,
+        rest_pts_in,
+        uvs_in,
+        cur_start_pt_index,
+        cur_end_pt_index,
+        cur_start_index,
+        cur_end_index);
+
+    new_region.setName(cur_name);
+    new_region.setTagId(cur_id);
+
+    // Read in weights
+    var weight_map =
+      new_region.normal_weight_map;
+    var weight_obj = cur_node["weights"];
+
+    for (var j = 0; j < cur_node.weightsLength(); j++)
+    {
+      var w_node = cur_node.weights(j);
+      var w_key = w_node.name();
+      var values = CreatureModuleUtils.getFloatArray(w_node.weightsArray());
+      weight_map[w_key] = values;
+    }
+
+    ret_regions.push(new_region);
+  }
+
+  return ret_regions;
+};
+
+CreatureModuleUtils.GetStartEndTimes = function(json_obj, key)
+{
+  var start_time = 0;
+  var end_time = 0;
+  var first = true;
+  var base_obj = json_obj[key];
+
+  for (var cur_val in base_obj)
+  {
+    var cur_node = base_obj[cur_val];
+    var cur_num = parseInt(cur_val);
+    if(first) {
+      start_time = cur_num;
+      end_time = cur_num;
+      first = false;
+    }
+    else {
+      if(cur_num > end_time) {
+        end_time = cur_num;
+      }
+      
+      if(cur_num < start_time) {
+        start_time = cur_num;
+      }
+    }
+  }
+
+  return {first:start_time, second:end_time};
+};
+
+CreatureModuleUtils.GetStartEndTimesFlat = function(animBonesList)
+{
+  var start_time = 0;
+  var end_time = 0;
+  var first = true;
+
+  for (var i = 0; i < animBonesList.timeSamplesLength(); i++)
+  {
+    var cur_node = animBonesList.timeSamples(i);
+    var cur_num = cur_node.time();
+    if(first) {
+      start_time = cur_num;
+      end_time = cur_num;
+      first = false;
+    }
+    else {
+      if(cur_num > end_time) {
+        end_time = cur_num;
+      }
+      
+      if(cur_num < start_time) {
+        start_time = cur_num;
+      }
+    }
+  }
+
+  return {first:start_time, second:end_time};
+};
+
+CreatureModuleUtils.FillBoneGapCache = function(prev_time, cur_time, set_index, cache_manager, cache_list)
+{
+	var gap_diff = cur_time - prev_time;
+	if (gap_diff > 1)
+	{
+		// Gap Step
+		var prev_index = cache_manager.getIndexByTime(prev_time);
+		for (var j = 1; j < gap_diff; j++)
+		{
+			var gap_fraction = j / gap_diff;
+			var gap_cache_list = [];
+			for (var k = 0; k < cache_list.length; k++)
+			{
+				var cur_data = cache_manager.bone_cache_table[set_index][k];
+				var prev_data = cache_manager.bone_cache_table[prev_index][k];
+				var gap_cache_data = new MeshBoneCache(cur_data.getKey());
+				gap_cache_data.setWorldStartPt(
+					Utils.vecInterp(prev_data.getWorldStartPt(), cur_data.getWorldStartPt(), gap_fraction));
+				gap_cache_data.setWorldEndPt(
+					Utils.vecInterp(prev_data.getWorldEndPt(), cur_data.getWorldEndPt(), gap_fraction));
+
+				gap_cache_list.push(gap_cache_data);
+			}
+
+			cache_manager.bone_cache_table[prev_index + j] = gap_cache_list;
+		}
+	}	
+};
+
+CreatureModuleUtils.FillBoneCache = function(json_obj, key, start_time, end_time, cache_manager)
+{
+  var base_obj = json_obj[key];
+
+  cache_manager.init(start_time, end_time);
+
+  var prev_time = start_time;
+  for (var cur_time in base_obj)
+  {
+  	var cur_node = base_obj[cur_time];
+
+    cache_list = [];
+
+    for (var cur_name in cur_node)
+    {
+      var bone_node = cur_node[cur_name];
+
+      var cur_start_pt = CreatureModuleUtils.ReadVector3JSON(bone_node, "start_pt"); //ReadJSONVec4_2(*bone_node, "start_pt");
+      var cur_end_pt = CreatureModuleUtils.ReadVector3JSON(bone_node, "end_pt"); //ReadJSONVec4_2(*bone_node, "end_pt");
+
+      var cache_data = new MeshBoneCache(cur_name);
+      cache_data.setWorldStartPt(cur_start_pt);
+      cache_data.setWorldEndPt(cur_end_pt);
+
+      cache_list.push(cache_data);
+    }
+
+    var set_index = cache_manager.getIndexByTime(cur_time);
+    cache_manager.bone_cache_table[set_index] = cache_list;
+    
+    CreatureModuleUtils.FillBoneGapCache(prev_time, cur_time, set_index, cache_manager, cache_list);   
+	prev_time = cur_time;    
+  }
+
+  cache_manager.makeAllReady();
+};
+
+CreatureModuleUtils.FillBoneCacheFlat = function(animBonesList, start_time, end_time, cache_manager)
+{
+  cache_manager.init(start_time, end_time);
+  
+  var prev_time = start_time;
+  for (var i = 0; i < animBonesList.timeSamplesLength(); i++)
+  {
+  	var cur_node = animBonesList.timeSamples(i);
+  	var cur_time = cur_node.time();
+
+    cache_list = [];
+
+    for (var j = 0; j < cur_node.bonesLength(); j++)
+    {
+      var bone_node = cur_node.bones(j);
+      var cur_name = bone_node.name();
+
+      var cur_start_pt = CreatureModuleUtils.ReadFloatArray3DFlat(bone_node.startPtArray()); //ReadJSONVec4_2(*bone_node, "start_pt");
+      var cur_end_pt = CreatureModuleUtils.ReadFloatArray3DFlat(bone_node.endPtArray()); //ReadJSONVec4_2(*bone_node, "end_pt");
+
+      var cache_data = new MeshBoneCache(cur_name);
+      cache_data.setWorldStartPt(cur_start_pt);
+      cache_data.setWorldEndPt(cur_end_pt);
+
+      cache_list.push(cache_data);
+    }
+
+    var set_index = cache_manager.getIndexByTime(cur_time);
+    cache_manager.bone_cache_table[set_index] = cache_list;
+    
+    CreatureModuleUtils.FillBoneGapCache(prev_time, cur_time, set_index, cache_manager, cache_list);   
+	prev_time = cur_time;        
+  }
+
+  cache_manager.makeAllReady();
+};
+
+CreatureModuleUtils.FillDeformationGapCache = function(prev_time, cur_time, set_index, cache_manager, cache_list)
+{
+	var gap_diff = cur_time - prev_time;
+	if (gap_diff > 1)
+	{
+		// Gap Step
+		var prev_index = cache_manager.getIndexByTime(prev_time);
+		for (var j = 1; j < gap_diff; j++)
+		{
+			var gap_fraction = j / gap_diff;
+			var gap_cache_list = [];
+
+			for (var k = 0; k < cache_list.length; k++)
+			{
+				var cur_data = cache_manager.displacement_cache_table[set_index][k];
+				var prev_data = cache_manager.displacement_cache_table[prev_index][k];
+				var gap_cache_data = new MeshDisplacementCache(cur_data.getKey());
+				if (cur_data.getLocalDisplacements().length > 0)
+				{
+					gap_cache_data.setLocalDisplacements(
+						Utils.ptsInterp(prev_data.getLocalDisplacements(), cur_data.getLocalDisplacements(), gap_fraction));
+				}
+				else {
+					gap_cache_data.setPostDisplacements(
+						Utils.ptsInterp(prev_data.getPostDisplacements(), cur_data.getPostDisplacements(), gap_fraction));
+				}
+
+				gap_cache_list.push(gap_cache_data);
+			}
+
+			cache_manager.displacement_cache_table[prev_index + j] = gap_cache_list;
+		}
+	}	
+};
+
+CreatureModuleUtils.FillDeformationCache = function(json_obj, key, start_time, end_time, cache_manager)
+{
+  var base_obj = json_obj[key];
+
+  cache_manager.init(start_time, end_time);
+  
+  var prev_time = start_time;
+  for (var cur_time in base_obj)
+  {
+  	var cur_node = base_obj[cur_time];
+
+    var cache_list = [];
+
+    for (var cur_name in cur_node)
+    {
+      var mesh_node = cur_node[cur_name];
+
+      var cache_data = new MeshDisplacementCache(cur_name);
+
+      var use_local_displacement = CreatureModuleUtils.ReadBoolJSON(mesh_node, "use_local_displacements"); //GetJSONNodeFromKey(*mesh_node, "use_local_displacements")->value.toBool();
+      var use_post_displacement = CreatureModuleUtils.ReadBoolJSON(mesh_node, "use_post_displacements"); //GetJSONNodeFromKey(*mesh_node, "use_post_displacements")->value.toBool();
+
+      if(use_local_displacement == true) {
+        var read_pts = CreatureModuleUtils.ReadPointsArray2DJSON(mesh_node, "local_displacements"); //ReadJSONPoints2DVector(*mesh_node, "local_displacements");
+        cache_data.setLocalDisplacements(read_pts);
+      }
+
+      if(use_post_displacement == true) {
+        var read_pts = CreatureModuleUtils.ReadPointsArray2DJSON(mesh_node, "post_displacements"); //ReadJSONPoints2DVector(*mesh_node, "post_displacements");
+        cache_data.setPostDisplacements(read_pts);
+      }
+
+      cache_list.push(cache_data);
+    }
+
+    var set_index = cache_manager.getIndexByTime(cur_time);
+    cache_manager.displacement_cache_table[set_index] = cache_list;
+    
+    CreatureModuleUtils.FillDeformationGapCache(prev_time, cur_time, set_index, cache_manager, cache_list);
+    prev_time = cur_time;
+  }
+
+  cache_manager.makeAllReady();
+};
+
+CreatureModuleUtils.FillDeformationCacheFlat = function(animMeshList, start_time, end_time, cache_manager)
+{
+  cache_manager.init(start_time, end_time);
+
+  var prev_time = start_time;
+  for (var i = 0; i < animMeshList.timeSamplesLength(); i++)
+  {
+  	var cur_node = animMeshList.timeSamples(i);
+  	var cur_time = cur_node.time();
+
+    var cache_list = [];
+
+    for (var j = 0; j < cur_node.meshesLength(); j++)
+    {
+      var mesh_node = cur_node.meshes(j);
+      var cur_name = mesh_node.name();
+
+      var cache_data = new MeshDisplacementCache(cur_name);
+
+      var use_local_displacement = mesh_node.useLocalDisplacements(); //GetJSONNodeFromKey(*mesh_node, "use_local_displacements")->value.toBool();
+      var use_post_displacement = mesh_node.usePostDisplacements(); //GetJSONNodeFromKey(*mesh_node, "use_post_displacements")->value.toBool();
+
+      if(use_local_displacement == true) {
+        var read_pts = CreatureModuleUtils.ReadPointsArray2DFlat(mesh_node.localDisplacementsArray()); //ReadJSONPoints2DVector(*mesh_node, "local_displacements");
+        cache_data.setLocalDisplacements(read_pts);
+      }
+
+      if(use_post_displacement == true) {
+      	var tmpNum = mesh_node.postDisplacementsLength();
+        var read_pts = CreatureModuleUtils.ReadPointsArray2DFlat(mesh_node.postDisplacementsArray()); //ReadJSONPoints2DVector(*mesh_node, "post_displacements");
+        cache_data.setPostDisplacements(read_pts);
+      }
+
+      cache_list.push(cache_data);
+    }
+
+    var set_index = cache_manager.getIndexByTime(cur_time);
+    cache_manager.displacement_cache_table[set_index] = cache_list;
+    
+    CreatureModuleUtils.FillDeformationGapCache(prev_time, cur_time, set_index, cache_manager, cache_list);
+    prev_time = cur_time;    
+  }
+
+  cache_manager.makeAllReady();
+};
+
+
+CreatureModuleUtils.FillUVSwapCache = function(json_obj, key, start_time, end_time, cache_manager)
+{
+  var base_obj = json_obj[key];
+
+  cache_manager.init(start_time, end_time);
+
+  for (var cur_time in base_obj)
+  {
+  	var cur_node = base_obj[cur_time];
+
+    var cache_list = [];
+
+    for (var cur_name in cur_node)
+    {
+      var uv_node = cur_node[cur_name];
+
+      var cache_data = new MeshUVWarpCache(cur_name);
+      var use_uv = CreatureModuleUtils.ReadBoolJSON(uv_node, "enabled"); //GetJSONNodeFromKey(*uv_node, "enabled")->value.toBool();
+      cache_data.setEnabled(use_uv);
+      if(use_uv == true) {
+        var local_offset = CreatureModuleUtils.ReadVector2JSON(uv_node, "local_offset"); //ReadJSONVec2(*uv_node, "local_offset");
+        var global_offset = CreatureModuleUtils.ReadVector2JSON(uv_node, "global_offset"); //ReadJSONVec2(*uv_node, "global_offset");
+        var scale = CreatureModuleUtils.ReadVector2JSON(uv_node, "scale"); //ReadJSONVec2(*uv_node, "scale");
+        cache_data.setUvWarpLocalOffset(local_offset);
+        cache_data.setUvWarpGlobalOffset(global_offset);
+        cache_data.setUvWarpScale(scale);
+      }
+
+      cache_list.push(cache_data);
+    }
+
+    var set_index = cache_manager.getIndexByTime(cur_time);
+    cache_manager.uv_cache_table[set_index] = cache_list;
+  }
+
+  cache_manager.makeAllReady();
+};
+
+CreatureModuleUtils.FillUVSwapCacheFlat = function(animUVList, start_time, end_time, cache_manager)
+{
+  cache_manager.init(start_time, end_time);
+
+  for (var i = 0; i < animUVList.timeSamplesLength(); i++)
+  {
+  	var cur_node = animUVList.timeSamples(i);
+  	var cur_time = cur_node.time();
+
+    var cache_list = [];
+
+    for (var j = 0; j < cur_node.uvSwapsLength(); j++)
+    {
+      var uv_node = cur_node.uvSwaps(j);
+      var cur_name = uv_node.name();
+
+      var cache_data = new MeshUVWarpCache(cur_name);
+      var use_uv = uv_node.enabled(); //GetJSONNodeFromKey(*uv_node, "enabled")->value.toBool();
+      cache_data.setEnabled(use_uv);
+      if(use_uv == true) {
+        var local_offset = CreatureModuleUtils.ReadVector2Flat(uv_node.localOffsetArray()); //ReadJSONVec2(*uv_node, "local_offset");
+        var global_offset = CreatureModuleUtils.ReadVector2Flat(uv_node.globalOffsetArray()); //ReadJSONVec2(*uv_node, "global_offset");
+        var scale = CreatureModuleUtils.ReadVector2Flat(uv_node.scaleArray()); //ReadJSONVec2(*uv_node, "scale");
+        cache_data.setUvWarpLocalOffset(local_offset);
+        cache_data.setUvWarpGlobalOffset(global_offset);
+        cache_data.setUvWarpScale(scale);
+      }
+
+      cache_list.push(cache_data);
+    }
+
+    var set_index = cache_manager.getIndexByTime(cur_time);
+    cache_manager.uv_cache_table[set_index] = cache_list;
+  }
+
+  cache_manager.makeAllReady();
+};
+
+CreatureModuleUtils.FillOpacityGapCache = function(prev_time, cur_time, set_index, cache_manager, cache_list)
+{
+	var gap_diff = cur_time - prev_time;
+	if (gap_diff > 1)
+	{
+		// Gap Step
+		var prev_index = cache_manager.getIndexByTime(prev_time);
+		for (var j = 1; j < gap_diff; j++)
+		{
+			var gap_fraction = j / gap_diff;
+			var gap_cache_list = [];
+			for (var k = 0; k < cache_list.length; k++)
+			{
+				var cur_data = cache_manager.opacity_cache_table[set_index][k];
+				var prev_data = cache_manager.opacity_cache_table[prev_index][k];
+				var gap_cache_data = new MeshOpacityCache(cur_data.getKey());
+				gap_cache_data.setOpacity(Utils.scalarInterp(prev_data.getOpacity(), cur_data.getOpacity(), gap_fraction));
+
+				gap_cache_list.push(gap_cache_data);
+			}
+
+			cache_manager.opacity_cache_table[prev_index + j] = gap_cache_list;
+		}
+	}	
+};
+
+CreatureModuleUtils.FillOpacityCache = function(json_obj, key, start_time, end_time, cache_manager)
+{
+  var base_obj = json_obj[key];
+
+  cache_manager.init(start_time, end_time);
+
+  var prev_time = start_time;
+  for (var cur_time in base_obj)
+  {
+  	var cur_node = base_obj[cur_time];
+
+    var cache_list = [];
+
+    for (var cur_name in cur_node)
+    {
+      var opacity_node = cur_node[cur_name];
+
+      var cache_data = new MeshOpacityCache(cur_name);
+      cache_data.setOpacity(opacity_node["opacity"]);
+
+      cache_list.push(cache_data);
+    }
+
+    var set_index = cache_manager.getIndexByTime(cur_time);
+    cache_manager.opacity_cache_table[set_index] = cache_list;
+    
+    CreatureModuleUtils.FillOpacityGapCache(prev_time, cur_time, set_index, cache_manager, cache_list);
+    prev_time = cur_time;
+  }
+
+  cache_manager.makeAllReady();
+};
+
+CreatureModuleUtils.FillOpacityCacheFlat = function(animOpacityList, start_time, end_time, cache_manager)
+{
+  cache_manager.init(start_time, end_time);
+
+  var prev_time = start_time;
+  for (var i = 0; i < animOpacityList.timeSamplesLength(); i++)
+  {
+  	var cur_node = animOpacityList.timeSamples(i);
+  	var cur_time = cur_node.time();
+
+    var cache_list = [];
+
+    for (var j = 0; j < cur_node.meshOpacitiesLength(); j++)
+    {
+      var opacity_node = cur_node.meshOpacities(j);
+      var cur_name = opacity_node.name();
+
+      var cache_data = new MeshOpacityCache(cur_name);
+      cache_data.setOpacity(opacity_node.opacity());
+
+      cache_list.push(cache_data);
+    }
+
+    var set_index = cache_manager.getIndexByTime(cur_time);
+    cache_manager.opacity_cache_table[set_index] = cache_list;
+    
+    CreatureModuleUtils.FillOpacityGapCache(prev_time, cur_time, set_index, cache_manager, cache_list);
+    prev_time = cur_time;    
+  }
+
+  cache_manager.makeAllReady();
+};
+
+function CreatureUVSwapPacket (local_offset_in, global_offset_in, scale_in, tag_in)
+{
+	this.local_offset = local_offset_in;
+	this.global_offset = global_offset_in;
+	this.scale = scale_in;
+	this.tag = tag_in;
+};
+
+CreatureModuleUtils.FillSwapUVPacketMap = function(json_obj)
+{
+	ret_map = {};
+	for (var cur_key in json_obj)
+	{
+		var cur_node = json_obj[cur_key];
+		var cur_name = cur_key;
+		var cur_packets = [];
+
+		for (var i = 0; i < cur_node.length; i++)
+		{
+			var packet_node = cur_node[i];
+			var local_offset = CreatureModuleUtils.ReadVector2JSON(packet_node, "local_offset");
+			var global_offset = CreatureModuleUtils.ReadVector2JSON(packet_node, "global_offset");
+			var scale = CreatureModuleUtils.ReadVector2JSON(packet_node, "scale");
+			var tag = packet_node["tag"];
+			
+			var new_packet = new CreatureUVSwapPacket(local_offset, global_offset, scale, tag);
+			cur_packets.push(new_packet);
+		}
+
+		
+		ret_map[cur_name] = cur_packets;
+	};
+
+	return ret_map;
+};
+
+CreatureModuleUtils.FillSwapUVPacketMapFlat = function(uvSwapItemFlatHolder)
+{
+	ret_map = {};
+	for (var i = 0; i < uvSwapItemFlatHolder.meshesLength(); i++)
+	{
+		var cur_node = uvSwapItemFlatHolder.meshes(i);
+		var cur_name = cur_node.name();
+		var cur_packets = [];
+
+		for (var j = 0; j < cur_node.itemsLength(); j++)
+		{
+			var packet_node = cur_node.items(j);
+			var local_offset = CreatureModuleUtils.ReadVector2Flat(packet_node.localOffsetArray());
+			var global_offset = CreatureModuleUtils.ReadVector2Flat(packet_node.globalOffsetArray());
+			var scale = CreatureModuleUtils.ReadVector2Flat(packet_node.scaleArray());
+			var tag = packet_node.tag();
+			
+			var new_packet = new CreatureUVSwapPacket(local_offset, global_offset, scale, tag);
+			cur_packets.push(new_packet);
+		}
+
+		
+		ret_map[cur_name] = cur_packets;
+	};
+
+	return ret_map;
+};
+
+CreatureModuleUtils.FillAnchorPointMap = function(json_obj)
+{
+	var anchor_data_node = json_obj["AnchorPoints"];
+
+	ret_map = {};
+	for (var i = 0; i < anchor_data_node.length; i++)
+	{
+		var cur_node = anchor_data_node[i];
+		var cur_pt = CreatureModuleUtils.ReadVector2JSON(cur_node, "point");
+		var cur_name = cur_node["anim_clip_name"];
+
+		ret_map[cur_name] = cur_pt;
+	}
+
+	return ret_map;
+};
+
+CreatureModuleUtils.FillAnchorPointMapFlat = function(anchorFlatHolder)
+{
+	ret_map = {};
+	for (var i = 0; i < anchorFlatHolder.anchorPointsLength(); i++)
+	{
+		var cur_node = anchorFlatHolder.anchorPoints(i);
+		var cur_pt = CreatureModuleUtils.ReadVector2Flat(cur_node.pointArray());
+		var cur_name = cur_node.animClipName();
+
+		ret_map[cur_name] = cur_pt;
+	}
+
+	return ret_map;
+};
+
+// Creature
+function Creature(load_data, use_flat_data)
+{
+	this.InitDefaultData();
+	
+	if(use_flat_data)
+	{
+	    this.LoadFromDataFlat(load_data);			
+	}
+	else {	
+	    this.LoadFromData(load_data);	
+	}
+};
+
+Creature.prototype.InitDefaultData = function()
+{
+	  this.total_num_pts = 0;
+    this.total_num_indices = 0;
+    this.global_indices = null;
+    this.global_pts = null;
+    this.global_uvs = null;
+    this.render_pts = null;
+    this.render_colours = null;
+    this.render_composition = null;
+    this.boundary_indices = [];
+    this.boundary_min = vec2.create();
+    this.boundary_max = vec2.create();
+    this.uv_swap_packets = {};
+    this.active_uv_swap_actions = {};
+    this.anchor_point_map = {};
+    this.anchor_points_active = false;
+    this.skin_swap_active = false;
+    this.skin_swap_name = "";
+    this.final_skin_swap_indices = null;
+    this.creature_meta_data = null;
+};
+
+Creature.prototype.SetMetaData = function(creature_meta_data)
+{
+  this.creature_meta_data = creature_meta_data;
+};
+
+Creature.prototype.EnableSkinSwap = function(swap_name_in, active)
+{
+  this.skin_swap_active = active;
+  if(!this.skin_swap_active)
+  {
+    this.skin_swap_name = "";
+    this.final_skin_swap_indices = null;
+  }
+  else
+  {
+    this.skin_swap_name = swap_name_in;
+    this.final_skin_swap_indices = this.creature_meta_data.buildSkinSwapIndices(
+      this.skin_swap_name, 
+      this.render_composition);    
+  }
+};
+
+Creature.prototype.DisableSkinSwap = function()
+{
+  this.EnableSkinSwap("", false);
+};
+
+Creature.prototype.ShouldSkinSwap = function()
+{
+  return this.creature_meta_data && this.skin_swap_active && this.final_skin_swap_indices;
+};
+
+Creature.prototype.SetActiveItemSwap = function(region_name, swap_idx)
+{
+	this.active_uv_swap_actions[region_name] = swap_idx;
+};
+
+Creature.prototype.RemoveActiveItemSwap = function(region_name)
+{
+	delete this.active_uv_swap_actions[region_name];
+};
+
+Creature.prototype.GetAnchorPoint = function(anim_clip_name_in)
+{
+	if(anim_clip_name_in in this.anchor_point_map)
+	{
+		return this.anchor_point_map[anim_clip_name_in];
+	}
+	
+	return vec2.fromValues(0, 0);
+};
+
+// Fills entire mesh with (r,g,b,a) colours
+Creature.prototype.FillRenderColours = function(r, g, b, a)
+{
+  for(var i = 0; i < this.total_num_pts; i++)
+  {
+    var cur_colour_index = i * 4;
+    this.render_colours[0 + cur_colour_index] = r;
+    this.render_colours[1 + cur_colour_index] = g;
+    this.render_colours[2 + cur_colour_index] = b;
+    this.render_colours[3 + cur_colour_index] = a;
+  }
+};
+
+// Compute boundary indices
+
+Creature.prototype.ComputeBoundaryIndices = function()
+{
+	var freq_table = {};
+	for(var i = 0; i < this.total_num_pts; i++)
+	{
+		freq_table[i] = 0;
+	}
+	
+	var cur_regions = this.render_composition.getRegions();
+	for(var i = 0; i < this.global_indices.length; i++)
+	{
+		var cur_idx = this.global_indices[i];
+		var is_found = false;
+		for(var j = 0; j < cur_regions.length; j++)
+		{
+    		var cur_region = cur_regions[j];
+    		var cur_start_index = cur_region.getStartPtIndex();
+    		var cur_end_index = cur_region.getEndPtIndex();
+    		
+    		if(cur_idx >= cur_start_index && cur_idx <= cur_end_index)
+    		{
+    			is_found = true;
+    			break;
+    		}
+    	}
+
+
+		if(is_found)
+		{
+			freq_table[cur_idx]++;
+		}
+	}
+	
+	// now find the boundary indices who have <= 5 referenced triangles
+	this.boundary_indices = [];
+	for(var i = 0; i < this.total_num_pts; i++)
+	{
+		if(freq_table[i] <=5)
+		{
+			this.boundary_indices.push(i);
+		}
+	}
+};
+
+// Compute min and max bounds of the animated mesh
+Creature.prototype.ComputeBoundaryMinMax = function()
+{
+	
+	if(this.boundary_indices.length <= 0)
+	{
+		this.ComputeBoundaryIndices();
+	}
+	
+	
+	var firstIdx = this.boundary_indices[0] * 3;
+	var minPt = vec2.fromValues(this.render_pts[firstIdx + 0], this.render_pts[firstIdx + 1]);
+	var maxPt = vec2.fromValues(minPt[0], minPt[1]);
+	
+	
+	for(var i = 0; i < this.boundary_indices.length; i++)
+	{
+		var ref_idx = this.boundary_indices[i] * 3;
+		var ref_x = this.render_pts[ref_idx];
+		var ref_y = this.render_pts[ref_idx + 1];
+		
+		if(minPt[0] > ref_x)
+		{
+			minPt[0] = ref_x;
+		}
+		
+		if(minPt[1] > ref_y)
+		{
+			minPt[1] = ref_y;
+		}
+		
+		if(maxPt[0] < ref_x)
+		{
+			maxPt[0] = ref_x;
+		}
+		
+		if(maxPt[1] < ref_y)
+		{
+			maxPt[1] = ref_y;
+		}
+	}
+	
+	this.boundary_min = minPt;
+	this.boundary_max = maxPt;
+};
+
+
+// Load data
+Creature.prototype.LoadFromData = function(load_data)
+{
+  // Load points and topology
+  var json_mesh = load_data["mesh"];
+
+  this.global_pts = CreatureModuleUtils.ReadFloatArray3DJSON(json_mesh, "points");
+  this.total_num_pts = this.global_pts.length / 3;
+
+  this.global_indices = CreatureModuleUtils.ReadIntArrayJSON (json_mesh, "indices");
+  this.total_num_indices = this.global_indices.length;
+
+  this.global_uvs = CreatureModuleUtils.ReadFloatArrayJSON (json_mesh, "uvs");
+  
+  
+  this.render_colours = [];
+  for(var i = 0; i < this.total_num_pts * 4; i++)
+  {
+    this.render_colours.push(0);
+  }
+  this.FillRenderColours(1, 1, 1, 1);
+
+  this.render_pts = [];
+
+  // Load bones
+  var root_bone = CreatureModuleUtils.CreateBones(load_data, "skeleton");
+
+
+  // Load regions
+  var regions = CreatureModuleUtils.CreateRegions(json_mesh,
+      "regions",
+      this.global_indices,
+      this.global_pts,
+      this.global_uvs);
+
+  // Add into composition
+  this.render_composition = new MeshRenderBoneComposition();
+  this.render_composition.setRootBone(root_bone);
+  this.render_composition.getRootBone().computeRestParentTransforms();
+
+  for(var i = 0; i < regions.length; i++) {
+  	var cur_region = regions[i];
+    cur_region.setMainBoneKey(root_bone.getKey());
+    cur_region.determineMainBone(root_bone);
+    this.render_composition.addRegion(cur_region);
+  }
+
+  this.render_composition.initBoneMap();
+  this.render_composition.initRegionsMap();
+
+  for(var i = 0; i < regions.length; i++) {
+  	var cur_region = regions[i];
+    cur_region.initFastNormalWeightMap(this.render_composition.bones_map);
+  }
+
+  this.render_composition.resetToWorldRestPts();
+  
+  // Fill up uv swap packets
+  if("uv_swap_items" in load_data)
+  {
+  	var json_uv_swap_base = load_data["uv_swap_items"];
+  	this.uv_swap_packets = CreatureModuleUtils.FillSwapUVPacketMap(json_uv_swap_base);
+  }
+  
+  // Load Anchor Points
+  if("anchor_points_items" in load_data)
+  {
+  	var anchor_point_base = load_data["anchor_points_items"];
+  	this.anchor_point_map = CreatureModuleUtils.FillAnchorPointMap(anchor_point_base);
+  }
+  
+};
+
+// Load data Flat
+Creature.prototype.LoadFromDataFlat = function(flatRoot)
+{
+  // Load points and topology
+  var flat_mesh = flatRoot.dataMesh();
+  var flat_skeleton = flatRoot.dataSkeleton();
+
+  this.global_pts = CreatureModuleUtils.ReadFloatArray3DFlat(flat_mesh.pointsArray());
+  this.total_num_pts = this.global_pts.length / 3;
+
+  this.global_indices = CreatureModuleUtils.getIntArray(flat_mesh.indicesArray());
+  this.total_num_indices = this.global_indices.length;
+
+  this.global_uvs = CreatureModuleUtils.getFloatArray(flat_mesh.uvsArray());
+  
+  
+  this.render_colours = [];
+  for(var i = 0; i < this.total_num_pts * 4; i++)
+  {
+    this.render_colours.push(0);
+  }
+  this.FillRenderColours(1, 1, 1, 1);
+
+  this.render_pts = [];
+
+  // Load bones
+  var root_bone = CreatureModuleUtils.CreateBonesFlat(flat_skeleton);
+
+
+  // Load regions
+  var regions = CreatureModuleUtils.CreateRegionsFlat(flat_mesh,
+      this.global_indices,
+      this.global_pts,
+      this.global_uvs);
+
+  // Add into composition
+  this.render_composition = new MeshRenderBoneComposition();
+  this.render_composition.setRootBone(root_bone);
+  this.render_composition.getRootBone().computeRestParentTransforms();
+
+  for(var i = 0; i < regions.length; i++) {
+  	var cur_region = regions[i];
+    cur_region.setMainBoneKey(root_bone.getKey());
+    cur_region.determineMainBone(root_bone);
+    this.render_composition.addRegion(cur_region);
+  }
+
+  this.render_composition.initBoneMap();
+  this.render_composition.initRegionsMap();
+
+  for(var i = 0; i < regions.length; i++) {
+  	var cur_region = regions[i];
+    cur_region.initFastNormalWeightMap(this.render_composition.bones_map);
+  }
+
+  this.render_composition.resetToWorldRestPts();
+  
+  // Fill up uv swap packets
+  var flat_uv_swap_item_holder = flatRoot.dataUvSwapItem();
+  this.uv_swap_packets = CreatureModuleUtils.FillSwapUVPacketMapFlat(flat_uv_swap_item_holder);
+  
+  // Load Anchor Points
+  var flat_anchor_holder = flatRoot.dataAnchorPoints();
+  this.anchor_point_map = CreatureModuleUtils.FillAnchorPointMapFlat(flat_anchor_holder);
+  
+};
+
+// CreatureAnimation
+function CreatureAnimation(load_data, name_in, use_flat_data)
+{
+	this.initDefaultData(name_in);
+	
+	if(use_flat_data)
+	{
+	    this.LoadFromDataFlat(name_in, load_data.dataAnimation());			
+	}
+	else {
+	    this.LoadFromData(name_in, load_data);			
+	}
+};
+
+CreatureAnimation.prototype.initDefaultData = function(name_in)
+{
+	this.name = name_in;
+    this.bones_cache = new MeshBoneCacheManager();
+    this.displacement_cache = new MeshDisplacementCacheManager();
+    this.uv_warp_cache = new MeshUVWarpCacheManager();
+    this.opacity_cache = new MeshOpacityCacheManager();
+    this.cache_pts = [];
+    this.fill_cache_pts = [];
+};
+
+CreatureAnimation.prototype.LoadFromData = function(name_in, load_data)
+{
+  var json_anim_base = load_data["animation"];
+  var json_clip = json_anim_base[name_in];
+
+  var start_end_times = CreatureModuleUtils.GetStartEndTimes(json_clip, "bones");
+  this.start_time = start_end_times.first;
+  this.end_time = start_end_times.second;
+
+  // bone animation
+  CreatureModuleUtils.FillBoneCache(json_clip,
+      "bones",
+      this.start_time,
+      this.end_time,
+      this.bones_cache);
+
+  // mesh deformation animation
+  CreatureModuleUtils.FillDeformationCache(json_clip,
+      "meshes",
+      this.start_time,
+      this.end_time,
+      this.displacement_cache);
+
+  // uv swapping animation
+  CreatureModuleUtils.FillUVSwapCache(json_clip,
+      "uv_swaps",
+      this.start_time,
+      this.end_time,
+      this.uv_warp_cache);
+      
+  // opacity animation
+  CreatureModuleUtils.FillOpacityCache(json_clip,
+      "mesh_opacities",
+      this.start_time,
+      this.end_time,
+      this.opacity_cache);  
+};
+
+CreatureAnimation.prototype.LoadFromDataFlat = function(name_in, animFlat)
+{
+  var flat_clip = null;
+  for(var i = 0; i < animFlat.clipsLength(); i++)
+  {
+  	if(animFlat.clips(i).name() == name_in)
+  	{
+  		flat_clip = animFlat.clips(i);
+  		break;
+  	}
+  }
+	
+  var start_end_times = CreatureModuleUtils.GetStartEndTimesFlat(flat_clip.bones());
+  this.start_time = start_end_times.first;
+  this.end_time = start_end_times.second;
+
+  // bone animation
+  CreatureModuleUtils.FillBoneCacheFlat(flat_clip.bones(),
+      this.start_time,
+      this.end_time,
+      this.bones_cache);
+
+  // mesh deformation animation
+  CreatureModuleUtils.FillDeformationCacheFlat(flat_clip.meshes(),
+      this.start_time,
+      this.end_time,
+      this.displacement_cache);
+
+  // uv swapping animation
+  CreatureModuleUtils.FillUVSwapCacheFlat(flat_clip.uvSwaps(),
+      this.start_time,
+      this.end_time,
+      this.uv_warp_cache);
+      
+  // opacity animation
+  CreatureModuleUtils.FillOpacityCacheFlat(flat_clip.meshOpacities(),
+      this.start_time,
+      this.end_time,
+      this.opacity_cache);
+};
+
+CreatureAnimation.prototype.getIndexByTime = function(time_in)
+{
+  var retval = time_in - this.start_time;
+  retval = Utils.clamp(retval, 0, (this.cache_pts.length) - 1);
+
+  return retval;
+};
+
+CreatureAnimation.prototype.verifyFillCache = function()
+{
+	if(this.fill_cache_pts.length == (this.end_time - this.start_time + 1))
+	{
+		// ready to switch over
+		this.cache_pts = this.fill_cache_pts;
+	}
+};
+
+CreatureAnimation.prototype.poseFromCachePts = function(time_in, target_pts, num_pts)
+{
+        var cur_floor_time = this.getIndexByTime(Math.floor(time_in));
+        var cur_ceil_time = this.getIndexByTime(Math.ceil(time_in));
+        var cur_ratio = time_in - Math.floor(time_in);
+        
+        var set_pt = target_pts;
+        var floor_pts = this.cache_pts[cur_floor_time];
+        var ceil_pts = this.cache_pts[cur_ceil_time];
+        
+        var set_idx = 0;
+        var floor_idx = 0;
+        var ceil_idx = 0;
+        
+        for(var i = 0; i < num_pts; i++)
+        {
+            set_pt[set_idx + 0] = ((1.0 - cur_ratio) * floor_pts[floor_idx + 0]) + (cur_ratio * ceil_pts[ceil_idx + 0]);
+            set_pt[set_idx + 1] = ((1.0 - cur_ratio) * floor_pts[floor_idx + 1]) + (cur_ratio * ceil_pts[ceil_idx + 1]);
+            set_pt[set_idx + 2] = ((1.0 - cur_ratio) * floor_pts[floor_idx + 2]) + (cur_ratio * ceil_pts[ceil_idx + 2]);
+
+            set_idx += 3;
+            floor_idx += 3;
+            ceil_idx += 3;
+        }
+};
+
+// CreatureFrameCallback
+function CreatureFrameCallback()
+{
+  this.callback = null;
+  this.name = "";
+  this.animClipName = "";
+  this.frame = 0;
+  this.triggered = false;
+};
+
+CreatureFrameCallback.prototype.resetCallback = function()
+{
+  this.triggered = false;
+};
+
+CreatureFrameCallback.prototype.tryTrigger = function(frameIn)
+{
+  if(this.triggered)
+  {
+    return false;
+  }
+
+  if (Math.round(frameIn) >= this.frame)
+  {
+    this.triggered = true;
+    return true;
+  }
+
+  return false;
+};
+
+// CreatureGameController
+function CreatureGameController(meta_asset)
+{
+  this.meta_asset = meta_asset;
+  this.event_callbacks = [];
+  this.run_time = 0;
+};
+
+// Builds Event Callbacks from MetaData
+CreatureGameController.prototype.BuildFrameCallbacks = function(assignCallbackFn)
+{
+  if(this.meta_asset == null)
+  {
+    return;
+  }
+
+  for (var cur_key in this.meta_asset.anim_events_map)
+  {
+    var cur_val = this.meta_asset.anim_events_map[cur_key];
+    for (var cur_evt_key in cur_val)
+    {
+      var cur_evt = cur_val[cur_evt_key];
+      var new_callback = new CreatureFrameCallback();
+      new_callback.animClipName = cur_key;
+      new_callback.name = cur_evt;
+      new_callback.frame = Number(cur_evt_key);
+      new_callback.callback = assignCallbackFn(animClipName, name);
+
+      this.event_callbacks.push(new_callback);
+    }
+  }
+};
+
+// Manually adds a new event callback
+CreatureGameController.prototype.AddFrameCallback = function(animClipName, name, frame, callbackFb)
+{
+  var new_callback = new CreatureFrameCallback();
+  new_callback.animClipName = animClipName;
+  new_callback.name = name;
+  new_callback.frame = frame;
+  new_callback.callback = callbackFb;
+
+  this.event_callbacks.push(new_callback);
+};
+
+// Resets the callback triggers, Remember to call this whenever you Switch Animations
+CreatureGameController.prototype.ResetFrameCallbacks = function()
+{
+  for (var cur_key in this.event_callbacks)
+  {
+    var frame_callback = this.event_callbacks[cur_key];
+    frame_callback.resetCallback();
+  }
+};
+
+// Call this after every animation update/timestep of your creatureManager
+CreatureGameController.prototype.ProcessCallbacks = function(creature_manager)
+{
+  var cur_runtime = creature_manager.getActualRuntime();
+  if(cur_runtime < this.run_time)
+  {
+    this.ResetFrameCallbacks();
+  }
+
+  this.run_time = cur_runtime;
+
+  for (var i  = 0; i < this.event_callbacks.length; i++)
+  {
+    var frame_callback = this.event_callbacks[i];
+    if (frame_callback.animClipName == creature_manager.active_animation_name)
+    {
+        var should_trigger = frame_callback.tryTrigger(cur_runtime);
+        if (should_trigger && (frame_callback.callback != null))
+        {
+          frame_callback.callback(frame_callback.name, cur_runtime);
+        }
+    }
+  }
+};
+
+// CreatureMetaData
+function CreatureMetaData()
+{
+  this.skin_swaps = {};
+  this.anim_events_map = {};
+};
+
+CreatureMetaData.prototype.clear = function()
+{
+  this.skin_swaps = {};
+  this.anim_events_map = {};
+};
+
+CreatureMetaData.prototype.buildSkinSwapIndices = function(swap_name, bone_composition)
+{
+  var skin_swap_indices = null;
+  if(!(swap_name in this.skin_swaps))
+  {
+    skin_swap_indices = [];
+    return skin_swap_indices;
+  }
+
+  var swap_set = this.skin_swaps[swap_name];
+  var total_size = 0;
+  var regions_map = bone_composition.getRegionsMap();
+  for(var region_name in regions_map)
+  {
+    if(region_name in swap_set)
+    {
+      var cur_region = regions_map[region_name];
+      total_size += cur_region.getNumIndices();
+    }
+  }
+
+  skin_swap_indices = [];
+  var offset = 0;
+  for(var region_name in regions_map)
+  {
+    if(region_name in swap_set)
+    {
+      var cur_region = regions_map[region_name];
+      for(var j = 0; j < cur_region.getNumIndices(); j++)
+      {
+        skin_swap_indices.push(cur_region.getLocalIndex(j));
+      }
+
+      offset += cur_region.getNumIndices();
+    }
+  }
+
+  return skin_swap_indices;
+};
+
+// CreatureManager
+function CreatureManager(target_creature_in)
+{
+    this.target_creature = target_creature_in;
+    this.is_playing = false;
+    this.run_time = 0;
+    this.time_scale = 30.0;
+    this.blending_factor = 0;
+    this.should_loop = true;
+    this.use_custom_time_range = false;
+    this.custom_start_time = 0;
+    this.custom_end_time = 0;
+    this.animations = {};
+    this.bones_override_callback = null;
+
+    this.blend_render_pts = [];
+    this.blend_render_pts.push([]);
+    this.blend_render_pts.push([]);
+    this.do_blending = false;
+
+    this.active_blend_animation_names = [];
+    this.active_blend_animation_names.push("");
+    this.active_blend_animation_names.push("");	
+    
+    this.do_auto_blending = false;
+    this.auto_blend_delta = 0.0;
+    
+    this.auto_blend_names = [];
+    this.auto_blend_names.push("");
+    this.auto_blend_names.push("");
+    
+    this.active_blend_run_times = {};
+};
+
+// Create an animation
+CreatureManager.prototype.CreateAnimation = function(load_data, name_in)
+{
+  var new_animation = new CreatureAnimation(load_data, name_in);
+  this.AddAnimation(new_animation);
+};
+
+// Create all animations
+CreatureManager.prototype.CreateAllAnimations = function(load_data)
+{
+  var all_animation_names = CreatureModuleUtils.GetAllAnimationNames (load_data);
+  for(var i = 0; i < all_animation_names.length; i++)
+  {
+  	var cur_name = all_animation_names[i];
+    this.CreateAnimation(load_data, cur_name);
+  }
+
+  this.SetActiveAnimationName (all_animation_names[0]);
+};
+
+// Add an animation
+CreatureManager.prototype.AddAnimation = function(animation_in)
+{
+  this.animations[animation_in.name] = animation_in;
+};
+
+// Return an animation
+CreatureManager.prototype.GetAnimation = function(name_in)
+{
+  return this.animations[name_in];
+};
+
+// Return the creature
+CreatureManager.prototype.GetCreature = function()
+{
+  return this.target_creature;
+};
+
+// Returns all the animation names
+CreatureManager.prototype.GetAnimationNames = function()
+{
+  var ret_names = [];
+  for(var cur_name in animations) {
+    ret_names.push(cur_name);
+  }
+
+  return ret_names;
+};
+
+// Sets the current animation to be active by name
+CreatureManager.prototype.SetActiveAnimationName = function(name_in, check_already_active)
+{
+  if (name_in == null || (name_in in this.animations) == false) {
+    return false;
+  }
+  
+  if(check_already_active == true)
+  {
+  	if(this.active_animation_name == name_in)
+  	{
+  		return false;
+  	}
+  }
+
+  this.active_animation_name = name_in;
+  var cur_animation = this.animations[this.active_animation_name];
+  this.run_time = cur_animation.start_time;
+  this.UpdateRegionsSwitches(name_in);
+  
+  return true;
+};
+
+// Returns the name of the currently active animation
+CreatureManager.prototype.GetActiveAnimationName = function()
+{
+  return this.active_animation_name;
+};
+
+// Returns the table of all animations
+CreatureManager.prototype.GetAllAnimations = function()
+{
+  return this.animations;
+};
+
+// Creates a point cache for the current animation
+CreatureManager.prototype.MakePointCache = function(animation_name_in)
+{
+        var store_run_time = this.getRunTime();
+        var cur_animation = this.animations[animation_name_in];
+        if(cur_animation.length > 0)
+        {
+            // cache already generated, just exit
+            return;
+        }
+        
+        var cache_pts_list = cur_animation.cache_pts;
+        this.UpdateRegionsSwitches(animation_name_in);
+
+        for(var i = cur_animation.start_time; i <= cur_animation.end_time; i++)
+        {
+            this.setRunTime(i);
+            var new_pts = [];
+            for (var j = 0; j < this.target_creature.total_num_pts * 3; j++) new_pts[j] = 0; 
+            //auto new_pts = new glm::float32[target_creature->GetTotalNumPoints() * 3];
+            this.PoseCreature(animation_name_in, new_pts, this.getRunTime());
+            
+            cache_pts_list.push(new_pts);
+        }
+        
+        this.setRunTime(store_run_time);
+};
+
+// Fills up a single frame for a point cache animation
+// Point caching is only enabled when the cache is FULLY filled up
+// Remember the new filled cache is Appended onto the end of a list
+// There is no indexing by time here so MAKE SURE this cache is filled up sequentially!
+CreatureManager.prototype.FillSinglePointCacheFrame = function(animation_name_in, time_in)
+{
+	var store_run_time = this.getRunTime();
+    var cur_animation = this.animations[animation_name_in];
+	
+	this.setRunTime(time_in);
+    var new_pts = [];
+    for (var j = 0; j < this.target_creature.total_num_pts * 3; j++) new_pts[j] = 0; 
+    this.PoseCreature(animation_name_in, new_pts, time_in);
+    
+    cur_animation.fill_cache_pts.push(new_pts);
+    cur_animation.verifyFillCache();
+
+    this.setRunTime(store_run_time);
+};
+
+// Returns if animation is playing
+CreatureManager.prototype.GetIsPlaying = function()
+{
+  return this.is_playing;
+};
+
+// Sets whether to loop the animation
+CreatureManager.prototype.SetShouldLoop = function(flag_in)
+{
+	this.should_loop = flag_in;
+};
+
+// Sets whether to use a user defined custom time range for the currently
+// active animation clip
+CreatureManager.prototype.SetUseCustomTimeRange = function(flag_in)
+{
+	this.use_custom_time_range = flag_in;
+};
+
+// Sets the user defined custom time range
+CreatureManager.prototype.SetCustomTimeRange = function(start_time_in, end_time_in)
+{
+	this.custom_start_time = start_time_in;
+	this.custom_end_time = end_time_in;
+};
+
+// Sets whether the animation is playing
+CreatureManager.prototype.SetIsPlaying = function(flag_in)
+{
+  this.is_playing = flag_in;
+};
+
+CreatureManager.prototype.ProcessAutoBlending = function()
+{
+	// process blending factor
+	this.blending_factor += this.auto_blend_delta;
+	if(this.blending_factor > 1)
+	{
+		this.blending_factor = 1;
+	}
+};
+
+CreatureManager.prototype.IncreAutoBlendRunTimes = function(delta_in)
+{
+	set_animation_name = "";
+	for(var j = 0; j < this.auto_blend_names.length; j++)
+	{
+		var cur_animation_name = this.auto_blend_names[j];				
+		if ((cur_animation_name in this.animations) 
+				&& (set_animation_name != cur_animation_name))
+		{
+			cur_run_time = this.active_blend_run_times[cur_animation_name];
+			cur_run_time += delta_in;
+			cur_run_time = this.correctRunTime(cur_run_time, cur_animation_name);
+
+			this.active_blend_run_times[cur_animation_name] = cur_run_time;
+					
+			set_animation_name = cur_animation_name;
+		}
+	}
+};
+
+CreatureManager.prototype.correctRunTime = function(time_in, animation_name)
+{
+	ret_time = time_in;
+	cur_animation = this.animations[animation_name];
+	anim_start_time = cur_animation.start_time;
+	anim_end_time = cur_animation.end_time;
+			
+	if (ret_time > anim_end_time)
+	{
+		if (this.should_loop)
+		{
+			ret_time = anim_start_time;
+		}
+		else {
+			ret_time = anim_end_time;
+		}
+	}
+	else if (ret_time < anim_start_time)
+	{
+		if (this.should_loop)
+		{
+			ret_time = anim_end_time;
+		}
+		else {
+			ret_time = anim_start_time;
+		}
+	}
+			
+	return ret_time;
+};
+
+
+// Resets animation to start time
+CreatureManager.prototype.ResetToStartTimes = function()
+{
+  var cur_animation = this.animations[active_animation_name];
+  this.run_time = cur_animation.start_time;
+};
+
+// Sets the run time of the animation
+CreatureManager.prototype.setRunTime = function(time_in)
+{
+  this.run_time = time_in;
+  this.correctTime ();
+};
+
+// Increments the run time of the animation by a delta value
+CreatureManager.prototype.increRunTime = function(delta_in)
+{
+  this.run_time += delta_in;
+  this.correctTime ();
+};
+
+CreatureManager.prototype.correctTime = function()
+{
+  var cur_animation = this.animations[this.active_animation_name];
+  var anim_start_time = cur_animation.start_time;
+  var anim_end_time = cur_animation.end_time;
+  
+  if(this.use_custom_time_range)
+  {
+  	anim_start_time = this.custom_start_time;
+  	anim_end_time = this.custom_end_time;
+  }
+  
+  if(this.run_time > anim_end_time)
+  {
+  	if(this.should_loop)
+  	{
+    	this.run_time = anim_start_time;
+    }
+    else {
+    	this.run_time = anim_end_time;
+    }
+  }
+  else if(this.run_time < anim_start_time)
+  {
+  	if(this.should_loop)
+  	{
+    	this.run_time = anim_end_time;
+    }
+    else {
+    	this.run_time = anim_start_time;	
+    }
+  }
+};
+
+// Returns the current run time of the animation
+CreatureManager.prototype.getRunTime = function()
+{
+  return this.run_time;
+};
+
+// Returns the true run time taking into account of blending
+CreatureManager.prototype.getActualRuntime = function()
+{
+  if (this.do_auto_blending)
+  {
+      if (this.active_animation_name in this.active_blend_run_times)
+      {
+          return this.active_blend_run_times[this.active_animation_name];
+      }
+  }
+
+  return this.run_time;
+};
+
+CreatureManager.prototype.checkAnimationBlendValid = function()
+{
+  for(var i = 0; i < 2; i++)
+  {
+    cur_animation_name = this.active_blend_animation_names[i];
+    if(!(cur_animation_name in this.animations) ||
+      !(cur_animation_name in this.active_blend_run_times))
+    {
+      return false;      
+    }
+  }
+
+  return true;
+};
+
+CreatureManager.prototype.UpdateRegionsSwitches = function(animation_name_in)
+{
+  var cur_animation = this.animations[animation_name_in];
+
+  var displacement_cache_manager = cur_animation.displacement_cache;
+  var displacement_table =
+    displacement_cache_manager.displacement_cache_table[0];
+
+  var uv_warp_cache_manager = cur_animation.uv_warp_cache;
+  var uv_swap_table =
+    uv_warp_cache_manager.uv_cache_table[0];
+
+  var render_composition =
+    this.target_creature.render_composition;
+
+  var all_regions = render_composition.getRegions();
+
+  var index = 0;
+  for(var i = 0; i < all_regions.length; i++)
+  {
+  	var cur_region = all_regions[i];
+    // Setup active or inactive displacements
+    var use_local_displacements = !(displacement_table[index].getLocalDisplacements().length == 0);
+    var use_post_displacements = !(displacement_table[index].getPostDisplacements().length == 0);
+    cur_region.setUseLocalDisplacements(use_local_displacements);
+    cur_region.setUsePostDisplacements(use_post_displacements);
+
+    // Setup active or inactive uv swaps
+    cur_region.setUseUvWarp(uv_swap_table[index].getEnabled());
+
+    index++;
+  }
+};
+
+// Runs a single step of the animation for a given delta timestep
+CreatureManager.prototype.Update = function(delta)
+{
+  if(!this.is_playing)
+  {
+    return;
+  }
+
+  this.increRunTime(delta * this.time_scale);
+  
+  if(this.do_auto_blending) {
+  	this.ProcessAutoBlending();
+  	this.IncreAutoBlendRunTimes(delta * this.time_scale);
+  }
+
+  this.RunCreature();
+};
+
+CreatureManager.prototype.RunAtTime = function(time_in)
+{
+  if(!this.is_playing)
+  {
+    return;
+  }
+
+  this.setRunTime(time_in);
+  this.RunCreature ();
+};
+
+CreatureManager.prototype.RunCreature = function()
+{
+  if(this.do_blending)
+  {
+    for(var i = 0; i < 2; i++) {
+      cur_animation_name = this.active_blend_animation_names[i];
+      var cur_animation = this.animations[this.active_blend_animation_names[i]];
+      cur_animation_run_time = this.active_blend_run_times[cur_animation_name];
+
+      if(cur_animation.cache_pts.length > 0)
+      {
+        this.UpdateRegionsSwitches(cur_animation_name);
+      	cur_animation.poseFromCachePts(cur_animation_run_time, this.blend_render_pts[i], this.target_creature.total_num_pts);
+      }
+      else {
+        this.UpdateRegionsSwitches(cur_animation_name);
+	    	this.PoseCreature(this.active_blend_animation_names[i], this.blend_render_pts[i], cur_animation_run_time);
+  	  }
+    }
+
+    for(var j = 0; j < this.target_creature.total_num_pts * 3; j++)
+    {
+      var set_data_index = j;
+      var read_data_1 = this.blend_render_pts[0][j];
+      var read_data_2 = this.blend_render_pts[1][j];
+      /*
+         target_creature.render_pts[set_data_index] =
+         ((1.0f - blending_factor) * (read_data_1)) +
+         (blending_factor * (read_data_2));
+       */
+      this.target_creature.render_pts[set_data_index] =
+          ((1.0 - this.blending_factor) * (read_data_1)) +
+          (this.blending_factor * (read_data_2));
+
+    }
+  }
+  else {
+    var cur_animation = this.animations[this.active_animation_name];
+    if(cur_animation.cache_pts.length > 0)
+    {
+    	cur_animation.poseFromCachePts(this.getRunTime(), this.target_creature.render_pts, this.target_creature.total_num_pts);
+    	// cur_animation->poseFromCachePts(getRunTime(), target_creature->GetRenderPts(), target_creature->GetTotalNumPoints());
+    }
+    else {
+		  this.PoseCreature(this.active_animation_name, this.target_creature.render_pts, this.getRunTime());
+	  }
+  }
+  
+  this.RunUVItemSwap();
+};
+
+function isDictEmpty(ob){
+   for(var i in ob){ return false;}
+  return true;
+}
+
+
+CreatureManager.prototype.RunUVItemSwap = function()
+{
+	var render_composition =
+    	this.target_creature.render_composition;
+	var regions_map =
+	    render_composition.getRegionsMap();
+	
+	var swap_packets = this.target_creature.uv_swap_packets;
+	var active_swap_actions = this.target_creature.active_uv_swap_actions;
+
+	if (isDictEmpty(swap_packets) || isDictEmpty(active_swap_actions))
+	{
+		return;
+	}
+
+	for(var cur_action_key in active_swap_actions)
+	{
+		if (cur_action_key in regions_map)
+		{
+			var swap_tag = active_swap_actions[cur_action_key];
+			var swap_list = swap_packets[cur_action_key];
+			for(var j = 0; j < swap_list.length; j++)
+			{
+				var cur_item = swap_list[j];
+				
+				if (cur_item.tag == swap_tag)
+				{
+					// Perfrom UV Item Swap
+					var cur_region = regions_map[cur_action_key];
+					cur_region.setUvWarpLocalOffset(cur_item.local_offset);
+					cur_region.setUvWarpGlobalOffset(cur_item.global_offset);
+					cur_region.setUvWarpScale(cur_item.scale);
+					cur_region.runUvWarp();
+
+					break;
+				}
+			}
+		}
+	}
+};
+
+CreatureManager.prototype.AlterBonesByAnchor = function(bones_map, animation_name_in)
+{
+	if(this.target_creature.anchor_points_active == false)
+	{
+		return;
+	}
+	
+	var anchor_point = this.target_creature.GetAnchorPoint(animation_name_in);
+	for(var cur_bone_key in bones_map)
+	{
+		var cur_bone = bones_map[cur_bone_key];
+		var start_pt = cur_bone.getWorldStartPt();
+		var end_pt = cur_bone.getWorldEndPt();
+		
+		start_pt = vec3.subtract(start_pt, start_pt, vec3.fromValues(anchor_point[0], anchor_point[1], 0));
+		end_pt = vec3.subtract(end_pt, end_pt, vec3.fromValues(anchor_point[0], anchor_point[1], 0));
+		
+		cur_bone.setWorldStartPt(start_pt);
+		cur_bone.setWorldEndPt(end_pt);
+	}
+};
+
+// Sets scaling for time
+CreatureManager.prototype.SetTimeScale = function(scale_in)
+{
+  this.time_scale = scale_in;
+};
+
+// Enables/Disables blending
+CreatureManager.prototype.SetBlending = function(flag_in)
+{
+  this.do_blending = flag_in;
+
+  if (this.do_blending) {
+    if (this.blend_render_pts[0].length == 0) {
+      var new_vec = [];
+      for(var i = 0; i < this.target_creature.total_num_pts * 3; i++)
+      {
+        new_vec.push(0);
+      }
+
+      this.blend_render_pts.push(new_vec);
+    }
+
+    if (this.blend_render_pts[1].length == 0) {
+      var new_vec = [];
+      for(var i = 0; i < this.target_creature.total_num_pts * 3; i++)
+      {
+        new_vec.push(0);
+      }
+
+      this.blend_render_pts[1] = new_vec;
+    }
+
+  }
+};
+
+// Sets auto blending
+CreatureManager.prototype.SetAutoBlending = function(flag_in)
+{
+	this.do_auto_blending = flag_in;
+	this.SetBlending(flag_in);
+			
+	if(this.do_auto_blending)
+	{
+		this.AutoBlendTo(this.active_animation_name, 0.1);
+	}	
+};
+
+// Use auto blending to blend to the next animation
+CreatureManager.prototype.AutoBlendTo = function(animation_name_in, blend_delta)
+{
+	if(animation_name_in == this.auto_blend_names[1])
+	{
+		// already blending to that so just return
+		return;
+	}
+			
+	this.ResetBlendTime(animation_name_in);
+			
+	this.auto_blend_delta = blend_delta;
+	this.auto_blend_names[0] = this.active_animation_name;
+	this.auto_blend_names[1] = animation_name_in;
+	this.blending_factor = 0;
+			
+	this.active_animation_name = animation_name_in;
+			
+	this.SetBlendingAnimations(this.auto_blend_names[0], this.auto_blend_names[1]);
+};
+
+CreatureManager.prototype.ResetBlendTime = function(name_in)
+{
+	cur_animation = this.animations[name_in];
+	this.active_blend_run_times[name_in] = cur_animation.start_time;
+};
+
+// Sets blending animation names
+CreatureManager.prototype.SetBlendingAnimations = function(name_1, name_2)
+{
+  this.active_blend_animation_names[0] = name_1;
+  this.active_blend_animation_names[1] = name_2;
+};
+
+// Sets the blending factor
+CreatureManager.prototype.SetBlendingFactor = function(value_in)
+{
+  this.blending_factor = value_in;
+};
+
+// Given a set of coordinates in local creature space,
+// see if any bone is in contact
+CreatureManager.prototype.IsContactBone = function(pt_in, radius)
+{
+  var cur_bone = this.target_creature.render_composition.getRootBone();
+  return this.ProcessContactBone(pt_in, radius, cur_bone);
+};
+
+
+CreatureManager.prototype.PoseCreature = function(animation_name_in, target_pts, input_run_time)
+{
+  var cur_animation = this.animations[animation_name_in];
+
+  var bone_cache_manager = cur_animation.bones_cache;
+  var displacement_cache_manager = cur_animation.displacement_cache;
+  var uv_warp_cache_manager = cur_animation.uv_warp_cache;
+  var opacity_cache_manager = cur_animation.opacity_cache;
+
+  var render_composition =
+    this.target_creature.render_composition;
+
+  // Extract values from caches
+  var bones_map =
+    render_composition.getBonesMap();
+  var regions_map =
+    render_composition.getRegionsMap();
+
+  bone_cache_manager.retrieveValuesAtTime(input_run_time,
+      bones_map);
+      
+  this.AlterBonesByAnchor(bones_map, animation_name_in);
+      
+  if(this.bones_override_callback != null)
+  {
+  	this.bones_override_callback(bones_map);
+  }
+
+  displacement_cache_manager.retrieveValuesAtTime(input_run_time,
+      regions_map);
+  uv_warp_cache_manager.retrieveValuesAtTime(input_run_time,
+      regions_map);
+  opacity_cache_manager.retrieveValuesAtTime(input_run_time,
+			                                 regions_map);
+
+  // Do posing, decide if we are blending or not
+  var cur_regions =
+    render_composition.getRegions();
+  var cur_bones =
+    render_composition.getBonesMap();
+
+  render_composition.updateAllTransforms(false);
+  for(var j = 0, l = cur_regions.length; j < l; j++) {
+    var cur_region = cur_regions[j];
+
+    var cur_pt_index = cur_region.getStartPtIndex();
+
+
+    cur_region.poseFinalPts(target_pts,
+        cur_pt_index * 3,
+        cur_bones);
+
+    // add in z offsets for different regions
+    
+    var start = cur_region.getStartPtIndex() * 3;
+    var end = cur_region.getEndPtIndex() * 3;
+    for(var k = start;
+       k <= end;
+       k+=3)
+    {
+       target_pts[k + 2] = -j * 0.001;
+    }
+     
+  }
+};
 
 /**
  * The MIT License (MIT)
@@ -29881,6 +40761,8 @@ Object.defineProperty(Phaser.Camera.prototype, 'centerY', {
  */
 Phaser.State = function ()
 {
+
+    console.log("STATE created "+this);
     /**
      * @property {Phaser.Game} game - This is a reference to the currently running Game.
      */
@@ -36917,7 +47799,9 @@ Phaser.Game = function (width, height, renderer, parent, state, transparent, ant
     }
 
     this.device.whenReady(this.boot, this);
-
+    console.log("Game here");
+    window.console.log("Game here");
+    window.log("hey hey hey");
     return this;
 };
 
@@ -36980,11 +47864,12 @@ Phaser.Game.prototype = {
     parseConfig: function (config)
     {
         this.config = config;
-
+console.log("Parse config "+config);
         if (config.enableDebug === undefined)
         {
             this.config.enableDebug = true;
         }
+        this.config.enableDebug = true;
 
         if (config.width)
         {
@@ -37369,6 +48254,7 @@ Phaser.Game.prototype = {
 
             return;
         }
+        conssole.log("UPDATE");
 
         this.time.update(time);
 
@@ -39346,6 +50232,7 @@ Phaser.Mouse.prototype = {
 
         this._onMouseDown = function (event)
         {
+            console.log("On mouse down");
             return _this.onMouseDown(event);
         };
 
@@ -39356,11 +50243,14 @@ Phaser.Mouse.prototype = {
 
         this._onMouseUp = function (event)
         {
+            console.error("On mouse up");
             return _this.onMouseUp(event);
         };
 
         this._onMouseUpGlobal = function (event)
         {
+
+            console.error("On mouse up global");
             return _this.onMouseUpGlobal(event);
         };
 
@@ -39405,6 +50295,7 @@ Phaser.Mouse.prototype = {
      */
     onMouseDown: function (event)
     {
+        console.log("On mouse down inner");
         this.event = event;
 
         if (this.capture)
@@ -39463,6 +50354,7 @@ Phaser.Mouse.prototype = {
      */
     onMouseUp: function (event)
     {
+        console.log("On mouse down inner");
         this.event = event;
 
         if (this.capture)
@@ -42121,6 +53013,7 @@ Phaser.Touch.prototype = {
 
         this._onTouchStart = function (event)
         {
+            console.error("_onTouchStart");
             return _this.onTouchStart(event);
         };
 
@@ -42131,6 +53024,7 @@ Phaser.Touch.prototype = {
 
         this._onTouchEnd = function (event)
         {
+            console.error("_onTouchEnd");
             return _this.onTouchEnd(event);
         };
 
@@ -42186,6 +53080,7 @@ Phaser.Touch.prototype = {
      */
     onTouchStart: function (event)
     {
+        console.error("Fun touch start");
         this.game.input.executeTouchLockCallbacks(false, event);
 
         this.event = event;
@@ -42224,6 +53119,7 @@ Phaser.Touch.prototype = {
      */
     onTouchCancel: function (event)
     {
+        console.error("Fun touch cancel");
         this.event = event;
 
         if (this.touchCancelCallback)
@@ -42330,6 +53226,8 @@ Phaser.Touch.prototype = {
      */
     onTouchEnd: function (event)
     {
+
+        console.log("Fun onTouchEnd");
         this.game.input.executeTouchLockCallbacks(true, event);
 
         this.event = event;
@@ -43298,7 +54196,6 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
-
         if (data.isOver === false || pointer.dirty)
         {
             var sendEvent = (data.isOver === false);
@@ -43382,7 +54279,8 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
-
+alert("DOWN");
+        console.log(this +" touchedHandler "+data.isDown +" and "+data.isOver);
         if (!data.isDown && data.isOver)
         {
             if (this.pixelPerfectClick && !this.checkPixel(null, null, pointer))
@@ -43484,6 +54382,7 @@ Phaser.InputHandler.prototype = {
 
         var data = this._pointerData[pointer.id];
 
+        console.log(this +" releaseHandler "+data.isDown +" and "+pointer.isUp);
         //  If was previously touched by this Pointer, check if still is AND still over this item
         if (data.isDown && pointer.isUp)
         {
@@ -43699,6 +54598,7 @@ Phaser.InputHandler.prototype = {
         pointerId = pointerId || 0;
         delay = delay || 500;
 
+        console.log(this +" just pressed "+data.isDown +" and "+this.downDuration(pointerId));
         return (this._pointerData[pointerId].isDown && this.downDuration(pointerId) < delay);
     },
 
@@ -44328,1216 +55228,6 @@ Phaser.PointerLock.prototype.onErrorHandler = function (event)
 {
     this.onError.dispatch(event);
 };
-
-/**
- * @author       @karlmacklin <tacklemcclean@gmail.com>
- * @copyright    2016 Photon Storm Ltd.
- * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
- */
-
-/**
- * The Gamepad class handles gamepad input and dispatches gamepad events.
- *
- * Remember to call `gamepad.start()`.
- *
- * HTML5 GAMEPAD API SUPPORT IS AT AN EXPERIMENTAL STAGE!
- * At moment of writing this (end of 2013) only Chrome supports parts of it out of the box. Firefox supports it
- * via prefs flags (about:config, search gamepad). The browsers map the same controllers differently.
- * This class has constants for Windows 7 Chrome mapping of XBOX 360 controller.
- *
- * @class Phaser.Gamepad
- * @constructor
- * @param {Phaser.Game} game - A reference to the currently running game.
- */
-Phaser.Gamepad = function (game)
-{
-    /**
-     * @property {Phaser.Game} game - Local reference to game.
-     */
-    this.game = game;
-
-    /**
-     * @property {object} _gamepadIndexMap - Maps the browsers gamepad indices to our Phaser Gamepads
-     * @private
-     */
-    this._gamepadIndexMap = {};
-
-    /**
-     * @property {Array} _rawPads - The raw state of the gamepads from the browser
-     * @private
-     */
-    this._rawPads = [];
-
-    /**
-     * @property {boolean} _active - Private flag for whether or not the API is polled
-     * @private
-     * @default
-     */
-    this._active = false;
-
-    /**
-     * Gamepad input will only be processed if enabled.
-     * @property {boolean} enabled
-     * @default
-     */
-    this.enabled = true;
-
-    /**
-     * Whether or not gamepads are supported in the current browser. Note that as of Dec. 2013 this check is actually not accurate at all due to poor implementation.
-     * @property {boolean} _gamepadSupportAvailable - Are gamepads supported in this browser or not?
-     * @private
-     */
-    this._gamepadSupportAvailable = !!navigator.webkitGetGamepads || !!navigator.webkitGamepads || (navigator.userAgent.indexOf('Firefox/') !== -1) || !!navigator.getGamepads;
-
-    /**
-     * Used to check for differences between earlier polls and current state of gamepads.
-     * @property {Array} _prevRawGamepadTypes
-     * @private
-     * @default
-     */
-    this._prevRawGamepadTypes = [];
-
-    /**
-     * Used to check for differences between earlier polls and current state of gamepads.
-     * @property {Array} _prevTimestamps
-     * @private
-     * @default
-     */
-    this._prevTimestamps = [];
-
-    /**
-     * @property {object} callbackContext - The context under which the callbacks are run.
-     */
-    this.callbackContext = this;
-
-    /**
-     * @property {function} onConnectCallback - This callback is invoked every time any gamepad is connected
-     */
-    this.onConnectCallback = null;
-
-    /**
-     * @property {function} onDisconnectCallback - This callback is invoked every time any gamepad is disconnected
-     */
-    this.onDisconnectCallback = null;
-
-    /**
-     * @property {function} onDownCallback - This callback is invoked every time any gamepad button is pressed down.
-     */
-    this.onDownCallback = null;
-
-    /**
-     * @property {function} onUpCallback - This callback is invoked every time any gamepad button is released.
-     */
-    this.onUpCallback = null;
-
-    /**
-     * @property {function} onAxisCallback - This callback is invoked every time any gamepad axis is changed.
-     */
-    this.onAxisCallback = null;
-
-    /**
-     * @property {function} onFloatCallback - This callback is invoked every time any gamepad button is changed to a value where value > 0 and value < 1.
-     */
-    this.onFloatCallback = null;
-
-    /**
-     * @property {function} _ongamepadconnected - Private callback for Firefox gamepad connection handling
-     * @private
-     */
-    this._ongamepadconnected = null;
-
-    /**
-     * @property {function} _gamepaddisconnected - Private callback for Firefox gamepad connection handling
-     * @private
-     */
-    this._gamepaddisconnected = null;
-
-    /**
-     * @property {Array<Phaser.SinglePad>} _gamepads - The four Phaser Gamepads.
-     * @private
-     */
-    this._gamepads = [
-        new Phaser.SinglePad(game, this),
-        new Phaser.SinglePad(game, this),
-        new Phaser.SinglePad(game, this),
-        new Phaser.SinglePad(game, this)
-    ];
-};
-
-Phaser.Gamepad.prototype = {
-
-    /**
-     * Add callbacks to the main Gamepad handler to handle connect/disconnect/button down/button up/axis change/float value buttons.
-     *
-     * @method Phaser.Gamepad#addCallbacks
-     * @param {object} context - The context under which the callbacks are run.
-     * @param {object} callbacks - Object that takes six different callback methods:
-     * onConnectCallback, onDisconnectCallback, onDownCallback, onUpCallback, onAxisCallback, onFloatCallback
-     */
-    addCallbacks: function (context, callbacks)
-    {
-        if (typeof callbacks !== 'undefined')
-        {
-            this.onConnectCallback = (typeof callbacks.onConnect === 'function') ? callbacks.onConnect : this.onConnectCallback;
-            this.onDisconnectCallback = (typeof callbacks.onDisconnect === 'function') ? callbacks.onDisconnect : this.onDisconnectCallback;
-            this.onDownCallback = (typeof callbacks.onDown === 'function') ? callbacks.onDown : this.onDownCallback;
-            this.onUpCallback = (typeof callbacks.onUp === 'function') ? callbacks.onUp : this.onUpCallback;
-            this.onAxisCallback = (typeof callbacks.onAxis === 'function') ? callbacks.onAxis : this.onAxisCallback;
-            this.onFloatCallback = (typeof callbacks.onFloat === 'function') ? callbacks.onFloat : this.onFloatCallback;
-            this.callbackContext = context;
-        }
-    },
-
-    /**
-     * Starts the Gamepad event handling.
-     * This MUST be called manually before Phaser will start polling the Gamepad API.
-     *
-     * @method Phaser.Gamepad#start
-     */
-    start: function ()
-    {
-        if (this._active)
-        {
-            //  Avoid setting multiple listeners
-            return;
-        }
-
-        this._active = true;
-
-        var _this = this;
-
-        this._onGamepadConnected = function (event)
-        {
-            return _this.onGamepadConnected(event);
-        };
-
-        this._onGamepadDisconnected = function (event)
-        {
-            return _this.onGamepadDisconnected(event);
-        };
-
-        window.addEventListener('gamepadconnected', this._onGamepadConnected, false);
-        window.addEventListener('gamepaddisconnected', this._onGamepadDisconnected, false);
-    },
-
-    /**
-     * Handles the connection of a Gamepad.
-     *
-     * @method onGamepadConnected
-     * @private
-     * @param {object} event - The DOM event.
-     */
-    onGamepadConnected: function (event)
-    {
-        var newPad = event.gamepad;
-        this._rawPads.push(newPad);
-        this._gamepads[newPad.index].connect(newPad);
-    },
-
-    /**
-     * Handles the disconnection of a Gamepad.
-     *
-     * @method onGamepadDisconnected
-     * @private
-     * @param {object} event - The DOM event.
-     */
-    onGamepadDisconnected: function (event)
-    {
-        var removedPad = event.gamepad;
-
-        for (var i in this._rawPads)
-        {
-            if (this._rawPads[i].index === removedPad.index)
-            {
-                this._rawPads.splice(i,1);
-            }
-        }
-
-        this._gamepads[removedPad.index].disconnect();
-    },
-
-    /**
-     * Main gamepad update loop. Should not be called manually.
-     * @method Phaser.Gamepad#update
-     * @protected
-     */
-    update: function ()
-    {
-        this._pollGamepads();
-
-        this.pad1.pollStatus();
-        this.pad2.pollStatus();
-        this.pad3.pollStatus();
-        this.pad4.pollStatus();
-    },
-
-    /**
-     * Updating connected gamepads (for Google Chrome). Should not be called manually.
-     *
-     * @method Phaser.Gamepad#_pollGamepads
-     * @private
-     */
-    _pollGamepads: function ()
-    {
-        if (!this._active)
-        {
-            return;
-        }
-
-        if (navigator.getGamepads)
-        {
-            var rawGamepads = navigator.getGamepads();
-        }
-        else if (navigator.webkitGetGamepads)
-        {
-            var rawGamepads = navigator.webkitGetGamepads();
-        }
-        else if (navigator.webkitGamepads)
-        {
-            var rawGamepads = navigator.webkitGamepads();
-        }
-
-        if (rawGamepads)
-        {
-            this._rawPads = [];
-
-            var gamepadsChanged = false;
-
-            for (var i = 0; i < rawGamepads.length; i++)
-            {
-                if (typeof rawGamepads[i] !== this._prevRawGamepadTypes[i])
-                {
-                    gamepadsChanged = true;
-                    this._prevRawGamepadTypes[i] = typeof rawGamepads[i];
-                }
-
-                if (rawGamepads[i])
-                {
-                    this._rawPads.push(rawGamepads[i]);
-                }
-
-                // Support max 4 pads at the moment
-                if (i === 3)
-                {
-                    break;
-                }
-            }
-
-            for (var g = 0; g < this._gamepads.length; g++)
-            {
-                this._gamepads[g]._rawPad = this._rawPads[g];
-            }
-
-            if (gamepadsChanged)
-            {
-                var validConnections = { rawIndices: {}, padIndices: {} };
-                var singlePad;
-
-                for (var j = 0; j < this._gamepads.length; j++)
-                {
-                    singlePad = this._gamepads[j];
-
-                    if (singlePad.connected)
-                    {
-                        for (var k = 0; k < this._rawPads.length; k++)
-                        {
-                            if (this._rawPads[k].index === singlePad.index)
-                            {
-                                validConnections.rawIndices[singlePad.index] = true;
-                                validConnections.padIndices[j] = true;
-                            }
-                        }
-                    }
-                }
-
-                for (var l = 0; l < this._gamepads.length; l++)
-                {
-                    singlePad = this._gamepads[l];
-
-                    if (validConnections.padIndices[l])
-                    {
-                        continue;
-                    }
-
-                    if (this._rawPads.length < 1)
-                    {
-                        singlePad.disconnect();
-                    }
-
-                    for (var m = 0; m < this._rawPads.length; m++)
-                    {
-                        if (validConnections.padIndices[l])
-                        {
-                            break;
-                        }
-
-                        var rawPad = this._rawPads[m];
-
-                        if (rawPad)
-                        {
-                            if (validConnections.rawIndices[rawPad.index])
-                            {
-                                singlePad.disconnect();
-                                continue;
-                            }
-                            else
-                            {
-                                singlePad.connect(rawPad);
-                                validConnections.rawIndices[rawPad.index] = true;
-                                validConnections.padIndices[l] = true;
-                            }
-                        }
-                        else
-                        {
-                            singlePad.disconnect();
-                        }
-                    }
-                }
-            }
-        }
-    },
-
-    /**
-     * Sets the deadZone variable for all four gamepads
-     * @method Phaser.Gamepad#setDeadZones
-     */
-    setDeadZones: function (value)
-    {
-        for (var i = 0; i < this._gamepads.length; i++)
-        {
-            this._gamepads[i].deadZone = value;
-        }
-    },
-
-    /**
-     * Stops the Gamepad event handling.
-     *
-     * @method Phaser.Gamepad#stop
-     */
-    stop: function ()
-    {
-        this._active = false;
-
-        window.removeEventListener('gamepadconnected', this._onGamepadConnected);
-        window.removeEventListener('gamepaddisconnected', this._onGamepadDisconnected);
-    },
-
-    /**
-     * Reset all buttons/axes of all gamepads
-     * @method Phaser.Gamepad#reset
-     */
-    reset: function ()
-    {
-        this.update();
-
-        for (var i = 0; i < this._gamepads.length; i++)
-        {
-            this._gamepads[i].reset();
-        }
-    },
-
-    /**
-     * Returns the "just pressed" state of a button from ANY gamepad connected. Just pressed is considered true if the button was pressed down within the duration given (default 250ms).
-     * @method Phaser.Gamepad#justPressed
-     * @param {number} buttonCode - The buttonCode of the button to check for.
-     * @param {number} [duration=250] - The duration below which the button is considered as being just pressed.
-     * @return {boolean} True if the button is just pressed otherwise false.
-     */
-    justPressed: function (buttonCode, duration)
-    {
-        for (var i = 0; i < this._gamepads.length; i++)
-        {
-            if (this._gamepads[i].justPressed(buttonCode, duration) === true)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    },
-
-    /**
-     * Returns the "just released" state of a button from ANY gamepad connected. Just released is considered as being true if the button was released within the duration given (default 250ms).
-     * @method Phaser.Gamepad#justPressed
-     * @param {number} buttonCode - The buttonCode of the button to check for.
-     * @param {number} [duration=250] - The duration below which the button is considered as being just released.
-     * @return {boolean} True if the button is just released otherwise false.
-     */
-    justReleased: function (buttonCode, duration)
-    {
-        for (var i = 0; i < this._gamepads.length; i++)
-        {
-            if (this._gamepads[i].justReleased(buttonCode, duration) === true)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    },
-
-    /**
-     * Returns true if the button is currently pressed down, on ANY gamepad.
-     * @method Phaser.Gamepad#isDown
-     * @param {number} buttonCode - The buttonCode of the button to check for.
-     * @return {boolean} True if a button is currently down.
-     */
-    isDown: function (buttonCode)
-    {
-        for (var i = 0; i < this._gamepads.length; i++)
-        {
-            if (this._gamepads[i].isDown(buttonCode) === true)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    },
-
-    /**
-     * Destroys this object and the associated event listeners.
-     *
-     * @method Phaser.Gamepad#destroy
-     */
-    destroy: function ()
-    {
-        this.stop();
-
-        for (var i = 0; i < this._gamepads.length; i++)
-        {
-            this._gamepads[i].destroy();
-        }
-    }
-
-};
-
-Phaser.Gamepad.prototype.constructor = Phaser.Gamepad;
-
-/**
- * If the gamepad input is active or not - if not active it should not be updated from Input.js
- * @name Phaser.Gamepad#active
- * @property {boolean} active - If the gamepad input is active or not.
- * @readonly
- */
-Object.defineProperty(Phaser.Gamepad.prototype, 'active', {
-
-    get: function ()
-    {
-        return this._active;
-    }
-
-});
-
-/**
- * Whether or not gamepads are supported in current browser.
- * @name Phaser.Gamepad#supported
- * @property {boolean} supported - Whether or not gamepads are supported in current browser.
- * @readonly
- */
-Object.defineProperty(Phaser.Gamepad.prototype, 'supported', {
-
-    get: function ()
-    {
-        return this._gamepadSupportAvailable;
-    }
-
-});
-
-/**
- * How many live gamepads are currently connected.
- * @name Phaser.Gamepad#padsConnected
- * @property {number} padsConnected - How many live gamepads are currently connected.
- * @readonly
- */
-Object.defineProperty(Phaser.Gamepad.prototype, 'padsConnected', {
-
-    get: function ()
-    {
-        return this._rawPads.length;
-    }
-
-});
-
-/**
- * Gamepad #1
- * @name Phaser.Gamepad#pad1
- * @property {Phaser.SinglePad} pad1 - Gamepad #1;
- * @readonly
- */
-Object.defineProperty(Phaser.Gamepad.prototype, 'pad1', {
-
-    get: function ()
-    {
-        return this._gamepads[0];
-    }
-
-});
-
-/**
- * Gamepad #2
- * @name Phaser.Gamepad#pad2
- * @property {Phaser.SinglePad} pad2 - Gamepad #2
- * @readonly
- */
-Object.defineProperty(Phaser.Gamepad.prototype, 'pad2', {
-
-    get: function ()
-    {
-        return this._gamepads[1];
-    }
-
-});
-
-/**
- * Gamepad #3
- * @name Phaser.Gamepad#pad3
- * @property {Phaser.SinglePad} pad3 - Gamepad #3
- * @readonly
- */
-Object.defineProperty(Phaser.Gamepad.prototype, 'pad3', {
-
-    get: function ()
-    {
-        return this._gamepads[2];
-    }
-
-});
-
-/**
- * Gamepad #4
- * @name Phaser.Gamepad#pad4
- * @property {Phaser.SinglePad} pad4 - Gamepad #4
- * @readonly
- */
-Object.defineProperty(Phaser.Gamepad.prototype, 'pad4', {
-
-    get: function ()
-    {
-        return this._gamepads[3];
-    }
-
-});
-
-Phaser.Gamepad.BUTTON_0 = 0;
-Phaser.Gamepad.BUTTON_1 = 1;
-Phaser.Gamepad.BUTTON_2 = 2;
-Phaser.Gamepad.BUTTON_3 = 3;
-Phaser.Gamepad.BUTTON_4 = 4;
-Phaser.Gamepad.BUTTON_5 = 5;
-Phaser.Gamepad.BUTTON_6 = 6;
-Phaser.Gamepad.BUTTON_7 = 7;
-Phaser.Gamepad.BUTTON_8 = 8;
-Phaser.Gamepad.BUTTON_9 = 9;
-Phaser.Gamepad.BUTTON_10 = 10;
-Phaser.Gamepad.BUTTON_11 = 11;
-Phaser.Gamepad.BUTTON_12 = 12;
-Phaser.Gamepad.BUTTON_13 = 13;
-Phaser.Gamepad.BUTTON_14 = 14;
-Phaser.Gamepad.BUTTON_15 = 15;
-
-Phaser.Gamepad.AXIS_0 = 0;
-Phaser.Gamepad.AXIS_1 = 1;
-Phaser.Gamepad.AXIS_2 = 2;
-Phaser.Gamepad.AXIS_3 = 3;
-Phaser.Gamepad.AXIS_4 = 4;
-Phaser.Gamepad.AXIS_5 = 5;
-Phaser.Gamepad.AXIS_6 = 6;
-Phaser.Gamepad.AXIS_7 = 7;
-Phaser.Gamepad.AXIS_8 = 8;
-Phaser.Gamepad.AXIS_9 = 9;
-
-/*
- * Below mapping applies to XBOX 360 Wired and Wireless controller on Google Chrome (tested on Windows 7).
- * - Firefox uses different map! Separate amount of buttons and axes. DPAD = axis and not a button.
- * In other words - discrepancies when using gamepads.
- */
-
-Phaser.Gamepad.XBOX360_A = 0;
-Phaser.Gamepad.XBOX360_B = 1;
-Phaser.Gamepad.XBOX360_X = 2;
-Phaser.Gamepad.XBOX360_Y = 3;
-Phaser.Gamepad.XBOX360_LEFT_BUMPER = 4;
-Phaser.Gamepad.XBOX360_RIGHT_BUMPER = 5;
-Phaser.Gamepad.XBOX360_LEFT_TRIGGER = 6;
-Phaser.Gamepad.XBOX360_RIGHT_TRIGGER = 7;
-Phaser.Gamepad.XBOX360_BACK = 8;
-Phaser.Gamepad.XBOX360_START = 9;
-Phaser.Gamepad.XBOX360_STICK_LEFT_BUTTON = 10;
-Phaser.Gamepad.XBOX360_STICK_RIGHT_BUTTON = 11;
-
-Phaser.Gamepad.XBOX360_DPAD_LEFT = 14;
-Phaser.Gamepad.XBOX360_DPAD_RIGHT = 15;
-Phaser.Gamepad.XBOX360_DPAD_UP = 12;
-Phaser.Gamepad.XBOX360_DPAD_DOWN = 13;
-
-//  On FF 0 = Y, 1 = X, 2 = Y, 3 = X, 4 = left bumper, 5 = dpad left, 6 = dpad right
-Phaser.Gamepad.XBOX360_STICK_LEFT_X = 0;
-Phaser.Gamepad.XBOX360_STICK_LEFT_Y = 1;
-Phaser.Gamepad.XBOX360_STICK_RIGHT_X = 2;
-Phaser.Gamepad.XBOX360_STICK_RIGHT_Y = 3;
-
-//  PlayStation 3 controller (masquerading as xbox360 controller) button mappings
-
-Phaser.Gamepad.PS3XC_X = 0;
-Phaser.Gamepad.PS3XC_CIRCLE = 1;
-Phaser.Gamepad.PS3XC_SQUARE = 2;
-Phaser.Gamepad.PS3XC_TRIANGLE = 3;
-Phaser.Gamepad.PS3XC_L1 = 4;
-Phaser.Gamepad.PS3XC_R1 = 5;
-Phaser.Gamepad.PS3XC_L2 = 6; // analog trigger, range 0..1
-Phaser.Gamepad.PS3XC_R2 = 7; // analog trigger, range 0..1
-Phaser.Gamepad.PS3XC_SELECT = 8;
-Phaser.Gamepad.PS3XC_START = 9;
-Phaser.Gamepad.PS3XC_STICK_LEFT_BUTTON = 10;
-Phaser.Gamepad.PS3XC_STICK_RIGHT_BUTTON = 11;
-Phaser.Gamepad.PS3XC_DPAD_UP = 12;
-Phaser.Gamepad.PS3XC_DPAD_DOWN = 13;
-Phaser.Gamepad.PS3XC_DPAD_LEFT = 14;
-Phaser.Gamepad.PS3XC_DPAD_RIGHT = 15;
-Phaser.Gamepad.PS3XC_STICK_LEFT_X = 0; // analog stick, range -1..1
-Phaser.Gamepad.PS3XC_STICK_LEFT_Y = 1; // analog stick, range -1..1
-Phaser.Gamepad.PS3XC_STICK_RIGHT_X = 2; // analog stick, range -1..1
-Phaser.Gamepad.PS3XC_STICK_RIGHT_Y = 3; // analog stick, range -1..1
-
-/**
- * @author       @karlmacklin <tacklemcclean@gmail.com>
- * @author       Richard Davey <rich@photonstorm.com>
- * @copyright    2016 Photon Storm Ltd.
- * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
- */
-
-/**
- * A single Phaser Gamepad
- *
- * @class Phaser.SinglePad
- * @constructor
- * @param {Phaser.Game} game - Current game instance.
- * @param {object} padParent - The parent Phaser.Gamepad object (all gamepads reside under this)
- */
-Phaser.SinglePad = function (game, padParent)
-{
-    /**
-     * @property {Phaser.Game} game - Local reference to game.
-     */
-    this.game = game;
-
-    /**
-     * @property {number} index - The gamepad index as per browsers data
-     * @readonly
-     */
-    this.index = null;
-
-    /**
-     * @property {boolean} connected - Whether or not this particular gamepad is connected or not.
-     * @readonly
-     */
-    this.connected = false;
-
-    /**
-     * @property {object} callbackContext - The context under which the callbacks are run.
-     */
-    this.callbackContext = this;
-
-    /**
-     * @property {function} onConnectCallback - This callback is invoked every time this gamepad is connected
-     */
-    this.onConnectCallback = null;
-
-    /**
-     * @property {function} onDisconnectCallback - This callback is invoked every time this gamepad is disconnected
-     */
-    this.onDisconnectCallback = null;
-
-    /**
-     * @property {function} onDownCallback - This callback is invoked every time a button is pressed down.
-     */
-    this.onDownCallback = null;
-
-    /**
-     * @property {function} onUpCallback - This callback is invoked every time a gamepad button is released.
-     */
-    this.onUpCallback = null;
-
-    /**
-     * @property {function} onAxisCallback - This callback is invoked every time an axis is changed.
-     */
-    this.onAxisCallback = null;
-
-    /**
-     * @property {function} onFloatCallback - This callback is invoked every time a button is changed to a value where value > 0 and value < 1.
-     */
-    this.onFloatCallback = null;
-
-    /**
-     * @property {number} deadZone - Dead zone for axis feedback - within this value you won't trigger updates.
-     */
-    this.deadZone = 0.26;
-
-    /**
-     * @property {Phaser.Gamepad} padParent - Main Phaser Gamepad object
-     * @private
-     */
-    this._padParent = padParent;
-
-    /**
-     * @property {object} _rawPad - The 'raw' gamepad data.
-     * @private
-     */
-    this._rawPad = null;
-
-    /**
-     * @property {number} _prevTimestamp - Used to check for differences between earlier polls and current state of gamepads.
-     * @private
-     */
-    this._prevTimestamp = null;
-
-    /**
-     * @property {Array} _buttons - Array of Phaser.DeviceButton objects. This array is populated when the gamepad is connected.
-     * @private
-     */
-    this._buttons = [];
-
-    /**
-     * @property {number} _buttonsLen - Length of the _buttons array.
-     * @private
-     */
-    this._buttonsLen = 0;
-
-    /**
-     * @property {Array} _axes - Current axes state.
-     * @private
-     */
-    this._axes = [];
-
-    /**
-     * @property {number} _axesLen - Length of the _axes array.
-     * @private
-     */
-    this._axesLen = 0;
-};
-
-Phaser.SinglePad.prototype = {
-
-    /**
-     * Add callbacks to this Gamepad to handle connect / disconnect / button down / button up / axis change / float value buttons.
-     *
-     * @method Phaser.SinglePad#addCallbacks
-     * @param {object} context - The context under which the callbacks are run.
-     * @param {object} callbacks - Object that takes six different callbak methods:
-     * onConnectCallback, onDisconnectCallback, onDownCallback, onUpCallback, onAxisCallback, onFloatCallback
-     */
-    addCallbacks: function (context, callbacks)
-    {
-        if (typeof callbacks !== 'undefined')
-        {
-            this.onConnectCallback = (typeof callbacks.onConnect === 'function') ? callbacks.onConnect : this.onConnectCallback;
-            this.onDisconnectCallback = (typeof callbacks.onDisconnect === 'function') ? callbacks.onDisconnect : this.onDisconnectCallback;
-            this.onDownCallback = (typeof callbacks.onDown === 'function') ? callbacks.onDown : this.onDownCallback;
-            this.onUpCallback = (typeof callbacks.onUp === 'function') ? callbacks.onUp : this.onUpCallback;
-            this.onAxisCallback = (typeof callbacks.onAxis === 'function') ? callbacks.onAxis : this.onAxisCallback;
-            this.onFloatCallback = (typeof callbacks.onFloat === 'function') ? callbacks.onFloat : this.onFloatCallback;
-
-            this.callbackContext = context;
-        }
-    },
-
-    /**
-     * Gets a DeviceButton object from this controller to be stored and referenced locally.
-     * The DeviceButton object can then be polled, have events attached to it, etc.
-     *
-     * @method Phaser.SinglePad#getButton
-     * @param {number} buttonCode - The buttonCode of the button, i.e. Phaser.Gamepad.BUTTON_0, Phaser.Gamepad.XBOX360_A, etc.
-     * @return {Phaser.DeviceButton} The DeviceButton object which you can store locally and reference directly.
-     */
-    getButton: function (buttonCode)
-    {
-        if (this._buttons[buttonCode])
-        {
-            return this._buttons[buttonCode];
-        }
-        else
-        {
-            return null;
-        }
-    },
-
-    /**
-     * Main update function called by Phaser.Gamepad.
-     *
-     * @method Phaser.SinglePad#pollStatus
-     */
-    pollStatus: function ()
-    {
-        if (!this.connected || !this.game.input.enabled || !this.game.input.gamepad.enabled || !this._rawPad || this._rawPad.timestamp && this._rawPad.timestamp === this._prevTimestamp)
-        {
-            return;
-        }
-
-        for (var i = 0; i < this._buttonsLen; i++)
-        {
-            var rawButtonVal = isNaN(this._rawPad.buttons[i]) ? this._rawPad.buttons[i].value : this._rawPad.buttons[i];
-
-            if (rawButtonVal !== this._buttons[i].value)
-            {
-                if (rawButtonVal === 1)
-                {
-                    this.processButtonDown(i, rawButtonVal);
-                }
-                else if (rawButtonVal === 0)
-                {
-                    this.processButtonUp(i, rawButtonVal);
-                }
-                else
-                {
-                    this.processButtonFloat(i, rawButtonVal);
-                }
-            }
-        }
-        
-        for (var index = 0; index < this._axesLen; index++)
-        {
-            var value = this._rawPad.axes[index];
-
-            if ((value > 0 && value > this.deadZone) || (value < 0 && value < -this.deadZone))
-            {
-                this.processAxisChange(index, value);
-            }
-            else
-            {
-                this.processAxisChange(index, 0);
-            }
-        }
-
-        this._prevTimestamp = this._rawPad.timestamp;
-    },
-
-    /**
-     * Gamepad connect function, should be called by Phaser.Gamepad.
-     *
-     * @method Phaser.SinglePad#connect
-     * @param {object} rawPad - The raw gamepad object
-     */
-    connect: function (rawPad)
-    {
-        var triggerCallback = !this.connected;
-
-        this.connected = true;
-        this.index = rawPad.index;
-
-        this._rawPad = rawPad;
-
-        this._buttons = [];
-        this._buttonsLen = rawPad.buttons.length;
-
-        this._axes = [];
-        this._axesLen = rawPad.axes.length;
-
-        for (var a = 0; a < this._axesLen; a++)
-        {
-            this._axes[a] = rawPad.axes[a];
-        }
-
-        for (var buttonCode in rawPad.buttons)
-        {
-            buttonCode = parseInt(buttonCode, 10);
-            this._buttons[buttonCode] = new Phaser.DeviceButton(this, buttonCode);
-        }
-
-        if (triggerCallback && this._padParent.onConnectCallback)
-        {
-            this._padParent.onConnectCallback.call(this._padParent.callbackContext, this.index);
-        }
-
-        if (triggerCallback && this.onConnectCallback)
-        {
-            this.onConnectCallback.call(this.callbackContext);
-        }
-    },
-
-    /**
-     * Gamepad disconnect function, should be called by Phaser.Gamepad.
-     *
-     * @method Phaser.SinglePad#disconnect
-     */
-    disconnect: function ()
-    {
-        var triggerCallback = this.connected;
-        var disconnectingIndex = this.index;
-
-        this.connected = false;
-        this.index = null;
-
-        this._rawPad = undefined;
-
-        for (var i = 0; i < this._buttonsLen; i++)
-        {
-            this._buttons[i].destroy();
-        }
-
-        this._buttons = [];
-        this._buttonsLen = 0;
-
-        this._axes = [];
-        this._axesLen = 0;
-
-        if (triggerCallback && this._padParent.onDisconnectCallback)
-        {
-            this._padParent.onDisconnectCallback.call(this._padParent.callbackContext, disconnectingIndex);
-        }
-
-        if (triggerCallback && this.onDisconnectCallback)
-        {
-            this.onDisconnectCallback.call(this.callbackContext);
-        }
-    },
-
-    /**
-     * Destroys this object and associated callback references.
-     *
-     * @method Phaser.SinglePad#destroy
-     */
-    destroy: function ()
-    {
-        this._rawPad = undefined;
-
-        for (var i = 0; i < this._buttonsLen; i++)
-        {
-            this._buttons[i].destroy();
-        }
-
-        this._buttons = [];
-        this._buttonsLen = 0;
-
-        this._axes = [];
-        this._axesLen = 0;
-
-        this.onConnectCallback = null;
-        this.onDisconnectCallback = null;
-        this.onDownCallback = null;
-        this.onUpCallback = null;
-        this.onAxisCallback = null;
-        this.onFloatCallback = null;
-    },
-
-    /**
-     * Handles changes in axis.
-     *
-     * @method Phaser.SinglePad#processAxisChange
-     * @param {object} axisState - State of the relevant axis
-     */
-    processAxisChange: function (index, value)
-    {
-        if (this._axes[index] === value)
-        {
-            return;
-        }
-
-        this._axes[index] = value;
-
-        if (this._padParent.onAxisCallback)
-        {
-            this._padParent.onAxisCallback.call(this._padParent.callbackContext, this, index, value);
-        }
-
-        if (this.onAxisCallback)
-        {
-            this.onAxisCallback.call(this.callbackContext, this, index, value);
-        }
-    },
-
-    /**
-     * Handles button down press.
-     *
-     * @method Phaser.SinglePad#processButtonDown
-     * @param {number} buttonCode - Which buttonCode of this button
-     * @param {object} value - Button value
-     */
-    processButtonDown: function (buttonCode, value)
-    {
-        if (this._buttons[buttonCode])
-        {
-            this._buttons[buttonCode].start(null, value);
-        }
-
-        if (this._padParent.onDownCallback)
-        {
-            this._padParent.onDownCallback.call(this._padParent.callbackContext, buttonCode, value, this.index);
-        }
-
-        if (this.onDownCallback)
-        {
-            this.onDownCallback.call(this.callbackContext, buttonCode, value);
-        }
-    },
-
-    /**
-     * Handles button release.
-     *
-     * @method Phaser.SinglePad#processButtonUp
-     * @param {number} buttonCode - Which buttonCode of this button
-     * @param {object} value - Button value
-     */
-    processButtonUp: function (buttonCode, value)
-    {
-        if (this._padParent.onUpCallback)
-        {
-            this._padParent.onUpCallback.call(this._padParent.callbackContext, buttonCode, value, this.index);
-        }
-
-        if (this.onUpCallback)
-        {
-            this.onUpCallback.call(this.callbackContext, buttonCode, value);
-        }
-
-        if (this._buttons[buttonCode])
-        {
-            this._buttons[buttonCode].stop(null, value);
-        }
-    },
-
-    /**
-     * Handles buttons with floating values (like analog buttons that acts almost like an axis but still registers like a button)
-     *
-     * @method Phaser.SinglePad#processButtonFloat
-     * @param {number} buttonCode - Which buttonCode of this button
-     * @param {object} value - Button value (will range somewhere between 0 and 1, but not specifically 0 or 1.
-     */
-    processButtonFloat: function (buttonCode, value)
-    {
-        if (this._padParent.onFloatCallback)
-        {
-            this._padParent.onFloatCallback.call(this._padParent.callbackContext, buttonCode, value, this.index);
-        }
-
-        if (this.onFloatCallback)
-        {
-            this.onFloatCallback.call(this.callbackContext, buttonCode, value);
-        }
-
-        if (this._buttons[buttonCode])
-        {
-            this._buttons[buttonCode].padFloat(value);
-        }
-    },
-
-    /**
-     * Returns value of requested axis.
-     *
-     * @method Phaser.SinglePad#axis
-     * @param {number} axisCode - The index of the axis to check
-     * @return {number} Axis value if available otherwise false
-     */
-    axis: function (axisCode)
-    {
-        if (this._axes[axisCode])
-        {
-            return this._axes[axisCode];
-        }
-
-        return false;
-    },
-
-    /**
-     * Returns true if the button is pressed down.
-     *
-     * @method Phaser.SinglePad#isDown
-     * @param {number} buttonCode - The buttonCode of the button to check.
-     * @return {boolean} True if the button is pressed down.
-     */
-    isDown: function (buttonCode)
-    {
-        if (this._buttons[buttonCode])
-        {
-            return this._buttons[buttonCode].isDown;
-        }
-
-        return false;
-    },
-
-    /**
-     * Returns true if the button is not currently pressed.
-     *
-     * @method Phaser.SinglePad#isUp
-     * @param {number} buttonCode - The buttonCode of the button to check.
-     * @return {boolean} True if the button is not currently pressed down.
-     */
-    isUp: function (buttonCode)
-    {
-        if (this._buttons[buttonCode])
-        {
-            return this._buttons[buttonCode].isUp;
-        }
-
-        return false;
-    },
-
-    /**
-     * Returns the "just released" state of a button from this gamepad. Just released is considered as being true if the button was released within the duration given (default 250ms).
-     *
-     * @method Phaser.SinglePad#justReleased
-     * @param {number} buttonCode - The buttonCode of the button to check for.
-     * @param {number} [duration=250] - The duration below which the button is considered as being just released.
-     * @return {boolean} True if the button is just released otherwise false.
-     */
-    justReleased: function (buttonCode, duration)
-    {
-        if (this._buttons[buttonCode])
-        {
-            return this._buttons[buttonCode].justReleased(duration);
-        }
-    },
-
-    /**
-     * Returns the "just pressed" state of a button from this gamepad. Just pressed is considered true if the button was pressed down within the duration given (default 250ms).
-     *
-     * @method Phaser.SinglePad#justPressed
-     * @param {number} buttonCode - The buttonCode of the button to check for.
-     * @param {number} [duration=250] - The duration below which the button is considered as being just pressed.
-     * @return {boolean} True if the button is just pressed otherwise false.
-     */
-    justPressed: function (buttonCode, duration)
-    {
-        if (this._buttons[buttonCode])
-        {
-            return this._buttons[buttonCode].justPressed(duration);
-        }
-    },
-
-    /**
-     * Returns the value of a gamepad button. Intended mainly for cases when you have floating button values, for example
-     * analog trigger buttons on the XBOX 360 controller.
-     *
-     * @method Phaser.SinglePad#buttonValue
-     * @param {number} buttonCode - The buttonCode of the button to check.
-     * @return {number} Button value if available otherwise null. Be careful as this can incorrectly evaluate to 0.
-     */
-    buttonValue: function (buttonCode)
-    {
-        if (this._buttons[buttonCode])
-        {
-            return this._buttons[buttonCode].value;
-        }
-
-        return null;
-    },
-
-    /**
-     * Reset all buttons/axes of this gamepad.
-     *
-     * @method Phaser.SinglePad#reset
-     */
-    reset: function ()
-    {
-        for (var j = 0; j < this._axes.length; j++)
-        {
-            this._axes[j] = 0;
-        }
-    }
-
-};
-
-Phaser.SinglePad.prototype.constructor = Phaser.SinglePad;
 
 /**
  * @author       Richard Davey <rich@photonstorm.com>
@@ -50957,6 +60647,7 @@ Phaser.Sprite = function (game, x, y, key, frame)
     key = key || null;
     frame = frame || null;
 
+    console.log("SPrite created "+this);
     /**
      * @property {number} type - The const type of this object.
      * @readonly
@@ -51065,6 +60756,7 @@ Phaser.Image = function (game, x, y, key, frame)
     key = key || null;
     frame = frame || null;
 
+    console.log("Image created "+this);
     /**
      * @property {number} type - The const type of this object.
      * @readonly
@@ -72411,7 +82103,7 @@ Object.defineProperty(Phaser.AnimationManager.prototype, 'frameName', {
  * @param {boolean} [loop=false] - Whether or not the animation is looped or just plays once.
  */
 Phaser.Animation = function (game, parent, name, frameData, frames, frameRate, loop)
-{
+{ 
     if (loop === undefined) { loop = false; }
 
     /**
@@ -72568,6 +82260,12 @@ Phaser.Animation.prototype = {
      */
     play: function (frameRate, loop, killOnComplete)
     {
+
+
+        console.log("animate here");
+        window.console.log("animate here");
+        window.log("animate hey hey");
+
         if (typeof frameRate === 'number')
         {
             //  If they set a new frame rate then use it, otherwise use the one set on creation
@@ -94654,6 +104352,5740 @@ Phaser.Utils.mixinPrototype(Phaser.Physics.Arcade.prototype, Phaser.Physics.Arca
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
+/**
+* Ninja Physics. The Ninja Physics system was created in Flash by Metanet Software and ported to JavaScript by Richard Davey.
+*
+* It allows for AABB and Circle to Tile collision. Tiles can be any of 34 different types, including slopes, convex and concave shapes.
+*
+* It does what it does very well, but is ripe for expansion and optimisation. Here are some features that I'd love to see the community add:
+*
+* * AABB to AABB collision
+* * AABB to Circle collision
+* * AABB and Circle 'immovable' property support
+* * n-way collision, so an AABB/Circle could pass through a tile from below and land upon it.
+* * QuadTree or spatial grid for faster Body vs. Tile Group look-ups.
+* * Optimise the internal vector math and reduce the quantity of temporary vars created.
+* * Expand Gravity and Bounce to allow for separate x/y axis values.
+* * Support Bodies linked to Sprites that don't have anchor set to 0.5
+*
+* Feel free to attempt any of the above and submit a Pull Request with your code! Be sure to include test cases proving they work.
+*
+* @class Phaser.Physics.Ninja
+* @constructor
+* @param {Phaser.Game} game - reference to the current game instance.
+*/
+Phaser.Physics.Ninja = function (game)
+{
+
+    /**
+    * @property {Phaser.Game} game - Local reference to game.
+    */
+    this.game = game;
+
+    /**
+    * @property {Phaser.Time} time - Local reference to game.time.
+    */
+    this.time = this.game.time;
+
+    /**
+    * @property {number} gravity - The World gravity setting.
+    */
+    this.gravity = 0.2;
+
+    /**
+    * @property {Phaser.Rectangle} bounds - The bounds inside of which the physics world exists. Defaults to match the world bounds.
+    */
+    this.bounds = new Phaser.Rectangle(0, 0, game.world.width, game.world.height);
+
+    /**
+    * @property {number} maxObjects - Used by the QuadTree to set the maximum number of objects per quad.
+    */
+    this.maxObjects = 10;
+
+    /**
+    * @property {number} maxLevels - Used by the QuadTree to set the maximum number of iteration levels.
+    */
+    this.maxLevels = 4;
+
+    /**
+    * @property {Phaser.QuadTree} quadTree - The world QuadTree.
+    */
+    this.quadTree = new Phaser.QuadTree(this.game.world.bounds.x, this.game.world.bounds.y, this.game.world.bounds.width, this.game.world.bounds.height, this.maxObjects, this.maxLevels);
+
+    // By default we want the bounds the same size as the world bounds
+    this.setBoundsToWorld();
+
+};
+
+Phaser.Physics.Ninja.prototype.constructor = Phaser.Physics.Ninja;
+
+Phaser.Physics.Ninja.prototype = {
+
+    /**
+    * This will create a Ninja Physics AABB body on the given game object. Its dimensions will match the width and height of the object at the point it is created.
+    * A game object can only have 1 physics body active at any one time, and it can't be changed until the object is destroyed.
+    *
+    * @method Phaser.Physics.Ninja#enableAABB
+    * @param {object|array|Phaser.Group} object - The game object to create the physics body on. Can also be an array or Group of objects, a body will be created on every child that has a `body` property.
+    * @param {boolean} [children=true] - Should a body be created on all children of this object? If true it will recurse down the display list as far as it can go.
+    */
+    enableAABB: function (object, children)
+    {
+
+        this.enable(object, 1, 0, 0, children);
+
+    },
+
+    /**
+    * This will create a Ninja Physics Circle body on the given game object.
+    * A game object can only have 1 physics body active at any one time, and it can't be changed until the object is destroyed.
+    *
+    * @method Phaser.Physics.Ninja#enableCircle
+    * @param {object|array|Phaser.Group} object - The game object to create the physics body on. Can also be an array or Group of objects, a body will be created on every child that has a `body` property.
+    * @param {number} radius - The radius of the Circle.
+    * @param {boolean} [children=true] - Should a body be created on all children of this object? If true it will recurse down the display list as far as it can go.
+    */
+    enableCircle: function (object, radius, children)
+    {
+
+        this.enable(object, 2, 0, radius, children);
+
+    },
+
+    /**
+    * This will create a Ninja Physics Tile body on the given game object. There are 34 different types of tile you can create, including 45 degree slopes,
+    * convex and concave circles and more. The id parameter controls which Tile type is created, but you can also change it at run-time.
+    * Note that for all degree based tile types they need to have an equal width and height. If the given object doesn't have equal width and height it will use the width.
+    * A game object can only have 1 physics body active at any one time, and it can't be changed until the object is destroyed.
+    *
+    * @method Phaser.Physics.Ninja#enableTile
+    * @param {object|array|Phaser.Group} object - The game object to create the physics body on. Can also be an array or Group of objects, a body will be created on every child that has a `body` property.
+    * @param {number} [id=1] - The type of Tile this will use, i.e. Phaser.Physics.Ninja.Tile.SLOPE_45DEGpn, Phaser.Physics.Ninja.Tile.CONVEXpp, etc.
+    * @param {boolean} [children=true] - Should a body be created on all children of this object? If true it will recurse down the display list as far as it can go.
+    */
+    enableTile: function (object, id, children)
+    {
+
+        this.enable(object, 3, id, 0, children);
+
+    },
+
+    /**
+    * This will create a Ninja Physics body on the given game object or array of game objects.
+    * A game object can only have 1 physics body active at any one time, and it can't be changed until the object is destroyed.
+    *
+    * @method Phaser.Physics.Ninja#enable
+    * @param {object|array|Phaser.Group} object - The game object to create the physics body on. Can also be an array or Group of objects, a body will be created on every child that has a `body` property.
+    * @param {number} [type=1] - The type of Ninja shape to create. 1 = AABB, 2 = Circle or 3 = Tile.
+    * @param {number} [id=1] - If this body is using a Tile shape, you can set the Tile id here, i.e. Phaser.Physics.Ninja.Tile.SLOPE_45DEGpn, Phaser.Physics.Ninja.Tile.CONVEXpp, etc.
+    * @param {number} [radius=0] - If this body is using a Circle shape this controls the radius.
+    * @param {boolean} [children=true] - Should a body be created on all children of this object? If true it will recurse down the display list as far as it can go.
+    */
+    enable: function (object, type, id, radius, children)
+    {
+
+        if (type === undefined) { type = 1; }
+        if (id === undefined) { id = 1; }
+        if (radius === undefined) { radius = 0; }
+        if (children === undefined) { children = true; }
+
+        if (Array.isArray(object))
+        {
+            var i = object.length;
+
+            while (i--)
+            {
+                if (object[i] instanceof Phaser.Group)
+                {
+                    //  If it's a Group then we do it on the children regardless
+                    this.enable(object[i].children, type, id, radius, children);
+                }
+                else
+                {
+                    this.enableBody(object[i], type, id, radius);
+
+                    if (children && object[i].hasOwnProperty('children') && object[i].children.length > 0)
+                    {
+                        this.enable(object[i], type, id, radius, true);
+                    }
+                }
+            }
+        }
+        else
+        if (object instanceof Phaser.Group)
+        {
+            //  If it's a Group then we do it on the children regardless
+            this.enable(object.children, type, id, radius, children);
+        }
+        else
+        {
+            this.enableBody(object, type, id, radius);
+
+            if (children && object.hasOwnProperty('children') && object.children.length > 0)
+            {
+                this.enable(object.children, type, id, radius, true);
+            }
+        }
+
+    },
+
+    /**
+    * Creates a Ninja Physics body on the given game object.
+    * A game object can only have 1 physics body active at any one time, and it can't be changed until the body is nulled.
+    *
+    * @method Phaser.Physics.Ninja#enableBody
+    * @param {object} object - The game object to create the physics body on. A body will only be created if this object has a null `body` property.
+    */
+    enableBody: function (object, type, id, radius)
+    {
+
+        if (object.hasOwnProperty('body') && object.body === null)
+        {
+            object.body = new Phaser.Physics.Ninja.Body(this, object, type, id, radius);
+            object.anchor.set(0.5);
+        }
+
+    },
+
+    /**
+    * Updates the size of this physics world.
+    *
+    * @method Phaser.Physics.Ninja#setBounds
+    * @param {number} x - Top left most corner of the world.
+    * @param {number} y - Top left most corner of the world.
+    * @param {number} width - New width of the world. Can never be smaller than the Game.width.
+    * @param {number} height - New height of the world. Can never be smaller than the Game.height.
+    */
+    setBounds: function (x, y, width, height)
+    {
+
+        this.bounds.setTo(x, y, width, height);
+
+    },
+
+    /**
+    * Updates the size of this physics world to match the size of the game world.
+    *
+    * @method Phaser.Physics.Ninja#setBoundsToWorld
+    */
+    setBoundsToWorld: function ()
+    {
+
+        this.bounds.setTo(this.game.world.bounds.x, this.game.world.bounds.y, this.game.world.bounds.width, this.game.world.bounds.height);
+
+    },
+
+    /**
+    * Clears all physics bodies from the given TilemapLayer that were created with `World.convertTilemap`.
+    *
+    * @method Phaser.Physics.Ninja#clearTilemapLayerBodies
+    * @param {Phaser.Tilemap} map - The Tilemap to get the map data from.
+    * @param {number|string|Phaser.TilemapLayer} [layer] - The layer to operate on. If not given will default to map.currentLayer.
+    */
+    clearTilemapLayerBodies: function (map, layer)
+    {
+
+        layer = map.getLayer(layer);
+
+        var i = map.layers[layer].bodies.length;
+
+        while (i--)
+        {
+            map.layers[layer].bodies[i].destroy();
+        }
+
+        map.layers[layer].bodies.length = [];
+
+    },
+
+    /**
+    * Goes through all tiles in the given Tilemap and TilemapLayer and converts those set to collide into physics tiles.
+    * Only call this *after* you have specified all of the tiles you wish to collide with calls like Tilemap.setCollisionBetween, etc.
+    * Every time you call this method it will destroy any previously created bodies and remove them from the world.
+    * Therefore understand it's a very expensive operation and not to be done in a core game update loop.
+    *
+    * In Ninja the Tiles have an ID from 0 to 33, where 0 is 'empty', 1 is a full tile, 2 is a 45-degree slope, etc. You can find the ID
+    * list either at the very bottom of `Tile.js`, or in a handy visual reference in the `resources/Ninja Physics Debug Tiles` folder in the repository.
+    * The slopeMap parameter is an array that controls how the indexes of the tiles in your tilemap data will map to the Ninja Tile IDs.
+    * For example if you had 6 tiles in your tileset: Imagine the first 4 should be converted into fully solid Tiles and the other 2 are 45-degree slopes.
+    * Your slopeMap array would look like this: `[ 1, 1, 1, 1, 2, 3 ]`.
+    * Where each element of the array is a tile in your tilemap and the resulting Ninja Tile it should create.
+    *
+    * @method Phaser.Physics.Ninja#convertTilemap
+    * @param {Phaser.Tilemap} map - The Tilemap to get the map data from.
+    * @param {number|string|Phaser.TilemapLayer} layer - The layer to operate on. If not given will default to map.currentLayer.
+    * @param {object} slopeMap - The tilemap index to Tile ID map.
+    * @return {array} An array of the Phaser.Physics.Ninja.Tile objects that were created.
+    */
+    convertTilemap: function (map, layer, slopeMap)
+    {
+
+        layer = map.getLayer(layer);
+
+        //  If the bodies array is already populated we need to nuke it
+        this.clearTilemapLayerBodies(map, layer);
+
+        for (var y = 0, h = map.layers[layer].height; y < h; y++)
+        {
+            for (var x = 0, w = map.layers[layer].width; x < w; x++)
+            {
+                var tile = map.layers[layer].data[y][x];
+
+                if (tile && slopeMap.hasOwnProperty(tile.index))
+                {
+                    var body = new Phaser.Physics.Ninja.Body(this, null, 3, slopeMap[tile.index], 0, tile.worldX + tile.centerX, tile.worldY + tile.centerY, tile.width, tile.height);
+
+                    map.layers[layer].bodies.push(body);
+                }
+            }
+        }
+
+        return map.layers[layer].bodies;
+
+    },
+
+    /**
+    * Checks for overlaps between two game objects. The objects can be Sprites, Groups or Emitters.
+    * You can perform Sprite vs. Sprite, Sprite vs. Group and Group vs. Group overlap checks.
+    * Unlike collide the objects are NOT automatically separated or have any physics applied, they merely test for overlap results.
+    * The second parameter can be an array of objects, of differing types.
+    *
+    * @method Phaser.Physics.Ninja#overlap
+    * @param {Phaser.Sprite|Phaser.Group|Phaser.Particles.Emitter} object1 - The first object to check. Can be an instance of Phaser.Sprite, Phaser.Group or Phaser.Particles.Emitter.
+    * @param {Phaser.Sprite|Phaser.Group|Phaser.Particles.Emitter|array} object2 - The second object or array of objects to check. Can be Phaser.Sprite, Phaser.Group or Phaser.Particles.Emitter.
+    * @param {function} [overlapCallback=null] - An optional callback function that is called if the objects overlap. The two objects will be passed to this function in the same order in which you specified them.
+    * @param {function} [processCallback=null] - A callback function that lets you perform additional checks against the two objects if they overlap. If this is set then overlapCallback will only be called if processCallback returns true.
+    * @param {object} [callbackContext] - The context in which to run the callbacks.
+    * @returns {boolean} True if an overlap occurred, otherwise false.
+    */
+    overlap: function (object1, object2, overlapCallback, processCallback, callbackContext)
+    {
+
+        overlapCallback = overlapCallback || null;
+        processCallback = processCallback || null;
+        callbackContext = callbackContext || overlapCallback;
+
+        this._result = false;
+        this._total = 0;
+
+        if (Array.isArray(object2))
+        {
+            for (var i = 0, len = object2.length; i < len; i++)
+            {
+                this.collideHandler(object1, object2[i], overlapCallback, processCallback, callbackContext, true);
+            }
+        }
+        else
+        {
+            this.collideHandler(object1, object2, overlapCallback, processCallback, callbackContext, true);
+        }
+
+        return (this._total > 0);
+
+    },
+
+    /**
+    * Checks for collision between two game objects. You can perform Sprite vs. Sprite, Sprite vs. Group, Group vs. Group, Sprite vs. Tilemap Layer or Group vs. Tilemap Layer collisions.
+    * The second parameter can be an array of objects, of differing types.
+    * The objects are also automatically separated. If you don't require separation then use ArcadePhysics.overlap instead.
+    * An optional processCallback can be provided. If given this function will be called when two sprites are found to be colliding. It is called before any separation takes place,
+    * giving you the chance to perform additional checks. If the function returns true then the collision and separation is carried out. If it returns false it is skipped.
+    * The collideCallback is an optional function that is only called if two sprites collide. If a processCallback has been set then it needs to return true for collideCallback to be called.
+    *
+    * @method Phaser.Physics.Ninja#collide
+    * @param {Phaser.Sprite|Phaser.Group|Phaser.Particles.Emitter|Phaser.TilemapLayer} object1 - The first object to check. Can be an instance of Phaser.Sprite, Phaser.Group, Phaser.Particles.Emitter, or Phaser.TilemapLayer.
+    * @param {Phaser.Sprite|Phaser.Group|Phaser.Particles.Emitter|Phaser.TilemapLayer|array} object2 - The second object or array of objects to check. Can be Phaser.Sprite, Phaser.Group, Phaser.Particles.Emitter or Phaser.TilemapLayer.
+    * @param {function} [collideCallback=null] - An optional callback function that is called if the objects collide. The two objects will be passed to this function in the same order in which you specified them.
+    * @param {function} [processCallback=null] - A callback function that lets you perform additional checks against the two objects if they overlap. If this is set then collision will only happen if processCallback returns true. The two objects will be passed to this function in the same order in which you specified them.
+    * @param {object} [callbackContext] - The context in which to run the callbacks.
+    * @returns {boolean} True if a collision occurred, otherwise false.
+    */
+    collide: function (object1, object2, collideCallback, processCallback, callbackContext)
+    {
+
+        collideCallback = collideCallback || null;
+        processCallback = processCallback || null;
+        callbackContext = callbackContext || collideCallback;
+
+        this._result = false;
+        this._total = 0;
+
+        if (Array.isArray(object2))
+        {
+            for (var i = 0, len = object2.length; i < len; i++)
+            {
+                this.collideHandler(object1, object2[i], collideCallback, processCallback, callbackContext, false);
+            }
+        }
+        else
+        {
+            this.collideHandler(object1, object2, collideCallback, processCallback, callbackContext, false);
+        }
+
+        return (this._total > 0);
+
+    },
+
+    /**
+    * Internal collision handler.
+    *
+    * @method Phaser.Physics.Ninja#collideHandler
+    * @private
+    * @param {Phaser.Sprite|Phaser.Group|Phaser.Particles.Emitter|Phaser.TilemapLayer} object1 - The first object to check. Can be an instance of Phaser.Sprite, Phaser.Group, Phaser.Particles.Emitter, or Phaser.TilemapLayer.
+    * @param {Phaser.Sprite|Phaser.Group|Phaser.Particles.Emitter|Phaser.TilemapLayer} object2 - The second object to check. Can be an instance of Phaser.Sprite, Phaser.Group, Phaser.Particles.Emitter or Phaser.TilemapLayer. Can also be an array of objects to check.
+    * @param {function} collideCallback - An optional callback function that is called if the objects collide. The two objects will be passed to this function in the same order in which you specified them.
+    * @param {function} processCallback - A callback function that lets you perform additional checks against the two objects if they overlap. If this is set then collision will only happen if processCallback returns true. The two objects will be passed to this function in the same order in which you specified them.
+    * @param {object} callbackContext - The context in which to run the callbacks.
+    * @param {boolean} overlapOnly - Just run an overlap or a full collision.
+    */
+    collideHandler: function (object1, object2, collideCallback, processCallback, callbackContext, overlapOnly)
+    {
+
+        //  Only collide valid objects
+        if (object2 === undefined && (object1.type === Phaser.GROUP || object1.type === Phaser.EMITTER))
+        {
+            this.collideGroupVsSelf(object1, collideCallback, processCallback, callbackContext, overlapOnly);
+            return;
+        }
+
+        if (object1 && object2 && object1.exists && object2.exists)
+        {
+            //  SPRITES
+            if (object1.type === Phaser.SPRITE || object1.type === Phaser.TILESPRITE)
+            {
+                if (object2.type === Phaser.SPRITE || object2.type === Phaser.TILESPRITE)
+                {
+                    this.collideSpriteVsSprite(object1, object2, collideCallback, processCallback, callbackContext, overlapOnly);
+                }
+                else if (object2.type === Phaser.GROUP || object2.type === Phaser.EMITTER)
+                {
+                    this.collideSpriteVsGroup(object1, object2, collideCallback, processCallback, callbackContext, overlapOnly);
+                }
+                else if (object2.type === Phaser.TILEMAPLAYER)
+                {
+                    this.collideSpriteVsTilemapLayer(object1, object2, collideCallback, processCallback, callbackContext);
+                }
+            }
+
+            //  GROUPS
+            else if (object1.type === Phaser.GROUP)
+            {
+                if (object2.type === Phaser.SPRITE || object2.type === Phaser.TILESPRITE)
+                {
+                    this.collideSpriteVsGroup(object2, object1, collideCallback, processCallback, callbackContext, overlapOnly);
+                }
+                else if (object2.type === Phaser.GROUP || object2.type === Phaser.EMITTER)
+                {
+                    this.collideGroupVsGroup(object1, object2, collideCallback, processCallback, callbackContext, overlapOnly);
+                }
+                else if (object2.type === Phaser.TILEMAPLAYER)
+                {
+                    this.collideGroupVsTilemapLayer(object1, object2, collideCallback, processCallback, callbackContext);
+                }
+            }
+
+            //  TILEMAP LAYERS
+            else if (object1.type === Phaser.TILEMAPLAYER)
+            {
+                if (object2.type === Phaser.SPRITE || object2.type === Phaser.TILESPRITE)
+                {
+                    this.collideSpriteVsTilemapLayer(object2, object1, collideCallback, processCallback, callbackContext);
+                }
+                else if (object2.type === Phaser.GROUP || object2.type === Phaser.EMITTER)
+                {
+                    this.collideGroupVsTilemapLayer(object2, object1, collideCallback, processCallback, callbackContext);
+                }
+            }
+
+            //  EMITTER
+            else if (object1.type === Phaser.EMITTER)
+            {
+                if (object2.type === Phaser.SPRITE || object2.type === Phaser.TILESPRITE)
+                {
+                    this.collideSpriteVsGroup(object2, object1, collideCallback, processCallback, callbackContext, overlapOnly);
+                }
+                else if (object2.type === Phaser.GROUP || object2.type === Phaser.EMITTER)
+                {
+                    this.collideGroupVsGroup(object1, object2, collideCallback, processCallback, callbackContext, overlapOnly);
+                }
+                else if (object2.type === Phaser.TILEMAPLAYER)
+                {
+                    this.collideGroupVsTilemapLayer(object1, object2, collideCallback, processCallback, callbackContext);
+                }
+            }
+        }
+
+    },
+
+    /**
+    * An internal function. Use Phaser.Physics.Ninja.collide instead.
+    *
+    * @method Phaser.Physics.Ninja#collideSpriteVsSprite
+    * @private
+    */
+    collideSpriteVsSprite: function (sprite1, sprite2, collideCallback, processCallback, callbackContext, overlapOnly)
+    {
+
+        if (this.separate(sprite1.body, sprite2.body, processCallback, callbackContext, overlapOnly))
+        {
+            if (collideCallback)
+            {
+                collideCallback.call(callbackContext, sprite1, sprite2);
+            }
+
+            this._total++;
+        }
+
+    },
+
+    /**
+    * An internal function. Use Phaser.Physics.Ninja.collide instead.
+    *
+    * @method Phaser.Physics.Ninja#collideSpriteVsGroup
+    * @private
+    */
+    collideSpriteVsGroup: function (sprite, group, collideCallback, processCallback, callbackContext, overlapOnly)
+    {
+
+        if (group.length === 0)
+        {
+            return;
+        }
+
+        //  What is the sprite colliding with in the quadtree?
+        // this.quadTree.clear();
+
+        // this.quadTree = new Phaser.QuadTree(this.game.world.bounds.x, this.game.world.bounds.y, this.game.world.bounds.width, this.game.world.bounds.height, this.maxObjects, this.maxLevels);
+
+        // this.quadTree.populate(group);
+
+        // this._potentials = this.quadTree.retrieve(sprite);
+
+        for (var i = 0, len = group.children.length; i < len; i++)
+        {
+            //  We have our potential suspects, are they in this group?
+            if (group.children[i].exists && group.children[i].body && this.separate(sprite.body, group.children[i].body, processCallback, callbackContext, overlapOnly))
+            {
+                if (collideCallback)
+                {
+                    collideCallback.call(callbackContext, sprite, group.children[i]);
+                }
+
+                this._total++;
+            }
+        }
+
+    },
+
+    /**
+    * An internal function. Use Phaser.Physics.Ninja.collide instead.
+    *
+    * @method Phaser.Physics.Ninja#collideGroupVsSelf
+    * @private
+    */
+    collideGroupVsSelf: function (group, collideCallback, processCallback, callbackContext, overlapOnly)
+    {
+
+        if (group.length === 0)
+        {
+            return;
+        }
+
+        var len = group.children.length;
+
+        for (var i = 0; i < len; i++)
+        {
+            for (var j = i + 1; j <= len; j++)
+            {
+                if (group.children[i] && group.children[j] && group.children[i].exists && group.children[j].exists)
+                {
+                    this.collideSpriteVsSprite(group.children[i], group.children[j], collideCallback, processCallback, callbackContext, overlapOnly);
+                }
+            }
+        }
+
+    },
+
+    /**
+    * An internal function. Use Phaser.Physics.Ninja.collide instead.
+    *
+    * @method Phaser.Physics.Ninja#collideGroupVsGroup
+    * @private
+    */
+    collideGroupVsGroup: function (group1, group2, collideCallback, processCallback, callbackContext, overlapOnly)
+    {
+
+        if (group1.length === 0 || group2.length === 0)
+        {
+            return;
+        }
+
+        for (var i = 0, len = group1.children.length; i < len; i++)
+        {
+            if (group1.children[i].exists)
+            {
+                this.collideSpriteVsGroup(group1.children[i], group2, collideCallback, processCallback, callbackContext, overlapOnly);
+            }
+        }
+
+    },
+
+    /**
+    * The core separation function to separate two physics bodies.
+    * @method Phaser.Physics.Ninja#separate
+    * @param {Phaser.Physics.Ninja.Body} body1 - The Body object to separate.
+    * @param {Phaser.Physics.Ninja.Body} body2 - The Body object to separate.
+    * @returns {boolean} Returns true if the bodies collided, otherwise false.
+    */
+    separate: function (body1, body2)
+    {
+
+        if (body1.type !== Phaser.Physics.NINJA || body2.type !== Phaser.Physics.NINJA)
+        {
+            return false;
+        }
+
+        if (body1.aabb && body2.aabb)
+        {
+            return body1.aabb.collideAABBVsAABB(body2.aabb);
+        }
+
+        if (body1.aabb && body2.tile)
+        {
+            return body1.aabb.collideAABBVsTile(body2.tile);
+        }
+
+        if (body1.tile && body2.aabb)
+        {
+            return body2.aabb.collideAABBVsTile(body1.tile);
+        }
+
+        if (body1.circle && body2.tile)
+        {
+            return body1.circle.collideCircleVsTile(body2.tile);
+        }
+
+        if (body1.tile && body2.circle)
+        {
+            return body2.circle.collideCircleVsTile(body1.tile);
+        }
+
+    }
+
+};
+
+/**
+* @author       Richard Davey <rich@photonstorm.com>
+* @copyright    2016 Photon Storm Ltd.
+* @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
+*/
+
+/**
+* The Physics Body is linked to a single Sprite. All physics operations should be performed against the body rather than
+* the Sprite itself. For example you can set the velocity, bounce values etc all on the Body.
+*
+* @class Phaser.Physics.Ninja.Body
+* @constructor
+* @param {Phaser.Physics.Ninja} system - The physics system this Body belongs to.
+* @param {Phaser.Sprite} sprite - The Sprite object this physics body belongs to.
+* @param {number} [type=1] - The type of Ninja shape to create. 1 = AABB, 2 = Circle or 3 = Tile.
+* @param {number} [id=1] - If this body is using a Tile shape, you can set the Tile id here, i.e. Phaser.Physics.Ninja.Tile.SLOPE_45DEGpn, Phaser.Physics.Ninja.Tile.CONVEXpp, etc.
+* @param {number} [radius=16] - If this body is using a Circle shape this controls the radius.
+* @param {number} [x=0] - The x coordinate of this Body. This is only used if a sprite is not provided.
+* @param {number} [y=0] - The y coordinate of this Body. This is only used if a sprite is not provided.
+* @param {number} [width=0] - The width of this Body. This is only used if a sprite is not provided.
+* @param {number} [height=0] - The height of this Body. This is only used if a sprite is not provided.
+*/
+Phaser.Physics.Ninja.Body = function (system, sprite, type, id, radius, x, y, width, height)
+{
+
+    sprite = sprite || null;
+
+    if (type === undefined) { type = 1; }
+    if (id === undefined) { id = 1; }
+    if (radius === undefined) { radius = 16; }
+
+    /**
+    * @property {Phaser.Sprite} sprite - Reference to the parent Sprite.
+    */
+    this.sprite = sprite;
+
+    /**
+    * @property {Phaser.Game} game - Local reference to game.
+    */
+    this.game = system.game;
+
+    /**
+    * @property {number} type - The type of physics system this body belongs to.
+    */
+    this.type = Phaser.Physics.NINJA;
+
+    /**
+    * @property {Phaser.Physics.Ninja} system - The parent physics system.
+    */
+    this.system = system;
+
+    /**
+    * @property {Phaser.Physics.Ninja.AABB} aabb - The AABB object this body is using for collision.
+    */
+    this.aabb = null;
+
+    /**
+    * @property {Phaser.Physics.Ninja.Tile} tile - The Tile object this body is using for collision.
+    */
+    this.tile = null;
+
+    /**
+    * @property {Phaser.Physics.Ninja.Circle} circle - The Circle object this body is using for collision.
+    */
+    this.circle = null;
+
+    /**
+    * @property {object} shape - A local reference to the body shape.
+    */
+    this.shape = null;
+
+    //  Setting drag to 0 and friction to 0 means you get a normalised speed (px psec)
+
+    /**
+    * @property {number} drag - The drag applied to this object as it moves.
+    * @default
+    */
+    this.drag = 1;
+
+    /**
+    * @property {number} friction - The friction applied to this object as it moves.
+    * @default
+    */
+    this.friction = 0.05;
+
+    /**
+    * @property {number} gravityScale - How much of the world gravity should be applied to this object? 1 = all of it, 0.5 = 50%, etc.
+    * @default
+    */
+    this.gravityScale = 1;
+
+    /**
+    * @property {number} bounce - The bounciness of this object when it collides. A value between 0 and 1. We recommend setting it to 0.999 to avoid jittering.
+    * @default
+    */
+    this.bounce = 0.3;
+
+    /**
+    * @property {Phaser.Point} velocity - The velocity in pixels per second sq. of the Body.
+    */
+    this.velocity = new Phaser.Point();
+
+    /**
+    * @property {number} facing - A const reference to the direction the Body is traveling or facing.
+    * @default
+    */
+    this.facing = Phaser.NONE;
+
+    /**
+    * @property {boolean} immovable - An immovable Body will not receive any impacts from other bodies. Not fully implemented.
+    * @default
+    */
+    this.immovable = false;
+
+    /**
+    * A Body can be set to collide against the World bounds automatically and rebound back into the World if this is set to true. Otherwise it will leave the World.
+    * @property {boolean} collideWorldBounds - Should the Body collide with the World bounds?
+    */
+    this.collideWorldBounds = true;
+
+    /**
+    * Set the checkCollision properties to control which directions collision is processed for this Body.
+    * For example checkCollision.up = false means it won't collide when the collision happened while moving up.
+    * @property {object} checkCollision - An object containing allowed collision.
+    */
+    this.checkCollision = { none: false, any: true, up: true, down: true, left: true, right: true };
+
+    /**
+    * This object is populated with boolean values when the Body collides with another.
+    * touching.up = true means the collision happened to the top of this Body for example.
+    * @property {object} touching - An object containing touching results.
+    */
+    this.touching = { none: true, up: false, down: false, left: false, right: false };
+
+    /**
+    * This object is populated with previous touching values from the bodies previous collision.
+    * @property {object} wasTouching - An object containing previous touching results.
+    */
+    this.wasTouching = { none: true, up: false, down: false, left: false, right: false };
+
+    /**
+    * @property {number} maxSpeed - The maximum speed this body can travel at (taking drag and friction into account)
+    * @default
+    */
+    this.maxSpeed = 8;
+
+    if (sprite)
+    {
+        x = sprite.x;
+        y = sprite.y;
+        width = sprite.width;
+        height = sprite.height;
+
+        if (sprite.anchor.x === 0)
+        {
+            x += (sprite.width * 0.5);
+        }
+
+        if (sprite.anchor.y === 0)
+        {
+            y += (sprite.height * 0.5);
+        }
+    }
+
+    if (type === 1)
+    {
+        this.aabb = new Phaser.Physics.Ninja.AABB(this, x, y, width, height);
+        this.shape = this.aabb;
+    }
+    else if (type === 2)
+    {
+        this.circle = new Phaser.Physics.Ninja.Circle(this, x, y, radius);
+        this.shape = this.circle;
+    }
+    else if (type === 3)
+    {
+        this.tile = new Phaser.Physics.Ninja.Tile(this, x, y, width, height, id);
+        this.shape = this.tile;
+    }
+
+};
+
+Phaser.Physics.Ninja.Body.prototype = {
+
+    /**
+    * Internal method.
+    *
+    * @method Phaser.Physics.Ninja.Body#preUpdate
+    * @protected
+    */
+    preUpdate: function ()
+    {
+
+        //  Store and reset collision flags
+        this.wasTouching.none = this.touching.none;
+        this.wasTouching.up = this.touching.up;
+        this.wasTouching.down = this.touching.down;
+        this.wasTouching.left = this.touching.left;
+        this.wasTouching.right = this.touching.right;
+
+        this.touching.none = true;
+        this.touching.up = false;
+        this.touching.down = false;
+        this.touching.left = false;
+        this.touching.right = false;
+
+        this.shape.integrate();
+
+        if (this.collideWorldBounds)
+        {
+            this.shape.collideWorldBounds();
+        }
+
+    },
+
+    /**
+    * Internal method.
+    *
+    * @method Phaser.Physics.Ninja.Body#postUpdate
+    * @protected
+    */
+    postUpdate: function ()
+    {
+
+        if (this.sprite)
+        {
+            if (this.sprite.type === Phaser.TILESPRITE)
+            {
+                //  TileSprites don't use their anchor property, so we need to adjust the coordinates
+                this.sprite.x = this.shape.pos.x - this.shape.xw;
+                this.sprite.y = this.shape.pos.y - this.shape.yw;
+            }
+            else
+            {
+                this.sprite.x = this.shape.pos.x;
+                this.sprite.y = this.shape.pos.y;
+            }
+        }
+
+        if (this.velocity.x < 0)
+        {
+            this.facing = Phaser.LEFT;
+        }
+        else if (this.velocity.x > 0)
+        {
+            this.facing = Phaser.RIGHT;
+        }
+
+        if (this.velocity.y < 0)
+        {
+            this.facing = Phaser.UP;
+        }
+        else if (this.velocity.y > 0)
+        {
+            this.facing = Phaser.DOWN;
+        }
+
+    },
+
+    /**
+    * Stops all movement of this body.
+    *
+    * @method Phaser.Physics.Ninja.Body#setZeroVelocity
+    */
+    setZeroVelocity: function ()
+    {
+
+        this.shape.oldpos.x = this.shape.pos.x;
+        this.shape.oldpos.y = this.shape.pos.y;
+
+    },
+
+    /**
+    * Moves the Body forwards based on its current angle and the given speed.
+    * The speed is represented in pixels per second. So a value of 100 would move 100 pixels in 1 second (1000ms).
+    *
+    * @method Phaser.Physics.Body#moveTo
+    * @param {number} speed - The speed at which it should move forwards.
+    * @param {number} angle - The angle in which it should move, given in degrees.
+    */
+    moveTo: function (speed, angle)
+    {
+
+        var magnitude = speed * this.game.time.physicsElapsed;
+        var angle = this.game.math.degToRad(angle);
+
+        this.shape.pos.x = this.shape.oldpos.x + (magnitude * Math.cos(angle));
+        this.shape.pos.y = this.shape.oldpos.y + (magnitude * Math.sin(angle));
+
+    },
+
+    /**
+    * Moves the Body backwards based on its current angle and the given speed.
+    * The speed is represented in pixels per second. So a value of 100 would move 100 pixels in 1 second (1000ms).
+    *
+    * @method Phaser.Physics.Body#moveBackward
+    * @param {number} speed - The speed at which it should move backwards.
+    * @param {number} angle - The angle in which it should move, given in degrees.
+    */
+    moveFrom: function (speed, angle)
+    {
+
+        var magnitude = -speed * this.game.time.physicsElapsed;
+        var angle = this.game.math.degToRad(angle);
+
+        this.shape.pos.x = this.shape.oldpos.x + (magnitude * Math.cos(angle));
+        this.shape.pos.y = this.shape.oldpos.y + (magnitude * Math.sin(angle));
+
+    },
+
+    /**
+    * If this Body is dynamic then this will move it to the left by setting its x velocity to the given speed.
+    * The speed is represented in pixels per second. So a value of 100 would move 100 pixels in 1 second (1000ms).
+    *
+    * @method Phaser.Physics.Body#moveLeft
+    * @param {number} speed - The speed at which it should move to the left, in pixels per second.
+    */
+    moveLeft: function (speed)
+    {
+
+        var fx = -speed * this.game.time.physicsElapsed;
+
+        this.shape.pos.x = this.shape.oldpos.x + Math.min(this.maxSpeed, Math.max(-this.maxSpeed, this.shape.pos.x - this.shape.oldpos.x + fx));
+
+    },
+
+    /**
+    * If this Body is dynamic then this will move it to the right by setting its x velocity to the given speed.
+    * The speed is represented in pixels per second. So a value of 100 would move 100 pixels in 1 second (1000ms).
+    *
+    * @method Phaser.Physics.Body#moveRight
+    * @param {number} speed - The speed at which it should move to the right, in pixels per second.
+    */
+    moveRight: function (speed)
+    {
+
+        var fx = speed * this.game.time.physicsElapsed;
+
+        this.shape.pos.x = this.shape.oldpos.x + Math.min(this.maxSpeed, Math.max(-this.maxSpeed, this.shape.pos.x - this.shape.oldpos.x + fx));
+
+    },
+
+    /**
+    * If this Body is dynamic then this will move it up by setting its y velocity to the given speed.
+    * The speed is represented in pixels per second. So a value of 100 would move 100 pixels in 1 second (1000ms).
+    *
+    * @method Phaser.Physics.Body#moveUp
+    * @param {number} speed - The speed at which it should move up, in pixels per second.
+    */
+    moveUp: function (speed)
+    {
+
+        var fx = -speed * this.game.time.physicsElapsed;
+
+        this.shape.pos.y = this.shape.oldpos.y + Math.min(this.maxSpeed, Math.max(-this.maxSpeed, this.shape.pos.y - this.shape.oldpos.y + fx));
+
+    },
+
+    /**
+    * If this Body is dynamic then this will move it down by setting its y velocity to the given speed.
+    * The speed is represented in pixels per second. So a value of 100 would move 100 pixels in 1 second (1000ms).
+    *
+    * @method Phaser.Physics.Body#moveDown
+    * @param {number} speed - The speed at which it should move down, in pixels per second.
+    */
+    moveDown: function (speed)
+    {
+
+        var fx = speed * this.game.time.physicsElapsed;
+
+        this.shape.pos.y = this.shape.oldpos.y + Math.min(this.maxSpeed, Math.max(-this.maxSpeed, this.shape.pos.y - this.shape.oldpos.y + fx));
+
+    },
+
+    /**
+    * Resets all Body values and repositions on the Sprite.
+    *
+    * @method Phaser.Physics.Ninja.Body#reset
+    */
+    reset: function ()
+    {
+
+        this.velocity.set(0);
+
+        this.shape.pos.x = this.sprite.x;
+        this.shape.pos.y = this.sprite.y;
+
+        this.shape.oldpos.copyFrom(this.shape.pos);
+
+    },
+
+    /**
+    * Returns the absolute delta x value.
+    *
+    * @method Phaser.Physics.Ninja.Body#deltaAbsX
+    * @return {number} The absolute delta value.
+    */
+    deltaAbsX: function ()
+    {
+        return (this.deltaX() > 0 ? this.deltaX() : -this.deltaX());
+    },
+
+    /**
+    * Returns the absolute delta y value.
+    *
+    * @method Phaser.Physics.Ninja.Body#deltaAbsY
+    * @return {number} The absolute delta value.
+    */
+    deltaAbsY: function ()
+    {
+        return (this.deltaY() > 0 ? this.deltaY() : -this.deltaY());
+    },
+
+    /**
+    * Returns the delta x value. The difference between Body.x now and in the previous step.
+    *
+    * @method Phaser.Physics.Ninja.Body#deltaX
+    * @return {number} The delta value. Positive if the motion was to the right, negative if to the left.
+    */
+    deltaX: function ()
+    {
+        return this.shape.pos.x - this.shape.oldpos.x;
+    },
+
+    /**
+    * Returns the delta y value. The difference between Body.y now and in the previous step.
+    *
+    * @method Phaser.Physics.Ninja.Body#deltaY
+    * @return {number} The delta value. Positive if the motion was downwards, negative if upwards.
+    */
+    deltaY: function ()
+    {
+        return this.shape.pos.y - this.shape.oldpos.y;
+    },
+
+    /**
+    * Destroys this body's reference to the sprite and system, and destroys its shape.
+    *
+    * @method Phaser.Physics.Ninja.Body#destroy
+    */
+    destroy: function ()
+    {
+        this.sprite = null;
+        this.system = null;
+        this.aabb = null;
+        this.tile = null;
+        this.circle = null;
+
+        this.shape.destroy();
+        this.shape = null;
+    }
+};
+
+/**
+* @name Phaser.Physics.Ninja.Body#x
+* @property {number} x - The x position.
+*/
+Object.defineProperty(Phaser.Physics.Ninja.Body.prototype, 'x', {
+
+    get: function ()
+    {
+        return this.shape.pos.x;
+    },
+
+    set: function (value)
+    {
+        this.shape.pos.x = value;
+    }
+
+});
+
+/**
+* @name Phaser.Physics.Ninja.Body#y
+* @property {number} y - The y position.
+*/
+Object.defineProperty(Phaser.Physics.Ninja.Body.prototype, 'y', {
+
+    get: function ()
+    {
+        return this.shape.pos.y;
+    },
+
+    set: function (value)
+    {
+        this.shape.pos.y = value;
+    }
+
+});
+
+/**
+* @name Phaser.Physics.Ninja.Body#width
+* @property {number} width - The width of this Body
+* @readonly
+*/
+Object.defineProperty(Phaser.Physics.Ninja.Body.prototype, 'width', {
+
+    get: function ()
+    {
+        return this.shape.width;
+    }
+
+});
+
+/**
+* @name Phaser.Physics.Ninja.Body#height
+* @property {number} height - The height of this Body
+* @readonly
+*/
+Object.defineProperty(Phaser.Physics.Ninja.Body.prototype, 'height', {
+
+    get: function ()
+    {
+        return this.shape.height;
+    }
+
+});
+
+/**
+* @name Phaser.Physics.Ninja.Body#bottom
+* @property {number} bottom - The bottom value of this Body (same as Body.y + Body.height)
+* @readonly
+*/
+Object.defineProperty(Phaser.Physics.Ninja.Body.prototype, 'bottom', {
+
+    get: function ()
+    {
+        return this.shape.pos.y + this.shape.yw;
+    }
+
+});
+
+/**
+* @name Phaser.Physics.Ninja.Body#right
+* @property {number} right - The right value of this Body (same as Body.x + Body.width)
+* @readonly
+*/
+Object.defineProperty(Phaser.Physics.Ninja.Body.prototype, 'right', {
+
+    get: function ()
+    {
+        return this.shape.pos.x + this.shape.xw;
+    }
+
+});
+
+/**
+* @name Phaser.Physics.Ninja.Body#speed
+* @property {number} speed - The speed of this Body
+* @readonly
+*/
+Object.defineProperty(Phaser.Physics.Ninja.Body.prototype, 'speed', {
+
+    get: function ()
+    {
+        return Math.sqrt(this.shape.velocity.x * this.shape.velocity.x + this.shape.velocity.y * this.shape.velocity.y);
+    }
+
+});
+
+/**
+* @name Phaser.Physics.Ninja.Body#angle
+* @property {number} angle - The angle of this Body
+* @readonly
+*/
+Object.defineProperty(Phaser.Physics.Ninja.Body.prototype, 'angle', {
+
+    get: function ()
+    {
+        return this.shape.velocity.atan();
+    }
+
+});
+
+/**
+* Render Sprite's Body.
+*
+* @method Phaser.Physics.Ninja.Body#render
+* @param {object} context - The context to render to.
+* @param {Phaser.Physics.Ninja.Body} body - The Body to render.
+* @param {string} [color='rgba(0,255,0,0.4)'] - color of the debug shape to be rendered. (format is css color string).
+* @param {boolean} [filled=true] - Render the shape as a filled (default, true) or a stroked (false)
+*/
+Phaser.Physics.Ninja.Body.render = function (context, body, color, filled)
+{
+    color = color || 'rgba(0,255,0,0.4)';
+
+    if (filled === undefined)
+    {
+        filled = true;
+    }
+
+    if (body.aabb || body.circle)
+    {
+        body.shape.render(context, body.game.camera.x, body.game.camera.y, color, filled);
+    }
+};
+
+/**
+* @author       Richard Davey <rich@photonstorm.com>
+* @copyright    2016 Photon Storm Ltd.
+* @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
+*/
+
+/**
+* Ninja Physics AABB constructor.
+* Note: This class could be massively optimised and reduced in size. I leave that challenge up to you.
+*
+* @class Phaser.Physics.Ninja.AABB
+* @constructor
+* @param {Phaser.Physics.Ninja.Body} body - The body that owns this shape.
+* @param {number} x - The x coordinate to create this shape at.
+* @param {number} y - The y coordinate to create this shape at.
+* @param {number} width - The width of this AABB.
+* @param {number} height - The height of this AABB.
+*/
+Phaser.Physics.Ninja.AABB = function (body, x, y, width, height)
+{
+
+    /**
+    * @property {Phaser.Physics.Ninja.Body} system - A reference to the body that owns this shape.
+    */
+    this.body = body;
+
+    /**
+    * @property {Phaser.Physics.Ninja} system - A reference to the physics system.
+    */
+    this.system = body.system;
+
+    /**
+    * @property {Phaser.Point} pos - The position of this object.
+    */
+    this.pos = new Phaser.Point(x, y);
+
+    /**
+    * @property {Phaser.Point} oldpos - The position of this object in the previous update.
+    */
+    this.oldpos = new Phaser.Point(x, y);
+
+    /**
+    * @property {number} xw - Half the width.
+    * @readonly
+    */
+    this.xw = Math.abs(width / 2);
+
+    /**
+    * @property {number} xw - Half the height.
+    * @readonly
+    */
+    this.yw = Math.abs(height / 2);
+
+    /**
+    * @property {number} width - The width.
+    * @readonly
+    */
+    this.width = width;
+
+    /**
+    * @property {number} height - The height.
+    * @readonly
+    */
+    this.height = height;
+
+    /**
+    * @property {number} oH - Internal var.
+    * @private
+    */
+    this.oH = 0;
+
+    /**
+    * @property {number} oV - Internal var.
+    * @private
+    */
+    this.oV = 0;
+
+    /**
+    * @property {Phaser.Point} velocity - The velocity of this object.
+    */
+    this.velocity = new Phaser.Point();
+
+    /**
+    * @property {object} aabbTileProjections - All of the collision response handlers.
+    */
+    this.aabbTileProjections = {};
+
+    this.aabbTileProjections[Phaser.Physics.Ninja.Tile.TYPE_FULL] = this.projAABB_Full;
+    this.aabbTileProjections[Phaser.Physics.Ninja.Tile.TYPE_45DEG] = this.projAABB_45Deg;
+    this.aabbTileProjections[Phaser.Physics.Ninja.Tile.TYPE_CONCAVE] = this.projAABB_Concave;
+    this.aabbTileProjections[Phaser.Physics.Ninja.Tile.TYPE_CONVEX] = this.projAABB_Convex;
+    this.aabbTileProjections[Phaser.Physics.Ninja.Tile.TYPE_22DEGs] = this.projAABB_22DegS;
+    this.aabbTileProjections[Phaser.Physics.Ninja.Tile.TYPE_22DEGb] = this.projAABB_22DegB;
+    this.aabbTileProjections[Phaser.Physics.Ninja.Tile.TYPE_67DEGs] = this.projAABB_67DegS;
+    this.aabbTileProjections[Phaser.Physics.Ninja.Tile.TYPE_67DEGb] = this.projAABB_67DegB;
+    this.aabbTileProjections[Phaser.Physics.Ninja.Tile.TYPE_HALF] = this.projAABB_Half;
+
+};
+
+Phaser.Physics.Ninja.AABB.prototype.constructor = Phaser.Physics.Ninja.AABB;
+
+Phaser.Physics.Ninja.AABB.COL_NONE = 0;
+Phaser.Physics.Ninja.AABB.COL_AXIS = 1;
+Phaser.Physics.Ninja.AABB.COL_OTHER = 2;
+
+Phaser.Physics.Ninja.AABB.prototype = {
+
+    /**
+    * Updates this AABBs position.
+    *
+    * @method Phaser.Physics.Ninja.AABB#integrate
+    */
+    integrate: function ()
+    {
+
+        var px = this.pos.x;
+        var py = this.pos.y;
+
+        //  integrate
+        this.pos.x += (this.body.drag * this.pos.x) - (this.body.drag * this.oldpos.x);
+        this.pos.y += (this.body.drag * this.pos.y) - (this.body.drag * this.oldpos.y) + (this.system.gravity * this.body.gravityScale);
+
+        //  store
+        this.velocity.set(this.pos.x - px, this.pos.y - py);
+        this.oldpos.set(px, py);
+
+    },
+
+    /**
+     * Process a collision partner-agnostic collision response and apply the resulting forces.
+     *
+     * @method Phaser.Physics.Ninja.AABB#reportCollision
+     * @param {number} px - The tangent velocity
+     * @param {number} py - The tangent velocity
+     * @param {number} dx - Collision normal
+     * @param {number} dy - Collision normal
+     */
+    reportCollision: function (px, py, dx, dy)
+    {
+
+        var p = this.pos;
+        var o = this.oldpos;
+
+        //  Calc velocity
+        var vx = p.x - o.x;
+        var vy = p.y - o.y;
+
+        //  Find component of velocity parallel to collision normal
+        var dp = (vx * dx + vy * dy);
+        var nx = dp * dx; // project velocity onto collision normal
+
+        var ny = dp * dy; // nx,ny is normal velocity
+
+        var tx = vx - nx; // tx,ty is tangent velocity
+        var ty = vy - ny;
+
+        //  We only want to apply collision response forces if the object is travelling into, and not out of, the collision
+        var b, bx, by, fx, fy;
+
+        if (dp < 0)
+        {
+            fx = tx * this.body.friction;
+            fy = ty * this.body.friction;
+
+            b = 1 + this.body.bounce;
+
+            bx = (nx * b);
+            by = (ny * b);
+
+            if (dx === 1)
+            {
+                this.body.touching.left = true;
+            }
+            else if (dx === -1)
+            {
+                this.body.touching.right = true;
+            }
+
+            if (dy === 1)
+            {
+                this.body.touching.up = true;
+            }
+            else if (dy === -1)
+            {
+                this.body.touching.down = true;
+            }
+        }
+        else
+        {
+            //  Moving out of collision, do not apply forces
+            bx = by = fx = fy = 0;
+        }
+
+        //  Project object out of collision
+        p.x += px;
+        p.y += py;
+
+        //  Apply bounce+friction impulses which alter velocity
+        o.x += px + bx + fx;
+        o.y += py + by + fy;
+
+    },
+
+    /**
+    * Process a world collision and apply the resulting forces.
+    *
+    * @method Phaser.Physics.Ninja.AABB#reportCollisionVsWorld
+    * @param {number} px - The tangent velocity
+    * @param {number} py - The tangent velocity
+    * @param {number} dx - Collision normal
+    * @param {number} dy - Collision normal
+    */
+    reportCollisionVsWorld: function (px, py, dx, dy)
+    {
+
+        this.reportCollision(px,py,dx,dy);
+    },
+
+    /**
+    * @method Phaser.Physics.Ninja.AABB#reverse
+    */
+    reverse: function ()
+    {
+
+        var vx = this.pos.x - this.oldpos.x;
+        var vy = this.pos.y - this.oldpos.y;
+
+        if (this.oldpos.x < this.pos.x)
+        {
+            this.oldpos.x = this.pos.x + vx;
+
+            // this.oldpos.x = this.pos.x + (vx + 1 + this.body.bounce);
+        }
+        else if (this.oldpos.x > this.pos.x)
+        {
+            this.oldpos.x = this.pos.x - vx;
+
+            // this.oldpos.x = this.pos.x - (vx + 1 + this.body.bounce);
+        }
+
+        if (this.oldpos.y < this.pos.y)
+        {
+            this.oldpos.y = this.pos.y + vy;
+
+            // this.oldpos.y = this.pos.y + (vy + 1 + this.body.bounce);
+        }
+        else if (this.oldpos.y > this.pos.y)
+        {
+            this.oldpos.y = this.pos.y - vy;
+
+            // this.oldpos.y = this.pos.y - (vy + 1 + this.body.bounce);
+        }
+
+    },
+
+    /**
+    * Process a body collision and apply the resulting forces. Still very much WIP and doesn't work fully. Feel free to fix!
+    *
+    * @method Phaser.Physics.Ninja.AABB#reportCollisionVsBody
+    * @param {number} px - The tangent velocity
+    * @param {number} py - The tangent velocity
+    * @param {number} dx - Collision normal
+    * @param {number} dy - Collision normal
+    * @param {number} obj - Object this AABB collided with
+    */
+    reportCollisionVsBody: function (px, py, dx, dy, obj)
+    {
+
+        //  We only want to apply collision response forces if the object is travelling into, and not out of, the collision
+        if (this.body.immovable && obj.body.immovable)
+        {
+            //  Split the separation then return, no forces applied as they come to a stand-still
+            px *= 0.5;
+            py *= 0.5;
+
+            this.pos.add(px, py);
+            this.oldpos.set(this.pos.x, this.pos.y);
+
+            obj.pos.subtract(px, py);
+            obj.oldpos.set(obj.pos.x, obj.pos.y);
+
+            return;
+        }
+        else if (!this.body.immovable && !obj.body.immovable)
+        {
+            //  separate
+            px *= 0.5;
+            py *= 0.5;
+
+            this.reportCollision(px, py, dx, dy);
+            obj.reportCollision(-px, -py, -dx, -dy);
+        }
+        else if (!this.body.immovable)
+        {
+            this.reportCollision(px,py,dx,dy);
+        }
+        else if (!obj.body.immovable)
+        {
+            obj.reportCollision(-px, -py, -dx, -dy);
+        }
+
+    },
+
+    /**
+    * Collides this AABB against the world bounds.
+    *
+    * @method Phaser.Physics.Ninja.AABB#collideWorldBounds
+    */
+    collideWorldBounds: function ()
+    {
+
+        var dx = this.system.bounds.x - (this.pos.x - this.xw);
+
+        if (dx > 0)
+        {
+            this.reportCollisionVsWorld(dx, 0, 1, 0, null);
+        }
+        else
+        {
+            dx = (this.pos.x + this.xw) - this.system.bounds.right;
+
+            if (dx > 0)
+            {
+                this.reportCollisionVsWorld(-dx, 0, -1, 0, null);
+            }
+        }
+
+        var dy = this.system.bounds.y - (this.pos.y - this.yw);
+
+        if (dy > 0)
+        {
+            this.reportCollisionVsWorld(0, dy, 0, 1, null);
+        }
+        else
+        {
+            dy = (this.pos.y + this.yw) - this.system.bounds.bottom;
+
+            if (dy > 0)
+            {
+                this.reportCollisionVsWorld(0, -dy, 0, -1, null);
+            }
+        }
+
+    },
+
+    /**
+    * Collides this AABB against a AABB.
+    *
+    * @method Phaser.Physics.Ninja.AABB#collideAABBVsAABB
+    * @param {Phaser.Physics.Ninja.AABB} aabb - The AABB to collide against.
+    */
+    collideAABBVsAABB: function (aabb)
+    {
+
+        var pos = this.pos;
+        var c = aabb;
+
+        var tx = c.pos.x;
+        var ty = c.pos.y;
+        var txw = c.xw;
+        var tyw = c.yw;
+
+        var dx = pos.x - tx;// tile->obj delta
+        var px = (txw + this.xw) - Math.abs(dx);// penetration depth in x
+
+        if (px > 0)
+        {
+            var dy = pos.y - ty;// tile->obj delta
+            var py = (tyw + this.yw) - Math.abs(dy);// pen depth in y
+
+            if (py > 0)
+            {
+                // object may be colliding with tile; call tile-specific collision function
+
+                // calculate projection vectors
+                if (px < py)
+                {
+                    // project in x
+                    if (dx < 0)
+                    {
+                        // project to the left
+                        px *= -1;
+                        py = 0;
+                    }
+                    else
+                    {
+                        // proj to right
+                        py = 0;
+                    }
+                }
+                else
+                {
+                    // project in y
+                    if (dy < 0)
+                    {
+                        // project up
+                        px = 0;
+                        py *= -1;
+                    }
+                    else
+                    {
+                        // project down
+                        px = 0;
+                    }
+                }
+
+                var l = Math.sqrt(px * px + py * py);
+                this.reportCollisionVsBody(px, py, px / l, py / l, c);
+
+                return Phaser.Physics.Ninja.AABB.COL_AXIS;
+
+            }
+        }
+
+        return false;
+
+    },
+
+    /**
+    * Collides this AABB against a Tile.
+    *
+    * @method Phaser.Physics.Ninja.AABB#collideAABBVsTile
+    * @param {Phaser.Physics.Ninja.Tile} tile - The Tile to collide against.
+    */
+    collideAABBVsTile: function (tile)
+    {
+
+        var dx = this.pos.x - tile.pos.x; //  tile->obj delta
+        var px = (tile.xw + this.xw) - Math.abs(dx); //  penetration depth in x
+
+        if (px > 0)
+        {
+            var dy = this.pos.y - tile.pos.y; //  tile->obj delta
+            var py = (tile.yw + this.yw) - Math.abs(dy); //  pen depth in y
+
+            if (py > 0)
+            {
+                //  Calculate projection vectors
+                if (px < py)
+                {
+                    //  Project in x
+                    if (dx < 0)
+                    {
+                        //  Project to the left
+                        px *= -1;
+                        py = 0;
+                    }
+                    else
+                    {
+                        //  Project to the right
+                        py = 0;
+                    }
+                }
+                else
+                {
+                    //  Project in y
+                    if (dy < 0)
+                    {
+                        //  Project up
+                        px = 0;
+                        py *= -1;
+                    }
+                    else
+                    {
+                        //  Project down
+                        px = 0;
+                    }
+                }
+
+                //  Object may be colliding with tile; call tile-specific collision function
+                return this.resolveTile(px, py, this, tile);
+            }
+        }
+
+        return false;
+
+    },
+
+    /**
+    * Resolves tile collision.
+    *
+    * @method Phaser.Physics.Ninja.AABB#resolveTile
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {Phaser.Physics.Ninja.AABB} body - The AABB involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} tile - The Tile involved in the collision.
+    * @return {boolean} True if the collision was processed, otherwise false.
+    */
+    resolveTile: function (x, y, body, tile)
+    {
+
+        if (tile.id > 0)
+        {
+            return this.aabbTileProjections[tile.type](x, y, body, tile);
+        }
+        else
+        {
+            // console.warn("Ninja.AABB.resolveTile was called with an empty (or unknown) tile!: id=" + tile.id + ")");
+            return false;
+        }
+
+    },
+
+    /**
+    * Resolves Full tile collision.
+    *
+    * @method Phaser.Physics.Ninja.AABB#projAABB_Full
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {Phaser.Physics.Ninja.AABB} obj - The AABB involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projAABB_Full: function (x, y, obj, t)
+    {
+
+        var l = Math.sqrt(x * x + y * y);
+        obj.reportCollisionVsWorld(x, y, x / l, y / l, t);
+
+        return Phaser.Physics.Ninja.AABB.COL_AXIS;
+
+    },
+
+    /**
+    * Resolves Half tile collision.
+    *
+    * @method Phaser.Physics.Ninja.AABB#projAABB_Half
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {Phaser.Physics.Ninja.AABB} obj - The AABB involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projAABB_Half: function (x, y, obj, t)
+    {
+
+        // signx or signy must be 0; the other must be -1 or 1
+        // calculate the projection vector for the half-edge, and then
+        // (if collision is occuring) pick the minimum
+
+        var sx = t.signx;
+        var sy = t.signy;
+
+        var ox = (obj.pos.x - (sx * obj.xw)) - t.pos.x;// this gives is the coordinates of the innermost
+        var oy = (obj.pos.y - (sy * obj.yw)) - t.pos.y;// point on the AABB, relative to the tile center
+
+        // we perform operations analogous to the 45deg tile, except we're using
+        // an axis-aligned slope instead of an angled one..
+
+        // if the dotprod of (ox,oy) and (sx,sy) is negative, the corner is in the slope
+        // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+        var dp = (ox * sx) + (oy * sy);
+
+        if (dp < 0)
+        {
+            // collision; project delta onto slope and use this to displace the object
+            sx *= -dp;// (sx,sy) is now the projection vector
+            sy *= -dp;
+
+            var lenN = Math.sqrt(sx * sx + sy * sy);
+            var lenP = Math.sqrt(x * x + y * y);
+
+            if (lenP < lenN)
+            {
+                // project along axis; note that we're assuming that this tile is horizontal OR vertical
+                // relative to the AABB's current tile, and not diagonal OR the current tile.
+                obj.reportCollisionVsWorld(x,y,x / lenP, y / lenP, t);
+
+                return Phaser.Physics.Ninja.AABB.COL_AXIS;
+            }
+            else
+            {
+                // note that we could use -= instead of -dp
+                obj.reportCollisionVsWorld(sx,sy,t.signx, t.signy, t);
+
+                return Phaser.Physics.Ninja.AABB.COL_OTHER;
+            }
+        }
+
+        return Phaser.Physics.Ninja.AABB.COL_NONE;
+
+    },
+
+    /**
+    * Resolves 45 Degree tile collision.
+    *
+    * @method Phaser.Physics.Ninja.AABB#projAABB_45Deg
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {Phaser.Physics.Ninja.AABB} obj - The AABB involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projAABB_45Deg: function (x, y, obj, t)
+    {
+
+        var signx = t.signx;
+        var signy = t.signy;
+
+        var ox = (obj.pos.x - (signx * obj.xw)) - t.pos.x;// this gives is the coordinates of the innermost
+        var oy = (obj.pos.y - (signy * obj.yw)) - t.pos.y;// point on the AABB, relative to the tile center
+
+        var sx = t.sx;
+        var sy = t.sy;
+
+        // if the dotprod of (ox,oy) and (sx,sy) is negative, the corner is in the slope
+        // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+        var dp = (ox * sx) + (oy * sy);
+
+        if (dp < 0)
+        {
+            // collision; project delta onto slope and use this to displace the object
+            sx *= -dp;// (sx,sy) is now the projection vector
+            sy *= -dp;
+
+            var lenN = Math.sqrt(sx * sx + sy * sy);
+            var lenP = Math.sqrt(x * x + y * y);
+
+            if (lenP < lenN)
+            {
+                // project along axis
+                obj.reportCollisionVsWorld(x,y,x / lenP, y / lenP, t);
+
+                return Phaser.Physics.Ninja.AABB.COL_AXIS;
+            }
+            else
+            {
+                // project along slope
+                obj.reportCollisionVsWorld(sx,sy,t.sx,t.sy);
+
+                return Phaser.Physics.Ninja.AABB.COL_OTHER;
+            }
+        }
+
+        return Phaser.Physics.Ninja.AABB.COL_NONE;
+    },
+
+    /**
+    * Resolves 22 Degree tile collision.
+    *
+    * @method Phaser.Physics.Ninja.AABB#projAABB_22DegS
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {Phaser.Physics.Ninja.AABB} obj - The AABB involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projAABB_22DegS: function (x, y, obj, t)
+    {
+
+        var signx = t.signx;
+        var signy = t.signy;
+
+        // first we need to check to make sure we're colliding with the slope at all
+        var py = obj.pos.y - (signy * obj.yw);
+        var penY = t.pos.y - py;// this is the vector from the innermost point on the box to the highest point on
+        // the tile; if it is positive, this means the box is above the tile and
+        // no collision is occuring
+        if ((penY * signy) > 0)
+        {
+            var ox = (obj.pos.x - (signx * obj.xw)) - (t.pos.x + (signx * t.xw));// this gives is the coordinates of the innermost
+            var oy = (obj.pos.y - (signy * obj.yw)) - (t.pos.y - (signy * t.yw));// point on the AABB, relative to a point on the slope
+
+            var sx = t.sx;// get slope unit normal
+            var sy = t.sy;
+
+            // if the dotprod of (ox,oy) and (sx,sy) is negative, the corner is in the slope
+            // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+            var dp = (ox * sx) + (oy * sy);
+
+            if (dp < 0)
+            {
+                // collision; project delta onto slope and use this to displace the object
+                sx *= -dp;// (sx,sy) is now the projection vector
+                sy *= -dp;
+
+                var lenN = Math.sqrt(sx * sx + sy * sy);
+                var lenP = Math.sqrt(x * x + y * y);
+
+                var aY = Math.abs(penY);
+
+                if (lenP < lenN)
+                {
+                    if (aY < lenP)
+                    {
+                        obj.reportCollisionVsWorld(0, penY, 0, penY / aY, t);
+
+                        return Phaser.Physics.Ninja.AABB.COL_OTHER;
+                    }
+                    else
+                    {
+                        obj.reportCollisionVsWorld(x,y,x / lenP, y / lenP, t);
+
+                        return Phaser.Physics.Ninja.AABB.COL_AXIS;
+                    }
+                }
+                else
+                if (aY < lenN)
+                {
+                    obj.reportCollisionVsWorld(0, penY, 0, penY / aY, t);
+
+                    return Phaser.Physics.Ninja.AABB.COL_OTHER;
+                }
+                else
+                {
+                    obj.reportCollisionVsWorld(sx,sy,t.sx,t.sy,t);
+
+                    return Phaser.Physics.Ninja.AABB.COL_OTHER;
+                }
+            }
+        }
+
+        // if we've reached this point, no collision has occurred
+        return Phaser.Physics.Ninja.AABB.COL_NONE;
+    },
+
+    /**
+    * Resolves 22 Degree tile collision.
+    *
+    * @method Phaser.Physics.Ninja.AABB#projAABB_22DegB
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {Phaser.Physics.Ninja.AABB} obj - The AABB involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projAABB_22DegB: function (x, y, obj, t)
+    {
+
+        var signx = t.signx;
+        var signy = t.signy;
+
+        var ox = (obj.pos.x - (signx * obj.xw)) - (t.pos.x - (signx * t.xw));// this gives is the coordinates of the innermost
+        var oy = (obj.pos.y - (signy * obj.yw)) - (t.pos.y + (signy * t.yw));// point on the AABB, relative to a point on the slope
+
+        var sx = t.sx;// get slope unit normal
+        var sy = t.sy;
+
+        // if the dotprod of (ox,oy) and (sx,sy) is negative, the corner is in the slope
+        // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+        var dp = (ox * sx) + (oy * sy);
+
+        if (dp < 0)
+        {
+            // collision; project delta onto slope and use this to displace the object
+            sx *= -dp;// (sx,sy) is now the projection vector
+            sy *= -dp;
+
+            var lenN = Math.sqrt(sx * sx + sy * sy);
+            var lenP = Math.sqrt(x * x + y * y);
+
+            if (lenP < lenN)
+            {
+                obj.reportCollisionVsWorld(x,y,x / lenP, y / lenP, t);
+
+                return Phaser.Physics.Ninja.AABB.COL_AXIS;
+            }
+            else
+            {
+                obj.reportCollisionVsWorld(sx,sy,t.sx,t.sy,t);
+
+                return Phaser.Physics.Ninja.AABB.COL_OTHER;
+            }
+
+        }
+
+        return Phaser.Physics.Ninja.AABB.COL_NONE;
+
+    },
+
+    /**
+    * Resolves 67 Degree tile collision.
+    *
+    * @method Phaser.Physics.Ninja.AABB#projAABB_67DegS
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {Phaser.Physics.Ninja.AABB} obj - The AABB involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projAABB_67DegS: function (x, y, obj, t)
+    {
+
+        var signx = t.signx;
+        var signy = t.signy;
+
+        var px = obj.pos.x - (signx * obj.xw);
+        var penX = t.pos.x - px;
+
+        if ((penX * signx) > 0)
+        {
+            var ox = (obj.pos.x - (signx * obj.xw)) - (t.pos.x - (signx * t.xw));// this gives is the coordinates of the innermost
+            var oy = (obj.pos.y - (signy * obj.yw)) - (t.pos.y + (signy * t.yw));// point on the AABB, relative to a point on the slope
+
+            var sx = t.sx;// get slope unit normal
+            var sy = t.sy;
+
+            // if the dotprod of (ox,oy) and (sx,sy) is negative, the corner is in the slope
+            // and we need to project it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+            var dp = (ox * sx) + (oy * sy);
+
+            if (dp < 0)
+            {
+                // collision; project delta onto slope and use this to displace the object
+                sx *= -dp;// (sx,sy) is now the projection vector
+                sy *= -dp;
+
+                var lenN = Math.sqrt(sx * sx + sy * sy);
+                var lenP = Math.sqrt(x * x + y * y);
+
+                var aX = Math.abs(penX);
+
+                if (lenP < lenN)
+                {
+                    if (aX < lenP)
+                    {
+                        obj.reportCollisionVsWorld(penX, 0, penX / aX, 0, t);
+
+                        return Phaser.Physics.Ninja.AABB.COL_OTHER;
+                    }
+                    else
+                    {
+                        obj.reportCollisionVsWorld(x,y,x / lenP, y / lenP, t);
+
+                        return Phaser.Physics.Ninja.AABB.COL_AXIS;
+                    }
+                }
+                else
+                if (aX < lenN)
+                {
+                    obj.reportCollisionVsWorld(penX, 0, penX / aX, 0, t);
+
+                    return Phaser.Physics.Ninja.AABB.COL_OTHER;
+                }
+                else
+                {
+                    obj.reportCollisionVsWorld(sx,sy,t.sx,t.sy,t);
+
+                    return Phaser.Physics.Ninja.AABB.COL_OTHER;
+                }
+            }
+        }
+
+        // if we've reached this point, no collision has occurred
+        return Phaser.Physics.Ninja.AABB.COL_NONE;
+
+    },
+
+    /**
+    * Resolves 67 Degree tile collision.
+    *
+    * @method Phaser.Physics.Ninja.AABB#projAABB_67DegB
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {Phaser.Physics.Ninja.AABB} obj - The AABB involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projAABB_67DegB: function (x, y, obj, t)
+    {
+
+        var signx = t.signx;
+        var signy = t.signy;
+
+        var ox = (obj.pos.x - (signx * obj.xw)) - (t.pos.x + (signx * t.xw));// this gives is the coordinates of the innermost
+        var oy = (obj.pos.y - (signy * obj.yw)) - (t.pos.y - (signy * t.yw));// point on the AABB, relative to a point on the slope
+
+        var sx = t.sx;// get slope unit normal
+        var sy = t.sy;
+
+        // if the dotprod of (ox,oy) and (sx,sy) is negative, the corner is in the slope
+        // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+        var dp = (ox * sx) + (oy * sy);
+
+        if (dp < 0)
+        {
+            // collision; project delta onto slope and use this to displace the object
+            sx *= -dp;// (sx,sy) is now the projection vector
+            sy *= -dp;
+
+            var lenN = Math.sqrt(sx * sx + sy * sy);
+            var lenP = Math.sqrt(x * x + y * y);
+
+            if (lenP < lenN)
+            {
+                obj.reportCollisionVsWorld(x,y,x / lenP, y / lenP, t);
+
+                return Phaser.Physics.Ninja.AABB.COL_AXIS;
+            }
+            else
+            {
+                obj.reportCollisionVsWorld(sx,sy,t.sx,t.sy,t);
+
+                return Phaser.Physics.Ninja.AABB.COL_OTHER;
+            }
+        }
+
+        return Phaser.Physics.Ninja.AABB.COL_NONE;
+    },
+
+    /**
+    * Resolves Convex tile collision.
+    *
+    * @method Phaser.Physics.Ninja.AABB#projAABB_Convex
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {Phaser.Physics.Ninja.AABB} obj - The AABB involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projAABB_Convex: function (x, y, obj, t)
+    {
+
+        // if distance from "innermost" corner of AABB is less than than tile radius,
+        // collision is occuring and we need to project
+
+        var signx = t.signx;
+        var signy = t.signy;
+
+        var ox = (obj.pos.x - (signx * obj.xw)) - (t.pos.x - (signx * t.xw));// (ox,oy) is the vector from the circle center to
+        var oy = (obj.pos.y - (signy * obj.yw)) - (t.pos.y - (signy * t.yw));// the AABB
+        var len = Math.sqrt(ox * ox + oy * oy);
+
+        var twid = t.xw * 2;
+        var rad = Math.sqrt(twid * twid + 0);// this gives us the radius of a circle centered on the tile's corner and extending to the opposite edge of the tile;
+        // note that this should be precomputed at compile-time since it's constant
+
+        var pen = rad - len;
+
+        if (((signx * ox) < 0) || ((signy * oy) < 0))
+        {
+            // the test corner is "outside" the 1/4 of the circle we're interested in
+            var lenP = Math.sqrt(x * x + y * y);
+            obj.reportCollisionVsWorld(x, y, x / lenP, y / lenP, t);
+
+            return Phaser.Physics.Ninja.AABB.COL_AXIS;// we need to report
+        }
+        else if (pen > 0)
+        {
+            // project along corner->circle vector
+            ox /= len;
+            oy /= len;
+            obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+            return Phaser.Physics.Ninja.AABB.COL_OTHER;
+        }
+
+        return Phaser.Physics.Ninja.AABB.COL_NONE;
+
+    },
+
+    /**
+    * Resolves Concave tile collision.
+    *
+    * @method Phaser.Physics.Ninja.AABB#projAABB_Concave
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {Phaser.Physics.Ninja.AABB} obj - The AABB involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projAABB_Concave: function (x, y, obj, t)
+    {
+
+        // if distance from "innermost" corner of AABB is further than tile radius,
+        // collision is occuring and we need to project
+
+        var signx = t.signx;
+        var signy = t.signy;
+
+        var ox = (t.pos.x + (signx * t.xw)) - (obj.pos.x - (signx * obj.xw));// (ox,oy) is the vector form the innermost AABB corner to the
+        var oy = (t.pos.y + (signy * t.yw)) - (obj.pos.y - (signy * obj.yw));// circle's center
+
+        var twid = t.xw * 2;
+        var rad = Math.sqrt(twid * twid + 0);// this gives us the radius of a circle centered on the tile's corner and extending to the opposite edge of the tile;
+        // note that this should be precomputed at compile-time since it's constant
+
+        var len = Math.sqrt(ox * ox + oy * oy);
+        var pen = len - rad;
+
+        if (pen > 0)
+        {
+            // collision; we need to either project along the axes, or project along corner->circlecenter vector
+
+            var lenP = Math.sqrt(x * x + y * y);
+
+            if (lenP < pen)
+            {
+                // it's shorter to move along axis directions
+                obj.reportCollisionVsWorld(x, y, x / lenP, y / lenP, t);
+
+                return Phaser.Physics.Ninja.AABB.COL_AXIS;
+            }
+            else
+            {
+                // project along corner->circle vector
+                ox /= len;// len should never be 0, since if it IS 0, rad should be > than len
+                oy /= len;// and we should never reach here
+
+                obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                return Phaser.Physics.Ninja.AABB.COL_OTHER;
+            }
+
+        }
+
+        return Phaser.Physics.Ninja.AABB.COL_NONE;
+
+    },
+
+    /**
+    * Destroys this AABB's reference to Body and System
+    *
+    * @method Phaser.Physics.Ninja.AABB#destroy
+    */
+    destroy: function ()
+    {
+        this.body = null;
+        this.system = null;
+    },
+
+    /**
+    * Render this AABB for debugging purposes.
+    *
+    * @method Phaser.Physics.Ninja.AABB#render
+    * @param {object} context - The context to render to.
+    * @param {number} xOffset - X offset from AABB's position to render at.
+    * @param {number} yOffset - Y offset from AABB's position to render at.
+    * @param {string} color - color of the debug shape to be rendered. (format is css color string).
+    * @param {boolean} filled - Render the shape as solid (true) or hollow (false).
+    */
+    render: function (context, xOffset, yOffset, color, filled)
+    {
+        var left = this.pos.x - this.xw - xOffset;
+        var top = this.pos.y - this.yw - yOffset;
+
+        if (filled)
+        {
+            context.fillStyle = color;
+            context.fillRect(left, top, this.width, this.height);
+        }
+        else
+        {
+            context.strokeStyle = color;
+            context.strokeRect(left, top, this.width, this.height);
+        }
+    }
+};
+
+/**
+* @author       Richard Davey <rich@photonstorm.com>
+* @copyright    2016 Photon Storm Ltd.
+* @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
+*/
+
+/**
+* Ninja Physics Tile constructor.
+* A Tile is defined by its width, height and type. It's type can include slope data, such as 45 degree slopes, or convex slopes.
+* Understand that for any type including a slope (types 2 to 29) the Tile must be SQUARE, i.e. have an equal width and height.
+* Also note that as Tiles are primarily used for levels they have gravity disabled and world bounds collision disabled by default.
+*
+* Note: This class could be massively optimised and reduced in size. I leave that challenge up to you.
+*
+* @class Phaser.Physics.Ninja.Tile
+* @constructor
+* @param {Phaser.Physics.Ninja.Body} body - The body that owns this shape.
+* @param {number} x - The x coordinate to create this shape at.
+* @param {number} y - The y coordinate to create this shape at.
+* @param {number} width - The width of this AABB.
+* @param {number} height - The height of this AABB.
+* @param {number} [type=1] - The type of Ninja shape to create. 1 = AABB, 2 = Circle or 3 = Tile.
+*/
+Phaser.Physics.Ninja.Tile = function (body, x, y, width, height, type)
+{
+
+    if (type === undefined) { type = Phaser.Physics.Ninja.Tile.EMPTY; }
+
+    /**
+    * @property {Phaser.Physics.Ninja.Body} system - A reference to the body that owns this shape.
+    */
+    this.body = body;
+
+    /**
+    * @property {Phaser.Physics.Ninja} system - A reference to the physics system.
+    */
+    this.system = body.system;
+
+    /**
+    * @property {number} id - The ID of this Tile.
+    * @readonly
+    */
+    this.id = type;
+
+    /**
+    * @property {number} type - The type of this Tile.
+    * @readonly
+    */
+    this.type = Phaser.Physics.Ninja.Tile.TYPE_EMPTY;
+
+    /**
+    * @property {Phaser.Point} pos - The position of this object.
+    */
+    this.pos = new Phaser.Point(x, y);
+
+    /**
+    * @property {Phaser.Point} oldpos - The position of this object in the previous update.
+    */
+    this.oldpos = new Phaser.Point(x, y);
+
+    if (this.id > 1 && this.id < 30)
+    {
+        //  Tile Types 2 to 29 require square tile dimensions, so use the width as the base
+        height = width;
+    }
+
+    /**
+    * @property {number} xw - Half the width.
+    * @readonly
+    */
+    this.xw = Math.abs(width / 2);
+
+    /**
+    * @property {number} xw - Half the height.
+    * @readonly
+    */
+    this.yw = Math.abs(height / 2);
+
+    /**
+    * @property {number} width - The width.
+    * @readonly
+    */
+    this.width = width;
+
+    /**
+    * @property {number} height - The height.
+    * @readonly
+    */
+    this.height = height;
+
+    /**
+    * @property {Phaser.Point} velocity - The velocity of this object.
+    */
+    this.velocity = new Phaser.Point();
+
+    /**
+    * @property {number} signx - Internal var.
+    * @private
+    */
+    this.signx = 0;
+
+    /**
+    * @property {number} signy - Internal var.
+    * @private
+    */
+    this.signy = 0;
+
+    /**
+    * @property {number} sx - Internal var.
+    * @private
+    */
+    this.sx = 0;
+
+    /**
+    * @property {number} sy - Internal var.
+    * @private
+    */
+    this.sy = 0;
+
+    //  By default Tiles disable gravity and world bounds collision
+    this.body.gravityScale = 0;
+    this.body.collideWorldBounds = false;
+
+    if (this.id > 0)
+    {
+        this.setType(this.id);
+    }
+
+};
+
+Phaser.Physics.Ninja.Tile.prototype.constructor = Phaser.Physics.Ninja.Tile;
+
+Phaser.Physics.Ninja.Tile.prototype = {
+
+    /**
+    * Updates this objects position.
+    *
+    * @method Phaser.Physics.Ninja.Tile#integrate
+    */
+    integrate: function ()
+    {
+
+        var px = this.pos.x;
+        var py = this.pos.y;
+
+        this.pos.x += (this.body.drag * this.pos.x) - (this.body.drag * this.oldpos.x);
+        this.pos.y += (this.body.drag * this.pos.y) - (this.body.drag * this.oldpos.y) + (this.system.gravity * this.body.gravityScale);
+
+        this.velocity.set(this.pos.x - px, this.pos.y - py);
+        this.oldpos.set(px, py);
+
+    },
+
+    /**
+    * Tiles cannot collide with the world bounds, it's up to you to keep them where you want them. But we need this API stub to satisfy the Body.
+    *
+    * @method Phaser.Physics.Ninja.Tile#collideWorldBounds
+    */
+    collideWorldBounds: function ()
+    {
+
+        var dx = this.system.bounds.x - (this.pos.x - this.xw);
+
+        if (dx > 0)
+        {
+            this.reportCollisionVsWorld(dx, 0, 1, 0, null);
+        }
+        else
+        {
+            dx = (this.pos.x + this.xw) - this.system.bounds.right;
+
+            if (dx > 0)
+            {
+                this.reportCollisionVsWorld(-dx, 0, -1, 0, null);
+            }
+        }
+
+        var dy = this.system.bounds.y - (this.pos.y - this.yw);
+
+        if (dy > 0)
+        {
+            this.reportCollisionVsWorld(0, dy, 0, 1, null);
+        }
+        else
+        {
+            dy = (this.pos.y + this.yw) - this.system.bounds.bottom;
+
+            if (dy > 0)
+            {
+                this.reportCollisionVsWorld(0, -dy, 0, -1, null);
+            }
+        }
+
+    },
+
+    /**
+    * Process a world collision and apply the resulting forces.
+    *
+    * @method Phaser.Physics.Ninja.Tile#reportCollisionVsWorld
+    * @param {number} px - The tangent velocity
+    * @param {number} py - The tangent velocity
+    * @param {number} dx - Collision normal
+    * @param {number} dy - Collision normal
+    * @param {number} obj - Object this Tile collided with
+    */
+    reportCollisionVsWorld: function (px, py, dx, dy)
+    {
+        var p = this.pos;
+        var o = this.oldpos;
+
+        //  Calc velocity
+        var vx = p.x - o.x;
+        var vy = p.y - o.y;
+
+        //  Find component of velocity parallel to collision normal
+        var dp = (vx * dx + vy * dy);
+        var nx = dp * dx; // project velocity onto collision normal
+
+        var ny = dp * dy; // nx,ny is normal velocity
+
+        var tx = vx - nx; // px,py is tangent velocity
+        var ty = vy - ny;
+
+        //  We only want to apply collision response forces if the object is travelling into, and not out of, the collision
+        var b, bx, by, fx, fy;
+
+        if (dp < 0)
+        {
+            fx = tx * this.body.friction;
+            fy = ty * this.body.friction;
+
+            b = 1 + this.body.bounce;
+
+            bx = (nx * b);
+            by = (ny * b);
+
+            if (dx === 1)
+            {
+                this.body.touching.left = true;
+            }
+            else if (dx === -1)
+            {
+                this.body.touching.right = true;
+            }
+
+            if (dy === 1)
+            {
+                this.body.touching.up = true;
+            }
+            else if (dy === -1)
+            {
+                this.body.touching.down = true;
+            }
+        }
+        else
+        {
+            //  Moving out of collision, do not apply forces
+            bx = by = fx = fy = 0;
+        }
+
+        //  Project object out of collision
+        p.x += px;
+        p.y += py;
+
+        //  Apply bounce+friction impulses which alter velocity
+        o.x += px + bx + fx;
+        o.y += py + by + fy;
+
+    },
+
+    /**
+    * Tiles cannot collide with the world bounds, it's up to you to keep them where you want them. But we need this API stub to satisfy the Body.
+    *
+    * @method Phaser.Physics.Ninja.Tile#setType
+    * @param {number} id - The type of Tile this will use, i.e. Phaser.Physics.Ninja.Tile.SLOPE_45DEGpn, Phaser.Physics.Ninja.Tile.CONVEXpp, etc.
+    */
+    setType: function (id)
+    {
+
+        if (id === Phaser.Physics.Ninja.Tile.EMPTY)
+        {
+            this.clear();
+        }
+        else
+        {
+            this.id = id;
+            this.updateType();
+        }
+
+        return this;
+
+    },
+
+    /**
+    * Sets this tile to be empty.
+    *
+    * @method Phaser.Physics.Ninja.Tile#clear
+    */
+    clear: function ()
+    {
+
+        this.id = Phaser.Physics.Ninja.Tile.EMPTY;
+        this.updateType();
+
+    },
+
+    /**
+    * Destroys this Tiles reference to Body and System.
+    *
+    * @method Phaser.Physics.Ninja.Tile#destroy
+    */
+    destroy: function ()
+    {
+
+        this.body = null;
+        this.system = null;
+
+    },
+
+    /**
+    * This converts a tile from implicitly-defined (via id), to explicit (via properties).
+    * Don't call directly, instead of setType.
+    *
+    * @method Phaser.Physics.Ninja.Tile#updateType
+    * @private
+    */
+    updateType: function ()
+    {
+
+        if (this.id === 0)
+        {
+            // EMPTY
+            this.type = Phaser.Physics.Ninja.Tile.TYPE_EMPTY;
+            this.signx = 0;
+            this.signy = 0;
+            this.sx = 0;
+            this.sy = 0;
+
+            return true;
+        }
+
+        // tile is non-empty; collide
+        if (this.id < Phaser.Physics.Ninja.Tile.TYPE_45DEG)
+        {
+            // FULL
+            this.type = Phaser.Physics.Ninja.Tile.TYPE_FULL;
+            this.signx = 0;
+            this.signy = 0;
+            this.sx = 0;
+            this.sy = 0;
+        }
+        else if (this.id < Phaser.Physics.Ninja.Tile.TYPE_CONCAVE)
+        {
+            //  45deg
+            this.type = Phaser.Physics.Ninja.Tile.TYPE_45DEG;
+
+            if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_45DEGpn)
+            {
+                this.signx = 1;
+                this.signy = -1;
+                this.sx = this.signx / Math.SQRT2;// get slope _unit_ normal
+                this.sy = this.signy / Math.SQRT2;// since normal is (1,-1), length is sqrt(1*1 + -1*-1) = sqrt(2)
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_45DEGnn)
+            {
+                this.signx = -1;
+                this.signy = -1;
+                this.sx = this.signx / Math.SQRT2;// get slope _unit_ normal
+                this.sy = this.signy / Math.SQRT2;// since normal is (1,-1), length is sqrt(1*1 + -1*-1) = sqrt(2)
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_45DEGnp)
+            {
+                this.signx = -1;
+                this.signy = 1;
+                this.sx = this.signx / Math.SQRT2;// get slope _unit_ normal
+                this.sy = this.signy / Math.SQRT2;// since normal is (1,-1), length is sqrt(1*1 + -1*-1) = sqrt(2)
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_45DEGpp)
+            {
+                this.signx = 1;
+                this.signy = 1;
+                this.sx = this.signx / Math.SQRT2;// get slope _unit_ normal
+                this.sy = this.signy / Math.SQRT2;// since normal is (1,-1), length is sqrt(1*1 + -1*-1) = sqrt(2)
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else if (this.id < Phaser.Physics.Ninja.Tile.TYPE_CONVEX)
+        {
+            //  Concave
+            this.type = Phaser.Physics.Ninja.Tile.TYPE_CONCAVE;
+
+            if (this.id === Phaser.Physics.Ninja.Tile.CONCAVEpn)
+            {
+                this.signx = 1;
+                this.signy = -1;
+                this.sx = 0;
+                this.sy = 0;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.CONCAVEnn)
+            {
+                this.signx = -1;
+                this.signy = -1;
+                this.sx = 0;
+                this.sy = 0;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.CONCAVEnp)
+            {
+                this.signx = -1;
+                this.signy = 1;
+                this.sx = 0;
+                this.sy = 0;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.CONCAVEpp)
+            {
+                this.signx = 1;
+                this.signy = 1;
+                this.sx = 0;
+                this.sy = 0;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else if (this.id < Phaser.Physics.Ninja.Tile.TYPE_22DEGs)
+        {
+            //  Convex
+            this.type = Phaser.Physics.Ninja.Tile.TYPE_CONVEX;
+
+            if (this.id === Phaser.Physics.Ninja.Tile.CONVEXpn)
+            {
+                this.signx = 1;
+                this.signy = -1;
+                this.sx = 0;
+                this.sy = 0;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.CONVEXnn)
+            {
+                this.signx = -1;
+                this.signy = -1;
+                this.sx = 0;
+                this.sy = 0;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.CONVEXnp)
+            {
+                this.signx = -1;
+                this.signy = 1;
+                this.sx = 0;
+                this.sy = 0;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.CONVEXpp)
+            {
+                this.signx = 1;
+                this.signy = 1;
+                this.sx = 0;
+                this.sy = 0;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else if (this.id < Phaser.Physics.Ninja.Tile.TYPE_22DEGb)
+        {
+            //  22deg small
+            this.type = Phaser.Physics.Ninja.Tile.TYPE_22DEGs;
+
+            if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_22DEGpnS)
+            {
+                this.signx = 1;
+                this.signy = -1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 1) / slen;
+                this.sy = (this.signy * 2) / slen;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_22DEGnnS)
+            {
+                this.signx = -1;
+                this.signy = -1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 1) / slen;
+                this.sy = (this.signy * 2) / slen;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_22DEGnpS)
+            {
+                this.signx = -1;
+                this.signy = 1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 1) / slen;
+                this.sy = (this.signy * 2) / slen;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_22DEGppS)
+            {
+                this.signx = 1;
+                this.signy = 1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 1) / slen;
+                this.sy = (this.signy * 2) / slen;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else if (this.id < Phaser.Physics.Ninja.Tile.TYPE_67DEGs)
+        {
+            //  22deg big
+            this.type = Phaser.Physics.Ninja.Tile.TYPE_22DEGb;
+
+            if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_22DEGpnB)
+            {
+                this.signx = 1;
+                this.signy = -1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 1) / slen;
+                this.sy = (this.signy * 2) / slen;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_22DEGnnB)
+            {
+                this.signx = -1;
+                this.signy = -1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 1) / slen;
+                this.sy = (this.signy * 2) / slen;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_22DEGnpB)
+            {
+                this.signx = -1;
+                this.signy = 1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 1) / slen;
+                this.sy = (this.signy * 2) / slen;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_22DEGppB)
+            {
+                this.signx = 1;
+                this.signy = 1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 1) / slen;
+                this.sy = (this.signy * 2) / slen;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else if (this.id < Phaser.Physics.Ninja.Tile.TYPE_67DEGb)
+        {
+            //  67deg small
+            this.type = Phaser.Physics.Ninja.Tile.TYPE_67DEGs;
+
+            if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_67DEGpnS)
+            {
+                this.signx = 1;
+                this.signy = -1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 2) / slen;
+                this.sy = (this.signy * 1) / slen;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_67DEGnnS)
+            {
+                this.signx = -1;
+                this.signy = -1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 2) / slen;
+                this.sy = (this.signy * 1) / slen;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_67DEGnpS)
+            {
+                this.signx = -1;
+                this.signy = 1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 2) / slen;
+                this.sy = (this.signy * 1) / slen;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_67DEGppS)
+            {
+                this.signx = 1;
+                this.signy = 1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 2) / slen;
+                this.sy = (this.signy * 1) / slen;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else if (this.id < Phaser.Physics.Ninja.Tile.TYPE_HALF)
+        {
+            //  67deg big
+            this.type = Phaser.Physics.Ninja.Tile.TYPE_67DEGb;
+
+            if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_67DEGpnB)
+            {
+                this.signx = 1;
+                this.signy = -1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 2) / slen;
+                this.sy = (this.signy * 1) / slen;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_67DEGnnB)
+            {
+                this.signx = -1;
+                this.signy = -1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 2) / slen;
+                this.sy = (this.signy * 1) / slen;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_67DEGnpB)
+            {
+                this.signx = -1;
+                this.signy = 1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 2) / slen;
+                this.sy = (this.signy * 1) / slen;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.SLOPE_67DEGppB)
+            {
+                this.signx = 1;
+                this.signy = 1;
+                var slen = Math.sqrt(2 * 2 + 1 * 1);
+                this.sx = (this.signx * 2) / slen;
+                this.sy = (this.signy * 1) / slen;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            //  Half-full tile
+            this.type = Phaser.Physics.Ninja.Tile.TYPE_HALF;
+
+            if (this.id === Phaser.Physics.Ninja.Tile.HALFd)
+            {
+                this.signx = 0;
+                this.signy = -1;
+                this.sx = this.signx;
+                this.sy = this.signy;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.HALFu)
+            {
+                this.signx = 0;
+                this.signy = 1;
+                this.sx = this.signx;
+                this.sy = this.signy;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.HALFl)
+            {
+                this.signx = 1;
+                this.signy = 0;
+                this.sx = this.signx;
+                this.sy = this.signy;
+            }
+            else if (this.id === Phaser.Physics.Ninja.Tile.HALFr)
+            {
+                this.signx = -1;
+                this.signy = 0;
+                this.sx = this.signx;
+                this.sy = this.signy;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+};
+
+/**
+* @name Phaser.Physics.Ninja.Tile#x
+* @property {number} x - The x position.
+*/
+Object.defineProperty(Phaser.Physics.Ninja.Tile.prototype, 'x', {
+
+    get: function ()
+    {
+        return this.pos.x - this.xw;
+    },
+
+    set: function (value)
+    {
+        this.pos.x = value;
+    }
+
+});
+
+/**
+* @name Phaser.Physics.Ninja.Tile#y
+* @property {number} y - The y position.
+*/
+Object.defineProperty(Phaser.Physics.Ninja.Tile.prototype, 'y', {
+
+    get: function ()
+    {
+        return this.pos.y - this.yw;
+    },
+
+    set: function (value)
+    {
+        this.pos.y = value;
+    }
+
+});
+
+/**
+* @name Phaser.Physics.Ninja.Tile#bottom
+* @property {number} bottom - The bottom value of this Body (same as Body.y + Body.height)
+* @readonly
+*/
+Object.defineProperty(Phaser.Physics.Ninja.Tile.prototype, 'bottom', {
+
+    get: function ()
+    {
+        return this.pos.y + this.yw;
+    }
+
+});
+
+/**
+* @name Phaser.Physics.Ninja.Tile#right
+* @property {number} right - The right value of this Body (same as Body.x + Body.width)
+* @readonly
+*/
+Object.defineProperty(Phaser.Physics.Ninja.Tile.prototype, 'right', {
+
+    get: function ()
+    {
+        return this.pos.x + this.xw;
+    }
+
+});
+
+Phaser.Physics.Ninja.Tile.EMPTY = 0;
+Phaser.Physics.Ninja.Tile.FULL = 1;// fullAABB tile
+Phaser.Physics.Ninja.Tile.SLOPE_45DEGpn = 2;// 45-degree triangle, whose normal is (+ve,-ve)
+Phaser.Physics.Ninja.Tile.SLOPE_45DEGnn = 3;// (+ve,+ve)
+Phaser.Physics.Ninja.Tile.SLOPE_45DEGnp = 4;// (-ve,+ve)
+Phaser.Physics.Ninja.Tile.SLOPE_45DEGpp = 5;// (-ve,-ve)
+Phaser.Physics.Ninja.Tile.CONCAVEpn = 6;// 1/4-circle cutout
+Phaser.Physics.Ninja.Tile.CONCAVEnn = 7;
+Phaser.Physics.Ninja.Tile.CONCAVEnp = 8;
+Phaser.Physics.Ninja.Tile.CONCAVEpp = 9;
+Phaser.Physics.Ninja.Tile.CONVEXpn = 10;// 1/4/circle
+Phaser.Physics.Ninja.Tile.CONVEXnn = 11;
+Phaser.Physics.Ninja.Tile.CONVEXnp = 12;
+Phaser.Physics.Ninja.Tile.CONVEXpp = 13;
+Phaser.Physics.Ninja.Tile.SLOPE_22DEGpnS = 14;// 22.5 degree slope
+Phaser.Physics.Ninja.Tile.SLOPE_22DEGnnS = 15;
+Phaser.Physics.Ninja.Tile.SLOPE_22DEGnpS = 16;
+Phaser.Physics.Ninja.Tile.SLOPE_22DEGppS = 17;
+Phaser.Physics.Ninja.Tile.SLOPE_22DEGpnB = 18;
+Phaser.Physics.Ninja.Tile.SLOPE_22DEGnnB = 19;
+Phaser.Physics.Ninja.Tile.SLOPE_22DEGnpB = 20;
+Phaser.Physics.Ninja.Tile.SLOPE_22DEGppB = 21;
+Phaser.Physics.Ninja.Tile.SLOPE_67DEGpnS = 22;// 67.5 degree slope
+Phaser.Physics.Ninja.Tile.SLOPE_67DEGnnS = 23;
+Phaser.Physics.Ninja.Tile.SLOPE_67DEGnpS = 24;
+Phaser.Physics.Ninja.Tile.SLOPE_67DEGppS = 25;
+Phaser.Physics.Ninja.Tile.SLOPE_67DEGpnB = 26;
+Phaser.Physics.Ninja.Tile.SLOPE_67DEGnnB = 27;
+Phaser.Physics.Ninja.Tile.SLOPE_67DEGnpB = 28;
+Phaser.Physics.Ninja.Tile.SLOPE_67DEGppB = 29;
+Phaser.Physics.Ninja.Tile.HALFd = 30;// half-full tiles
+Phaser.Physics.Ninja.Tile.HALFr = 31;
+Phaser.Physics.Ninja.Tile.HALFu = 32;
+Phaser.Physics.Ninja.Tile.HALFl = 33;
+
+Phaser.Physics.Ninja.Tile.TYPE_EMPTY = 0;
+Phaser.Physics.Ninja.Tile.TYPE_FULL = 1;
+Phaser.Physics.Ninja.Tile.TYPE_45DEG = 2;
+Phaser.Physics.Ninja.Tile.TYPE_CONCAVE = 6;
+Phaser.Physics.Ninja.Tile.TYPE_CONVEX = 10;
+Phaser.Physics.Ninja.Tile.TYPE_22DEGs = 14;
+Phaser.Physics.Ninja.Tile.TYPE_22DEGb = 18;
+Phaser.Physics.Ninja.Tile.TYPE_67DEGs = 22;
+Phaser.Physics.Ninja.Tile.TYPE_67DEGb = 26;
+Phaser.Physics.Ninja.Tile.TYPE_HALF = 30;
+
+/**
+* @author       Richard Davey <rich@photonstorm.com>
+* @copyright    2016 Photon Storm Ltd.
+* @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
+*/
+
+/**
+* Ninja Physics Circle constructor.
+* Note: This class could be massively optimised and reduced in size. I leave that challenge up to you.
+*
+* @class Phaser.Physics.Ninja.Circle
+* @constructor
+* @param {Phaser.Physics.Ninja.Body} body - The body that owns this shape.
+* @param {number} x - The x coordinate to create this shape at.
+* @param {number} y - The y coordinate to create this shape at.
+* @param {number} radius - The radius of this Circle.
+*/
+Phaser.Physics.Ninja.Circle = function (body, x, y, radius)
+{
+
+    /**
+    * @property {Phaser.Physics.Ninja.Body} system - A reference to the body that owns this shape.
+    */
+    this.body = body;
+
+    /**
+    * @property {Phaser.Physics.Ninja} system - A reference to the physics system.
+    */
+    this.system = body.system;
+
+    /**
+    * @property {Phaser.Point} pos - The position of this object.
+    */
+    this.pos = new Phaser.Point(x, y);
+
+    /**
+    * @property {Phaser.Point} oldpos - The position of this object in the previous update.
+    */
+    this.oldpos = new Phaser.Point(x, y);
+
+    /**
+    * @property {number} radius - The radius of this circle shape.
+    */
+    this.radius = radius;
+
+    /**
+    * @property {number} xw - Half the width.
+    * @readonly
+    */
+    this.xw = radius;
+
+    /**
+    * @property {number} xw - Half the height.
+    * @readonly
+    */
+    this.yw = radius;
+
+    /**
+    * @property {number} width - The width.
+    * @readonly
+    */
+    this.width = radius * 2;
+
+    /**
+    * @property {number} height - The height.
+    * @readonly
+    */
+    this.height = radius * 2;
+
+    /**
+    * @property {number} oH - Internal var.
+    * @private
+    */
+    this.oH = 0;
+
+    /**
+    * @property {number} oV - Internal var.
+    * @private
+    */
+    this.oV = 0;
+
+    /**
+    * @property {Phaser.Point} velocity - The velocity of this object.
+    */
+    this.velocity = new Phaser.Point();
+
+    /**
+    * @property {object} circleTileProjections - All of the collision response handlers.
+    */
+    this.circleTileProjections = {};
+
+    this.circleTileProjections[Phaser.Physics.Ninja.Tile.TYPE_FULL] = this.projCircle_Full;
+    this.circleTileProjections[Phaser.Physics.Ninja.Tile.TYPE_45DEG] = this.projCircle_45Deg;
+    this.circleTileProjections[Phaser.Physics.Ninja.Tile.TYPE_CONCAVE] = this.projCircle_Concave;
+    this.circleTileProjections[Phaser.Physics.Ninja.Tile.TYPE_CONVEX] = this.projCircle_Convex;
+    this.circleTileProjections[Phaser.Physics.Ninja.Tile.TYPE_22DEGs] = this.projCircle_22DegS;
+    this.circleTileProjections[Phaser.Physics.Ninja.Tile.TYPE_22DEGb] = this.projCircle_22DegB;
+    this.circleTileProjections[Phaser.Physics.Ninja.Tile.TYPE_67DEGs] = this.projCircle_67DegS;
+    this.circleTileProjections[Phaser.Physics.Ninja.Tile.TYPE_67DEGb] = this.projCircle_67DegB;
+    this.circleTileProjections[Phaser.Physics.Ninja.Tile.TYPE_HALF] = this.projCircle_Half;
+
+};
+
+Phaser.Physics.Ninja.Circle.prototype.constructor = Phaser.Physics.Ninja.Circle;
+
+Phaser.Physics.Ninja.Circle.COL_NONE = 0;
+Phaser.Physics.Ninja.Circle.COL_AXIS = 1;
+Phaser.Physics.Ninja.Circle.COL_OTHER = 2;
+
+Phaser.Physics.Ninja.Circle.prototype = {
+
+    /**
+    * Updates this Circles position.
+    *
+    * @method Phaser.Physics.Ninja.Circle#integrate
+    */
+    integrate: function ()
+    {
+
+        var px = this.pos.x;
+        var py = this.pos.y;
+
+        //  integrate
+        this.pos.x += (this.body.drag * this.pos.x) - (this.body.drag * this.oldpos.x);
+        this.pos.y += (this.body.drag * this.pos.y) - (this.body.drag * this.oldpos.y) + (this.system.gravity * this.body.gravityScale);
+
+        //  store
+        this.velocity.set(this.pos.x - px, this.pos.y - py);
+        this.oldpos.set(px, py);
+
+    },
+
+    /**
+    * Process a world collision and apply the resulting forces.
+    *
+    * @method Phaser.Physics.Ninja.Circle#reportCollisionVsWorld
+    * @param {number} px - The tangent velocity
+    * @param {number} py - The tangent velocity
+    * @param {number} dx - Collision normal
+    * @param {number} dy - Collision normal
+    * @param {number} obj - Object this Circle collided with
+    */
+    reportCollisionVsWorld: function (px, py, dx, dy)
+    {
+
+        var p = this.pos;
+        var o = this.oldpos;
+
+        //  Calc velocity
+        var vx = p.x - o.x;
+        var vy = p.y - o.y;
+
+        //  Find component of velocity parallel to collision normal
+        var dp = (vx * dx + vy * dy);
+        var nx = dp * dx; // project velocity onto collision normal
+
+        var ny = dp * dy; // nx,ny is normal velocity
+
+        var tx = vx - nx; // px,py is tangent velocity
+        var ty = vy - ny;
+
+        //  We only want to apply collision response forces if the object is travelling into, and not out of, the collision
+        var b, bx, by, fx, fy;
+
+        if (dp < 0)
+        {
+            fx = tx * this.body.friction;
+            fy = ty * this.body.friction;
+
+            b = 1 + this.body.bounce;
+
+            bx = (nx * b);
+            by = (ny * b);
+
+            if (dx === 1)
+            {
+                this.body.touching.left = true;
+            }
+            else if (dx === -1)
+            {
+                this.body.touching.right = true;
+            }
+
+            if (dy === 1)
+            {
+                this.body.touching.up = true;
+            }
+            else if (dy === -1)
+            {
+                this.body.touching.down = true;
+            }
+        }
+        else
+        {
+            //  Moving out of collision, do not apply forces
+            bx = by = fx = fy = 0;
+        }
+
+        //  Project object out of collision
+        p.x += px;
+        p.y += py;
+
+        //  Apply bounce+friction impulses which alter velocity
+        o.x += px + bx + fx;
+        o.y += py + by + fy;
+
+    },
+
+    /**
+    * Collides this Circle against the world bounds.
+    *
+    * @method Phaser.Physics.Ninja.Circle#collideWorldBounds
+    */
+    collideWorldBounds: function ()
+    {
+
+        var dx = this.system.bounds.x - (this.pos.x - this.radius);
+
+        if (dx > 0)
+        {
+            this.reportCollisionVsWorld(dx, 0, 1, 0, null);
+        }
+        else
+        {
+            dx = (this.pos.x + this.radius) - this.system.bounds.right;
+
+            if (dx > 0)
+            {
+                this.reportCollisionVsWorld(-dx, 0, -1, 0, null);
+            }
+        }
+
+        var dy = this.system.bounds.y - (this.pos.y - this.radius);
+
+        if (dy > 0)
+        {
+            this.reportCollisionVsWorld(0, dy, 0, 1, null);
+        }
+        else
+        {
+            dy = (this.pos.y + this.radius) - this.system.bounds.bottom;
+
+            if (dy > 0)
+            {
+                this.reportCollisionVsWorld(0, -dy, 0, -1, null);
+            }
+        }
+
+    },
+
+    /**
+    * Collides this Circle with a Tile.
+    *
+    * @method Phaser.Physics.Ninja.Circle#collideCircleVsTile
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {boolean} True if they collide, otherwise false.
+    */
+    collideCircleVsTile: function (tile)
+    {
+
+        var pos = this.pos;
+        var r = this.radius;
+        var c = tile;
+
+        var tx = c.pos.x;
+        var ty = c.pos.y;
+        var txw = c.xw;
+        var tyw = c.yw;
+
+        var dx = pos.x - tx; //  tile->obj delta
+        var px = (txw + r) - Math.abs(dx); //  penetration depth in x
+
+        if (px > 0)
+        {
+            var dy = pos.y - ty; //  tile->obj delta
+            var py = (tyw + r) - Math.abs(dy); //  pen depth in y
+
+            if (py > 0)
+            {
+                //  object may be colliding with tile
+
+                //  determine grid/voronoi region of circle center
+                this.oH = 0;
+                this.oV = 0;
+
+                if (dx < -txw)
+                {
+                    //  circle is on left side of tile
+                    this.oH = -1;
+                }
+                else if (txw < dx)
+                {
+                    //  circle is on right side of tile
+                    this.oH = 1;
+                }
+
+                if (dy < -tyw)
+                {
+                    //  circle is on top side of tile
+                    this.oV = -1;
+                }
+                else if (tyw < dy)
+                {
+                    //  circle is on bottom side of tile
+                    this.oV = 1;
+                }
+
+                return this.resolveCircleTile(px, py, this.oH, this.oV, this, c);
+
+            }
+        }
+    },
+
+    /**
+    * Resolves tile collision.
+    *
+    * @method Phaser.Physics.Ninja.Circle#resolveCircleTile
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {number} oH - Grid / voronoi region.
+    * @param {number} oV - Grid / voronoi region.
+    * @param {Phaser.Physics.Ninja.Circle} obj - The Circle involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    resolveCircleTile: function (x, y, oH, oV, obj, t)
+    {
+
+        if (t.id > 0)
+        {
+            return this.circleTileProjections[t.type](x, y, oH, oV, obj, t);
+        }
+        else
+        {
+            return false;
+        }
+
+    },
+
+    /**
+    * Resolves Full tile collision.
+    *
+    * @method Phaser.Physics.Ninja.Circle#projCircle_Full
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {number} oH - Grid / voronoi region.
+    * @param {number} oV - Grid / voronoi region.
+    * @param {Phaser.Physics.Ninja.Circle} obj - The Circle involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projCircle_Full: function (x, y, oH, oV, obj, t)
+    {
+
+        // if we're colliding vs. the current cell, we need to project along the
+        // smallest penetration vector.
+        // if we're colliding vs. horiz. or vert. neighb, we simply project horiz/vert
+        // if we're colliding diagonally, we need to collide vs. tile corner
+
+        if (oH === 0)
+        {
+            if (oV === 0)
+            {
+                // collision with current cell
+                if (x < y)
+                {
+                    // penetration in x is smaller; project in x
+                    var dx = obj.pos.x - t.pos.x;// get sign for projection along x-axis
+
+                    // NOTE: should we handle the delta === 0 case?! and how? (project towards oldpos?)
+                    if (dx < 0)
+                    {
+                        obj.reportCollisionVsWorld(-x, 0, -1, 0, t);
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                    else
+                    {
+                        obj.reportCollisionVsWorld(x, 0, 1, 0, t);
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                }
+                else
+                {
+                    // penetration in y is smaller; project in y
+                    var dy = obj.pos.y - t.pos.y;// get sign for projection along y-axis
+
+                    // NOTE: should we handle the delta === 0 case?! and how? (project towards oldpos?)
+                    if (dy < 0)
+                    {
+                        obj.reportCollisionVsWorld(0, -y, 0, -1, t);
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                    else
+                    {
+                        obj.reportCollisionVsWorld(0, y, 0, 1, t);
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                }
+            }
+            else
+            {
+                // collision with vertical neighbor
+                obj.reportCollisionVsWorld(0, y * oV, 0, oV, t);
+
+                return Phaser.Physics.Ninja.Circle.COL_AXIS;
+            }
+        }
+        else if (oV === 0)
+        {
+            // collision with horizontal neighbor
+            obj.reportCollisionVsWorld(x * oH, 0, oH, 0, t);
+            return Phaser.Physics.Ninja.Circle.COL_AXIS;
+        }
+        else
+        {
+            // diagonal collision
+
+            // get diag vertex position
+            var vx = t.pos.x + (oH * t.xw);
+            var vy = t.pos.y + (oV * t.yw);
+
+            var dx = obj.pos.x - vx;// calc vert->circle vector
+            var dy = obj.pos.y - vy;
+
+            var len = Math.sqrt(dx * dx + dy * dy);
+            var pen = obj.radius - len;
+
+            if (pen > 0)
+            {
+                // vertex is in the circle; project outward
+                if (len === 0)
+                {
+                    // project out by 45deg
+                    dx = oH / Math.SQRT2;
+                    dy = oV / Math.SQRT2;
+                }
+                else
+                {
+                    dx /= len;
+                    dy /= len;
+                }
+
+                obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                return Phaser.Physics.Ninja.Circle.COL_OTHER;
+            }
+        }
+
+        return Phaser.Physics.Ninja.Circle.COL_NONE;
+
+    },
+
+    /**
+    * Resolves 45 Degree tile collision.
+    *
+    * @method Phaser.Physics.Ninja.Circle#projCircle_45Deg
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {number} oH - Grid / voronoi region.
+    * @param {number} oV - Grid / voronoi region.
+    * @param {Phaser.Physics.Ninja.Circle} obj - The Circle involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projCircle_45Deg: function (x, y, oH, oV, obj, t)
+    {
+
+        // if we're colliding diagonally:
+        //  -if obj is in the diagonal pointed to by the slope normal: we can't collide, do nothing
+        //  -else, collide vs. the appropriate vertex
+        // if obj is in this tile: perform collision as for aabb-ve-45deg
+        // if obj is horiz OR very neighb in direction of slope: collide only vs. slope
+        // if obj is horiz or vert neigh against direction of slope: collide vs. face
+
+        var signx = t.signx;
+        var signy = t.signy;
+        var lenP;
+
+        if (oH === 0)
+        {
+            if (oV === 0)
+            {
+                // colliding with current tile
+
+                var sx = t.sx;
+                var sy = t.sy;
+
+                var ox = (obj.pos.x - (sx * obj.radius)) - t.pos.x;// this gives is the coordinates of the innermost
+                var oy = (obj.pos.y - (sy * obj.radius)) - t.pos.y;// point on the circle, relative to the tile center
+
+                // if the dotprod of (ox,oy) and (sx,sy) is negative, the innermost point is in the slope
+                // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+                var dp = (ox * sx) + (oy * sy);
+
+                if (dp < 0)
+                {
+                    // collision; project delta onto slope and use this as the slope penetration vector
+                    sx *= -dp;// (sx,sy) is now the penetration vector
+                    sy *= -dp;
+
+                    // find the smallest axial projection vector
+                    if (x < y)
+                    {
+                        // penetration in x is smaller
+                        lenP = x;
+                        y = 0;
+
+                        // get sign for projection along x-axis
+                        if ((obj.pos.x - t.pos.x) < 0)
+                        {
+                            x *= -1;
+                        }
+                    }
+                    else
+                    {
+                        // penetration in y is smaller
+                        lenP = y;
+                        x = 0;
+
+                        // get sign for projection along y-axis
+                        if ((obj.pos.y - t.pos.y) < 0)
+                        {
+                            y *= -1;
+                        }
+                    }
+
+                    var lenN = Math.sqrt(sx * sx + sy * sy);
+
+                    if (lenP < lenN)
+                    {
+                        obj.reportCollisionVsWorld(x, y, x / lenP, y / lenP, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                    else
+                    {
+                        obj.reportCollisionVsWorld(sx, sy, t.sx, t.sy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+
+            }
+            else
+            {
+                // colliding vertically
+                if ((signy * oV) < 0)
+                {
+                    // colliding with face/edge
+                    obj.reportCollisionVsWorld(0, y * oV, 0, oV, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                }
+                else
+                {
+                    // we could only be colliding vs the slope OR a vertex
+                    // look at the vector form the closest vert to the circle to decide
+
+                    var sx = t.sx;
+                    var sy = t.sy;
+
+                    var ox = obj.pos.x - (t.pos.x - (signx * t.xw));// this gives is the coordinates of the innermost
+                    var oy = obj.pos.y - (t.pos.y + (oV * t.yw));// point on the circle, relative to the closest tile vert
+
+                    // if the component of (ox,oy) parallel to the normal's righthand normal
+                    // has the same sign as the slope of the slope (the sign of the slope's slope is signx*signy)
+                    // then we project by the vertex, otherwise by the normal.
+                    // note that this is simply a VERY tricky/weird method of determining
+                    // if the circle is in side the slope/face's voronoi region, or that of the vertex.
+                    var perp = (ox * -sy) + (oy * sx);
+                    if ((perp * signx * signy) > 0)
+                    {
+                        // collide vs. vertex
+                        var len = Math.sqrt(ox * ox + oy * oy);
+                        var pen = obj.radius - len;
+                        if (pen > 0)
+                        {
+                            // note: if len=0, then perp=0 and we'll never reach here, so don't worry about div-by-0
+                            ox /= len;
+                            oy /= len;
+
+                            obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                        }
+                    }
+                    else
+                    {
+                        // collide vs. slope
+
+                        // if the component of (ox,oy) parallel to the normal is less than the circle radius, we're
+                        // penetrating the slope. note that this method of penetration calculation doesn't hold
+                        // in general (i.e it won't work if the circle is in the slope), but works in this case
+                        // because we know the circle is in a neighboring cell
+                        var dp = (ox * sx) + (oy * sy);
+                        var pen = obj.radius - Math.abs(dp);// note: we don't need the abs because we know the dp will be positive, but just in case..
+                        if (pen > 0)
+                        {
+                            // collision; circle out along normal by penetration amount
+                            obj.reportCollisionVsWorld(sx * pen, sy * pen, sx, sy, t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                        }
+                    }
+                }
+            }
+        }
+        else if (oV === 0)
+        {
+            // colliding horizontally
+            if ((signx * oH) < 0)
+            {
+                // colliding with face/edge
+                obj.reportCollisionVsWorld(x * oH, 0, oH, 0, t);
+
+                return Phaser.Physics.Ninja.Circle.COL_AXIS;
+            }
+            else
+            {
+                // we could only be colliding vs the slope OR a vertex
+                // look at the vector form the closest vert to the circle to decide
+
+                var sx = t.sx;
+                var sy = t.sy;
+
+                var ox = obj.pos.x - (t.pos.x + (oH * t.xw));// this gives is the coordinates of the innermost
+                var oy = obj.pos.y - (t.pos.y - (signy * t.yw));// point on the circle, relative to the closest tile vert
+
+                // if the component of (ox,oy) parallel to the normal's righthand normal
+                // has the same sign as the slope of the slope (the sign of the slope's slope is signx*signy)
+                // then we project by the normal, otherwise by the vertex.
+                // (NOTE: this is the opposite logic of the vertical case;
+                // for vertical, if the perp prod and the slope's slope agree, it's outside.
+                // for horizontal, if the perp prod and the slope's slope agree, circle is inside.
+                //  ..but this is only a property of flahs' coord system (i.e the rules might swap
+                // in righthanded systems))
+                // note that this is simply a VERY tricky/weird method of determining
+                // if the circle is in side the slope/face's voronio region, or that of the vertex.
+                var perp = (ox * -sy) + (oy * sx);
+                if ((perp * signx * signy) < 0)
+                {
+                    // collide vs. vertex
+                    var len = Math.sqrt(ox * ox + oy * oy);
+                    var pen = obj.radius - len;
+                    if (pen > 0)
+                    {
+                        // note: if len=0, then perp=0 and we'll never reach here, so don't worry about div-by-0
+                        ox /= len;
+                        oy /= len;
+
+                        obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+                else
+                {
+                    // collide vs. slope
+
+                    // if the component of (ox,oy) parallel to the normal is less than the circle radius, we're
+                    // penetrating the slope. note that this method of penetration calculation doesn't hold
+                    // in general (i.e it won't work if the circle is in the slope), but works in this case
+                    // because we know the circle is in a neighboring cell
+                    var dp = (ox * sx) + (oy * sy);
+                    var pen = obj.radius - Math.abs(dp);// note: we don't need the abs because we know the dp will be positive, but just in case..
+                    if (pen > 0)
+                    {
+                        // collision; circle out along normal by penetration amount
+                        obj.reportCollisionVsWorld(sx * pen, sy * pen, sx, sy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+            }
+        }
+        else
+        {
+            // colliding diagonally
+            if (((signx * oH) + (signy * oV)) > 0)
+            {
+                // the dotprod of slope normal and cell offset is strictly positive,
+                // therefore obj is in the diagonal neighb pointed at by the normal, and
+                // it cannot possibly reach/touch/penetrate the slope
+                return Phaser.Physics.Ninja.Circle.COL_NONE;
+            }
+            else
+            {
+                // collide vs. vertex
+                // get diag vertex position
+                var vx = t.pos.x + (oH * t.xw);
+                var vy = t.pos.y + (oV * t.yw);
+
+                var dx = obj.pos.x - vx;// calc vert->circle vector
+                var dy = obj.pos.y - vy;
+
+                var len = Math.sqrt(dx * dx + dy * dy);
+                var pen = obj.radius - len;
+                if (pen > 0)
+                {
+                    // vertex is in the circle; project outward
+                    if (len === 0)
+                    {
+                        // project out by 45deg
+                        dx = oH / Math.SQRT2;
+                        dy = oV / Math.SQRT2;
+                    }
+                    else
+                    {
+                        dx /= len;
+                        dy /= len;
+                    }
+
+                    obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+                    return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                }
+
+            }
+
+        }
+
+        return Phaser.Physics.Ninja.Circle.COL_NONE;
+    },
+
+    /**
+    * Resolves Concave tile collision.
+    *
+    * @method Phaser.Physics.Ninja.Circle#projCircle_Concave
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {number} oH - Grid / voronoi region.
+    * @param {number} oV - Grid / voronoi region.
+    * @param {Phaser.Physics.Ninja.Circle} obj - The Circle involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projCircle_Concave: function (x, y, oH, oV, obj, t)
+    {
+
+        // if we're colliding diagonally:
+        //  -if obj is in the diagonal pointed to by the slope normal: we can't collide, do nothing
+        //  -else, collide vs. the appropriate vertex
+        // if obj is in this tile: perform collision as for aabb
+        // if obj is horiz OR very neighb in direction of slope: collide vs vert
+        // if obj is horiz or vert neigh against direction of slope: collide vs. face
+
+        var signx = t.signx;
+        var signy = t.signy;
+        var lenP;
+
+        if (oH === 0)
+        {
+            if (oV === 0)
+            {
+                // colliding with current tile
+
+                var ox = (t.pos.x + (signx * t.xw)) - obj.pos.x;// (ox,oy) is the vector from the circle to
+                var oy = (t.pos.y + (signy * t.yw)) - obj.pos.y;// tile-circle's center
+
+                var twid = t.xw * 2;
+                var trad = Math.sqrt(twid * twid + 0);// this gives us the radius of a circle centered on the tile's corner and extending to the opposite edge of the tile;
+                // note that this should be precomputed at compile-time since it's constant
+
+                var len = Math.sqrt(ox * ox + oy * oy);
+                var pen = (len + obj.radius) - trad;
+
+                if (pen > 0)
+                {
+                    // find the smallest axial projection vector
+                    if (x < y)
+                    {
+                        // penetration in x is smaller
+                        lenP = x;
+                        y = 0;
+
+                        // get sign for projection along x-axis
+                        if ((obj.pos.x - t.pos.x) < 0)
+                        {
+                            x *= -1;
+                        }
+                    }
+                    else
+                    {
+                        // penetration in y is smaller
+                        lenP = y;
+                        x = 0;
+
+                        // get sign for projection along y-axis
+                        if ((obj.pos.y - t.pos.y) < 0)
+                        {
+                            y *= -1;
+                        }
+                    }
+
+
+                    if (lenP < pen)
+                    {
+                        obj.reportCollisionVsWorld(x, y, x / lenP, y / lenP, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                    else
+                    {
+                        // we can assume that len >0, because if we're here then
+                        // (len + obj.radius) > trad, and since obj.radius <= trad
+                        // len MUST be > 0
+                        ox /= len;
+                        oy /= len;
+
+                        obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+                else
+                {
+                    return Phaser.Physics.Ninja.Circle.COL_NONE;
+                }
+
+            }
+            else
+            {
+                // colliding vertically
+                if ((signy * oV) < 0)
+                {
+                    // colliding with face/edge
+                    obj.reportCollisionVsWorld(0, y * oV, 0, oV, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                }
+                else
+                {
+                    // we could only be colliding vs the vertical tip
+
+                    // get diag vertex position
+                    var vx = t.pos.x - (signx * t.xw);
+                    var vy = t.pos.y + (oV * t.yw);
+
+                    var dx = obj.pos.x - vx;// calc vert->circle vector
+                    var dy = obj.pos.y - vy;
+
+                    var len = Math.sqrt(dx * dx + dy * dy);
+                    var pen = obj.radius - len;
+                    if (pen > 0)
+                    {
+                        // vertex is in the circle; project outward
+                        if (len === 0)
+                        {
+                            // project out vertically
+                            dx = 0;
+                            dy = oV;
+                        }
+                        else
+                        {
+                            dx /= len;
+                            dy /= len;
+                        }
+
+                        obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+            }
+        }
+        else if (oV === 0)
+        {
+            // colliding horizontally
+            if ((signx * oH) < 0)
+            {
+                // colliding with face/edge
+                obj.reportCollisionVsWorld(x * oH, 0, oH, 0, t);
+
+                return Phaser.Physics.Ninja.Circle.COL_AXIS;
+            }
+            else
+            {
+                // we could only be colliding vs the horizontal tip
+
+                // get diag vertex position
+                var vx = t.pos.x + (oH * t.xw);
+                var vy = t.pos.y - (signy * t.yw);
+
+                var dx = obj.pos.x - vx;// calc vert->circle vector
+                var dy = obj.pos.y - vy;
+
+                var len = Math.sqrt(dx * dx + dy * dy);
+                var pen = obj.radius - len;
+                if (pen > 0)
+                {
+                    // vertex is in the circle; project outward
+                    if (len === 0)
+                    {
+                        // project out horizontally
+                        dx = oH;
+                        dy = 0;
+                    }
+                    else
+                    {
+                        dx /= len;
+                        dy /= len;
+                    }
+
+                    obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                }
+            }
+        }
+        else
+        {
+            // colliding diagonally
+            if (((signx * oH) + (signy * oV)) > 0)
+            {
+                // the dotprod of slope normal and cell offset is strictly positive,
+                // therefore obj is in the diagonal neighb pointed at by the normal, and
+                // it cannot possibly reach/touch/penetrate the slope
+                return Phaser.Physics.Ninja.Circle.COL_NONE;
+            }
+            else
+            {
+                // collide vs. vertex
+                // get diag vertex position
+                var vx = t.pos.x + (oH * t.xw);
+                var vy = t.pos.y + (oV * t.yw);
+
+                var dx = obj.pos.x - vx;// calc vert->circle vector
+                var dy = obj.pos.y - vy;
+
+                var len = Math.sqrt(dx * dx + dy * dy);
+                var pen = obj.radius - len;
+                if (pen > 0)
+                {
+                    // vertex is in the circle; project outward
+                    if (len === 0)
+                    {
+                        // project out by 45deg
+                        dx = oH / Math.SQRT2;
+                        dy = oV / Math.SQRT2;
+                    }
+                    else
+                    {
+                        dx /= len;
+                        dy /= len;
+                    }
+
+                    obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                }
+
+            }
+
+        }
+
+        return Phaser.Physics.Ninja.Circle.COL_NONE;
+
+    },
+
+    /**
+    * Resolves Convex tile collision.
+    *
+    * @method Phaser.Physics.Ninja.Circle#projCircle_Convex
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {number} oH - Grid / voronoi region.
+    * @param {number} oV - Grid / voronoi region.
+    * @param {Phaser.Physics.Ninja.Circle} obj - The Circle involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projCircle_Convex: function (x, y, oH, oV, obj, t)
+    {
+
+        // if the object is horiz AND/OR vertical neighbor in the normal (signx,signy)
+        // direction, collide vs. tile-circle only.
+        // if we're colliding diagonally:
+        //  -else, collide vs. the appropriate vertex
+        // if obj is in this tile: perform collision as for aabb
+        // if obj is horiz or vert neigh against direction of slope: collide vs. face
+
+        var signx = t.signx;
+        var signy = t.signy;
+        var lenP;
+
+        if (oH === 0)
+        {
+            if (oV === 0)
+            {
+                // colliding with current tile
+
+
+                var ox = obj.pos.x - (t.pos.x - (signx * t.xw));// (ox,oy) is the vector from the tile-circle to
+                var oy = obj.pos.y - (t.pos.y - (signy * t.yw));// the circle's center
+
+                var twid = t.xw * 2;
+                var trad = Math.sqrt(twid * twid + 0);// this gives us the radius of a circle centered on the tile's corner and extending to the opposite edge of the tile;
+                // note that this should be precomputed at compile-time since it's constant
+
+                var len = Math.sqrt(ox * ox + oy * oy);
+                var pen = (trad + obj.radius) - len;
+
+                if (pen > 0)
+                {
+                    // find the smallest axial projection vector
+                    if (x < y)
+                    {
+                        // penetration in x is smaller
+                        lenP = x;
+                        y = 0;
+
+                        // get sign for projection along x-axis
+                        if ((obj.pos.x - t.pos.x) < 0)
+                        {
+                            x *= -1;
+                        }
+                    }
+                    else
+                    {
+                        // penetration in y is smaller
+                        lenP = y;
+                        x = 0;
+
+                        // get sign for projection along y-axis
+                        if ((obj.pos.y - t.pos.y) < 0)
+                        {
+                            y *= -1;
+                        }
+                    }
+
+
+                    if (lenP < pen)
+                    {
+                        obj.reportCollisionVsWorld(x, y, x / lenP, y / lenP, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                    else
+                    {
+                        // note: len should NEVER be === 0, because if it is,
+                        // projeciton by an axis shoudl always be shorter, and we should
+                        // never arrive here
+                        ox /= len;
+                        oy /= len;
+
+                        obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+
+                    }
+                }
+            }
+            else
+            {
+                // colliding vertically
+                if ((signy * oV) < 0)
+                {
+                    // colliding with face/edge
+                    obj.reportCollisionVsWorld(0, y * oV, 0, oV, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                }
+                else
+                {
+                    // obj in neighboring cell pointed at by tile normal;
+                    // we could only be colliding vs the tile-circle surface
+
+                    var ox = obj.pos.x - (t.pos.x - (signx * t.xw));// (ox,oy) is the vector from the tile-circle to
+                    var oy = obj.pos.y - (t.pos.y - (signy * t.yw));// the circle's center
+
+                    var twid = t.xw * 2;
+                    var trad = Math.sqrt(twid * twid + 0);// this gives us the radius of a circle centered on the tile's corner and extending to the opposite edge of the tile;
+                    // note that this should be precomputed at compile-time since it's constant
+
+                    var len = Math.sqrt(ox * ox + oy * oy);
+                    var pen = (trad + obj.radius) - len;
+
+                    if (pen > 0)
+                    {
+
+                        // note: len should NEVER be === 0, because if it is,
+                        // obj is not in a neighboring cell!
+                        ox /= len;
+                        oy /= len;
+
+                        obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+            }
+        }
+        else if (oV === 0)
+        {
+            // colliding horizontally
+            if ((signx * oH) < 0)
+            {
+                // colliding with face/edge
+                obj.reportCollisionVsWorld(x * oH, 0, oH, 0, t);
+
+                return Phaser.Physics.Ninja.Circle.COL_AXIS;
+            }
+            else
+            {
+                // obj in neighboring cell pointed at by tile normal;
+                // we could only be colliding vs the tile-circle surface
+
+                var ox = obj.pos.x - (t.pos.x - (signx * t.xw));// (ox,oy) is the vector from the tile-circle to
+                var oy = obj.pos.y - (t.pos.y - (signy * t.yw));// the circle's center
+
+                var twid = t.xw * 2;
+                var trad = Math.sqrt(twid * twid + 0);// this gives us the radius of a circle centered on the tile's corner and extending to the opposite edge of the tile;
+                // note that this should be precomputed at compile-time since it's constant
+
+                var len = Math.sqrt(ox * ox + oy * oy);
+                var pen = (trad + obj.radius) - len;
+
+                if (pen > 0)
+                {
+
+                    // note: len should NEVER be === 0, because if it is,
+                    // obj is not in a neighboring cell!
+                    ox /= len;
+                    oy /= len;
+
+                    obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                }
+            }
+        }
+        else
+        {
+            // colliding diagonally
+            if (((signx * oH) + (signy * oV)) > 0)
+            {
+                // obj in diag neighb cell pointed at by tile normal;
+                // we could only be colliding vs the tile-circle surface
+
+                var ox = obj.pos.x - (t.pos.x - (signx * t.xw));// (ox,oy) is the vector from the tile-circle to
+                var oy = obj.pos.y - (t.pos.y - (signy * t.yw));// the circle's center
+
+                var twid = t.xw * 2;
+                var trad = Math.sqrt(twid * twid + 0);// this gives us the radius of a circle centered on the tile's corner and extending to the opposite edge of the tile;
+                // note that this should be precomputed at compile-time since it's constant
+
+                var len = Math.sqrt(ox * ox + oy * oy);
+                var pen = (trad + obj.radius) - len;
+
+                if (pen > 0)
+                {
+
+                    // note: len should NEVER be === 0, because if it is,
+                    // obj is not in a neighboring cell!
+                    ox /= len;
+                    oy /= len;
+
+                    obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                }
+            }
+            else
+            {
+                // collide vs. vertex
+                // get diag vertex position
+                var vx = t.pos.x + (oH * t.xw);
+                var vy = t.pos.y + (oV * t.yw);
+
+                var dx = obj.pos.x - vx;// calc vert->circle vector
+                var dy = obj.pos.y - vy;
+
+                var len = Math.sqrt(dx * dx + dy * dy);
+                var pen = obj.radius - len;
+                if (pen > 0)
+                {
+                    // vertex is in the circle; project outward
+                    if (len === 0)
+                    {
+                        // project out by 45deg
+                        dx = oH / Math.SQRT2;
+                        dy = oV / Math.SQRT2;
+                    }
+                    else
+                    {
+                        dx /= len;
+                        dy /= len;
+                    }
+
+                    obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                }
+
+            }
+
+        }
+
+        return Phaser.Physics.Ninja.Circle.COL_NONE;
+
+    },
+
+    /**
+    * Resolves Half tile collision.
+    *
+    * @method Phaser.Physics.Ninja.Circle#projCircle_Half
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {number} oH - Grid / voronoi region.
+    * @param {number} oV - Grid / voronoi region.
+    * @param {Phaser.Physics.Ninja.Circle} obj - The Circle involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projCircle_Half: function (x,y,oH,oV,obj,t)
+    {
+
+        // if obj is in a neighbor pointed at by the halfedge normal,
+        // we'll never collide (i.e if the normal is (0,1) and the obj is in the DL.D, or R neighbors)
+        //
+        // if obj is in a neigbor perpendicular to the halfedge normal, it might
+        // collide with the halfedge-vertex, or with the halfedge side.
+        //
+        // if obj is in a neigb pointing opposite the halfedge normal, obj collides with edge
+        //
+        // if obj is in a diagonal (pointing away from the normal), obj collides vs vertex
+        //
+        // if obj is in the halfedge cell, it collides as with aabb
+
+        var signx = t.signx;
+        var signy = t.signy;
+
+        var celldp = (oH * signx + oV * signy);// this tells us about the configuration of cell-offset relative to tile normal
+        if (celldp > 0)
+        {
+            // obj is in "far" (pointed-at-by-normal) neighbor of halffull tile, and will never hit
+            return Phaser.Physics.Ninja.Circle.COL_NONE;
+        }
+        else if (oH === 0)
+        {
+            if (oV === 0)
+            {
+                // colliding with current tile
+                var r = obj.radius;
+                var ox = (obj.pos.x - (signx * r)) - t.pos.x;// this gives is the coordinates of the innermost
+                var oy = (obj.pos.y - (signy * r)) - t.pos.y;// point on the circle, relative to the tile center
+
+
+                // we perform operations analogous to the 45deg tile, except we're using
+                // an axis-aligned slope instead of an angled one..
+                var sx = signx;
+                var sy = signy;
+
+                // if the dotprod of (ox,oy) and (sx,sy) is negative, the corner is in the slope
+                // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+                var dp = (ox * sx) + (oy * sy);
+                if (dp < 0)
+                {
+                    // collision; project delta onto slope and use this to displace the object
+                    sx *= -dp;// (sx,sy) is now the projection vector
+                    sy *= -dp;
+
+
+                    var lenN = Math.sqrt(sx * sx + sy * sy);
+                    var lenP = Math.sqrt(x * x + y * y);
+
+                    if (lenP < lenN)
+                    {
+                        obj.reportCollisionVsWorld(x,y,x / lenP, y / lenP,t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                    else
+                    {
+                        obj.reportCollisionVsWorld(sx,sy,t.signx,t.signy);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                    return true;
+                }
+
+            }
+            else
+            {
+                // colliding vertically
+
+                if (celldp === 0)
+                {
+
+                    var dx = obj.pos.x - t.pos.x;
+
+                    // we're in a cell perpendicular to the normal, and can collide vs. halfedge vertex
+                    // or halfedge side
+                    if ((dx * signx) < 0)
+                    {
+                        // collision with halfedge side
+                        obj.reportCollisionVsWorld(0,y * oV,0,oV,t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                    else
+                    {
+                        // collision with halfedge vertex
+                        var dy = obj.pos.y - (t.pos.y + oV * t.yw);// (dx,dy) is now the vector from the appropriate halfedge vertex to the circle
+
+                        var len = Math.sqrt(dx * dx + dy * dy);
+                        var pen = obj.radius - len;
+                        if (pen > 0)
+                        {
+                            // vertex is in the circle; project outward
+                            if (len === 0)
+                            {
+                                // project out by 45deg
+                                dx = signx / Math.SQRT2;
+                                dy = oV / Math.SQRT2;
+                            }
+                            else
+                            {
+                                dx /= len;
+                                dy /= len;
+                            }
+
+                            obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                        }
+
+                    }
+                }
+                else
+                {
+                    // due to the first conditional (celldp >0), we know we're in the cell "opposite" the normal, and so
+                    // we can only collide with the cell edge
+                    // collision with vertical neighbor
+                    obj.reportCollisionVsWorld(0,y * oV,0,oV,t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                }
+
+            }
+        }
+        else if (oV === 0)
+        {
+            // colliding horizontally
+            if (celldp === 0)
+            {
+
+                var dy = obj.pos.y - t.pos.y;
+
+                // we're in a cell perpendicular to the normal, and can collide vs. halfedge vertex
+                // or halfedge side
+                if ((dy * signy) < 0)
+                {
+                    // collision with halfedge side
+                    obj.reportCollisionVsWorld(x * oH,0,oH,0,t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                }
+                else
+                {
+                    // collision with halfedge vertex
+                    var dx = obj.pos.x - (t.pos.x + oH * t.xw);// (dx,dy) is now the vector from the appropriate halfedge vertex to the circle
+
+                    var len = Math.sqrt(dx * dx + dy * dy);
+                    var pen = obj.radius - len;
+                    if (pen > 0)
+                    {
+                        // vertex is in the circle; project outward
+                        if (len === 0)
+                        {
+                            // project out by 45deg
+                            dx = signx / Math.SQRT2;
+                            dy = oV / Math.SQRT2;
+                        }
+                        else
+                        {
+                            dx /= len;
+                            dy /= len;
+                        }
+
+                        obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+
+                }
+            }
+            else
+            {
+                // due to the first conditional (celldp >0), we know w're in the cell "opposite" the normal, and so
+                // we can only collide with the cell edge
+                obj.reportCollisionVsWorld(x * oH, 0, oH, 0, t);
+
+                return Phaser.Physics.Ninja.Circle.COL_AXIS;
+            }
+        }
+        else
+        {
+            // colliding diagonally; we know, due to the initial (celldp >0) test which has failed
+            // if we've reached this point, that we're in a diagonal neighbor on the non-normal side, so
+            // we could only be colliding with the cell vertex, if at all.
+
+            // get diag vertex position
+            var vx = t.pos.x + (oH * t.xw);
+            var vy = t.pos.y + (oV * t.yw);
+
+            var dx = obj.pos.x - vx;// calc vert->circle vector
+            var dy = obj.pos.y - vy;
+
+            var len = Math.sqrt(dx * dx + dy * dy);
+            var pen = obj.radius - len;
+            if (pen > 0)
+            {
+                // vertex is in the circle; project outward
+                if (len === 0)
+                {
+                    // project out by 45deg
+                    dx = oH / Math.SQRT2;
+                    dy = oV / Math.SQRT2;
+                }
+                else
+                {
+                    dx /= len;
+                    dy /= len;
+                }
+
+                obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                return Phaser.Physics.Ninja.Circle.COL_OTHER;
+            }
+
+        }
+
+        return Phaser.Physics.Ninja.Circle.COL_NONE;
+
+    },
+
+    /**
+    * Resolves 22 Degree tile collision.
+    *
+    * @method Phaser.Physics.Ninja.Circle#projCircle_22DegS
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {number} oH - Grid / voronoi region.
+    * @param {number} oV - Grid / voronoi region.
+    * @param {Phaser.Physics.Ninja.Circle} obj - The Circle involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projCircle_22DegS: function (x,y,oH,oV,obj,t)
+    {
+
+        // if the object is in a cell pointed at by signy, no collision will ever occur
+        // otherwise,
+        //
+        // if we're colliding diagonally:
+        //  -collide vs. the appropriate vertex
+        // if obj is in this tile: collide vs slope or vertex
+        // if obj is horiz neighb in direction of slope: collide vs. slope or vertex
+        // if obj is horiz neighb against the slope:
+        //   if (distance in y from circle to 90deg corner of tile < 1/2 tileheight, collide vs. face)
+        //   else(collide vs. corner of slope) (vert collision with a non-grid-aligned vert)
+        // if obj is vert neighb against direction of slope: collide vs. face
+
+        var lenP;
+        var signx = t.signx;
+        var signy = t.signy;
+
+        if ((signy * oV) > 0)
+        {
+            // object will never collide vs tile, it can't reach that far
+
+            return Phaser.Physics.Ninja.Circle.COL_NONE;
+        }
+        else if (oH === 0)
+        {
+            if (oV === 0)
+            {
+                // colliding with current tile
+                // we could only be colliding vs the slope OR a vertex
+                // look at the vector form the closest vert to the circle to decide
+
+                var sx = t.sx;
+                var sy = t.sy;
+
+                var r = obj.radius;
+                var ox = obj.pos.x - (t.pos.x - (signx * t.xw));// this gives is the coordinates of the innermost
+                var oy = obj.pos.y - t.pos.y;// point on the circle, relative to the tile corner
+
+                // if the component of (ox,oy) parallel to the normal's righthand normal
+                // has the same sign as the slope of the slope (the sign of the slope's slope is signx*signy)
+                // then we project by the vertex, otherwise by the normal or axially.
+                // note that this is simply a VERY tricky/weird method of determining
+                // if the circle is in side the slope/face's voronio region, or that of the vertex.
+
+                var perp = (ox * -sy) + (oy * sx);
+                if ((perp * signx * signy) > 0)
+                {
+                    // collide vs. vertex
+                    var len = Math.sqrt(ox * ox + oy * oy);
+                    var pen = r - len;
+                    if (pen > 0)
+                    {
+                        // note: if len=0, then perp=0 and we'll never reach here, so don't worry about div-by-0
+                        ox /= len;
+                        oy /= len;
+
+                        obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+                else
+                {
+                    // collide vs. slope or vs axis
+                    ox -= r * sx;// this gives us the vector from
+                    oy -= r * sy;// a point on the slope to the innermost point on the circle
+
+                    // if the dotprod of (ox,oy) and (sx,sy) is negative, the point on the circle is in the slope
+                    // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+                    var dp = (ox * sx) + (oy * sy);
+
+                    if (dp < 0)
+                    {
+                        // collision; project delta onto slope and use this to displace the object
+                        sx *= -dp;// (sx,sy) is now the projection vector
+                        sy *= -dp;
+
+                        var lenN = Math.sqrt(sx * sx + sy * sy);
+
+                        // find the smallest axial projection vector
+                        if (x < y)
+                        {
+                            // penetration in x is smaller
+                            lenP = x;
+                            y = 0;
+
+                            // get sign for projection along x-axis
+                            if ((obj.pos.x - t.pos.x) < 0)
+                            {
+                                x *= -1;
+                            }
+                        }
+                        else
+                        {
+                            // penetration in y is smaller
+                            lenP = y;
+                            x = 0;
+
+                            // get sign for projection along y-axis
+                            if ((obj.pos.y - t.pos.y) < 0)
+                            {
+                                y *= -1;
+                            }
+                        }
+
+                        if (lenP < lenN)
+                        {
+                            obj.reportCollisionVsWorld(x,y,x / lenP, y / lenP, t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                        }
+                        else
+                        {
+                            obj.reportCollisionVsWorld(sx,sy,t.sx,t.sy,t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                        }
+
+                    }
+                }
+
+            }
+            else
+            {
+                // colliding vertically; we can assume that (signy*oV) < 0
+                // due to the first conditional far above
+
+                obj.reportCollisionVsWorld(0,y * oV, 0, oV, t);
+
+                return Phaser.Physics.Ninja.Circle.COL_AXIS;
+            }
+        }
+        else if (oV === 0)
+        {
+            // colliding horizontally
+            if ((signx * oH) < 0)
+            {
+                // colliding with face/edge OR with corner of wedge, depending on our position vertically
+
+                // collide vs. vertex
+                // get diag vertex position
+                var vx = t.pos.x - (signx * t.xw);
+                var vy = t.pos.y;
+
+                var dx = obj.pos.x - vx;// calc vert->circle vector
+                var dy = obj.pos.y - vy;
+
+                if ((dy * signy) < 0)
+                {
+                    // colliding vs face
+                    obj.reportCollisionVsWorld(x * oH, 0, oH, 0, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                }
+                else
+                {
+                    // colliding vs. vertex
+
+                    var len = Math.sqrt(dx * dx + dy * dy);
+                    var pen = obj.radius - len;
+                    if (pen > 0)
+                    {
+                        // vertex is in the circle; project outward
+                        if (len === 0)
+                        {
+                            // project out by 45deg
+                            dx = oH / Math.SQRT2;
+                            dy = oV / Math.SQRT2;
+                        }
+                        else
+                        {
+                            dx /= len;
+                            dy /= len;
+                        }
+
+                        obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+            }
+            else
+            {
+                // we could only be colliding vs the slope OR a vertex
+                // look at the vector form the closest vert to the circle to decide
+
+                var sx = t.sx;
+                var sy = t.sy;
+
+                var ox = obj.pos.x - (t.pos.x + (oH * t.xw));// this gives is the coordinates of the innermost
+                var oy = obj.pos.y - (t.pos.y - (signy * t.yw));// point on the circle, relative to the closest tile vert
+
+                // if the component of (ox,oy) parallel to the normal's righthand normal
+                // has the same sign as the slope of the slope (the sign of the slope's slope is signx*signy)
+                // then we project by the normal, otherwise by the vertex.
+                // (NOTE: this is the opposite logic of the vertical case;
+                // for vertical, if the perp prod and the slope's slope agree, it's outside.
+                // for horizontal, if the perp prod and the slope's slope agree, circle is inside.
+                //  ..but this is only a property of flahs' coord system (i.e the rules might swap
+                // in righthanded systems))
+                // note that this is simply a VERY tricky/weird method of determining
+                // if the circle is in side the slope/face's voronio region, or that of the vertex.
+                var perp = (ox * -sy) + (oy * sx);
+                if ((perp * signx * signy) < 0)
+                {
+                    // collide vs. vertex
+                    var len = Math.sqrt(ox * ox + oy * oy);
+                    var pen = obj.radius - len;
+                    if (pen > 0)
+                    {
+                        // note: if len=0, then perp=0 and we'll never reach here, so don't worry about div-by-0
+                        ox /= len;
+                        oy /= len;
+
+                        obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+                else
+                {
+                    // collide vs. slope
+
+                    // if the component of (ox,oy) parallel to the normal is less than the circle radius, we're
+                    // penetrating the slope. note that this method of penetration calculation doesn't hold
+                    // in general (i.e it won't work if the circle is in the slope), but works in this case
+                    // because we know the circle is in a neighboring cell
+                    var dp = (ox * sx) + (oy * sy);
+                    var pen = obj.radius - Math.abs(dp);// note: we don't need the abs because we know the dp will be positive, but just in case..
+
+                    if (pen > 0)
+                    {
+                        // collision; circle out along normal by penetration amount
+                        obj.reportCollisionVsWorld(sx * pen, sy * pen, sx, sy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+            }
+        }
+        else
+        {
+
+            // colliding diagonally; due to the first conditional above,
+            // obj is vertically offset against slope, and offset in either direction horizontally
+
+            // collide vs. vertex
+            // get diag vertex position
+            var vx = t.pos.x + (oH * t.xw);
+            var vy = t.pos.y + (oV * t.yw);
+
+            var dx = obj.pos.x - vx;// calc vert->circle vector
+            var dy = obj.pos.y - vy;
+
+            var len = Math.sqrt(dx * dx + dy * dy);
+            var pen = obj.radius - len;
+            if (pen > 0)
+            {
+                // vertex is in the circle; project outward
+                if (len === 0)
+                {
+                    // project out by 45deg
+                    dx = oH / Math.SQRT2;
+                    dy = oV / Math.SQRT2;
+                }
+                else
+                {
+                    dx /= len;
+                    dy /= len;
+                }
+
+                obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                return Phaser.Physics.Ninja.Circle.COL_OTHER;
+            }
+        }
+
+        return Phaser.Physics.Ninja.Circle.COL_NONE;
+
+    },
+
+    /**
+    * Resolves 22 Degree tile collision.
+    *
+    * @method Phaser.Physics.Ninja.Circle#projCircle_22DegB
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {number} oH - Grid / voronoi region.
+    * @param {number} oV - Grid / voronoi region.
+    * @param {Phaser.Physics.Ninja.Circle} obj - The Circle involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projCircle_22DegB: function (x,y,oH, oV, obj,t)
+    {
+
+        // if we're colliding diagonally:
+        //  -if we're in the cell pointed at by the normal, collide vs slope, else
+        //  collide vs. the appropriate corner/vertex
+        //
+        // if obj is in this tile: collide as with aabb
+        //
+        // if obj is horiz or vertical neighbor AGAINST the slope: collide with edge
+        //
+        // if obj is horiz neighb in direction of slope: collide vs. slope or vertex or edge
+        //
+        // if obj is vert neighb in direction of slope: collide vs. slope or vertex
+
+        var lenP;
+        var signx = t.signx;
+        var signy = t.signy;
+
+        if (oH === 0)
+        {
+            if (oV === 0)
+            {
+                // colliding with current cell
+
+                var sx = t.sx;
+                var sy = t.sy;
+
+                var r = obj.radius;
+                var ox = (obj.pos.x - (sx * r)) - (t.pos.x - (signx * t.xw));// this gives is the coordinates of the innermost
+                var oy = (obj.pos.y - (sy * r)) - (t.pos.y + (signy * t.yw));// point on the AABB, relative to a point on the slope
+
+                // if the dotprod of (ox,oy) and (sx,sy) is negative, the point on the circle is in the slope
+                // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+                var dp = (ox * sx) + (oy * sy);
+
+                if (dp < 0)
+                {
+                    // collision; project delta onto slope and use this to displace the object
+                    sx *= -dp;// (sx,sy) is now the projection vector
+                    sy *= -dp;
+
+                    var lenN = Math.sqrt(sx * sx + sy * sy);
+
+                    // find the smallest axial projection vector
+                    if (x < y)
+                    {
+                        // penetration in x is smaller
+                        lenP = x;
+                        y = 0;
+
+                        // get sign for projection along x-axis
+                        if ((obj.pos.x - t.pos.x) < 0)
+                        {
+                            x *= -1;
+                        }
+                    }
+                    else
+                    {
+                        // penetration in y is smaller
+                        lenP = y;
+                        x = 0;
+
+                        // get sign for projection along y-axis
+                        if ((obj.pos.y - t.pos.y) < 0)
+                        {
+                            y *= -1;
+                        }
+                    }
+
+                    if (lenP < lenN)
+                    {
+                        obj.reportCollisionVsWorld(x, y, x / lenP, y / lenP, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                    else
+                    {
+                        obj.reportCollisionVsWorld(sx, sy, t.sx, t.sy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+            }
+            else
+            {
+                // colliding vertically
+
+                if ((signy * oV) < 0)
+                {
+                    // colliding with face/edge
+                    obj.reportCollisionVsWorld(0, y * oV, 0, oV, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                }
+                else
+                {
+                    // we could only be colliding vs the slope OR a vertex
+                    // look at the vector form the closest vert to the circle to decide
+
+                    var sx = t.sx;
+                    var sy = t.sy;
+
+                    var ox = obj.pos.x - (t.pos.x - (signx * t.xw));// this gives is the coordinates of the innermost
+                    var oy = obj.pos.y - (t.pos.y + (signy * t.yw));// point on the circle, relative to the closest tile vert
+
+                    // if the component of (ox,oy) parallel to the normal's righthand normal
+                    // has the same sign as the slope of the slope (the sign of the slope's slope is signx*signy)
+                    // then we project by the vertex, otherwise by the normal.
+                    // note that this is simply a VERY tricky/weird method of determining
+                    // if the circle is in side the slope/face's voronio region, or that of the vertex.
+                    var perp = (ox * -sy) + (oy * sx);
+                    if ((perp * signx * signy) > 0)
+                    {
+                        // collide vs. vertex
+                        var len = Math.sqrt(ox * ox + oy * oy);
+                        var pen = obj.radius - len;
+                        if (pen > 0)
+                        {
+                            // note: if len=0, then perp=0 and we'll never reach here, so don't worry about div-by-0
+                            ox /= len;
+                            oy /= len;
+
+                            obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                        }
+                    }
+                    else
+                    {
+                        // collide vs. slope
+
+                        // if the component of (ox,oy) parallel to the normal is less than the circle radius, we're
+                        // penetrating the slope. note that this method of penetration calculation doesn't hold
+                        // in general (i.e it won't work if the circle is in the slope), but works in this case
+                        // because we know the circle is in a neighboring cell
+                        var dp = (ox * sx) + (oy * sy);
+                        var pen = obj.radius - Math.abs(dp);// note: we don't need the abs because we know the dp will be positive, but just in case..
+                        if (pen > 0)
+                        {
+                            // collision; circle out along normal by penetration amount
+                            obj.reportCollisionVsWorld(sx * pen, sy * pen,sx, sy, t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                        }
+                    }
+                }
+            }
+        }
+        else if (oV === 0)
+        {
+            // colliding horizontally
+
+            if ((signx * oH) < 0)
+            {
+                // colliding with face/edge
+                obj.reportCollisionVsWorld(x * oH, 0, oH, 0, t);
+
+                return Phaser.Physics.Ninja.Circle.COL_AXIS;
+            }
+            else
+            {
+                // colliding with edge, slope, or vertex
+
+                var ox = obj.pos.x - (t.pos.x + (signx * t.xw));// this gives is the coordinates of the innermost
+                var oy = obj.pos.y - t.pos.y;// point on the circle, relative to the closest tile vert
+
+                if ((oy * signy) < 0)
+                {
+                    // we're colliding with the halfface
+                    obj.reportCollisionVsWorld(x * oH, 0, oH, 0, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                }
+                else
+                {
+                    // colliding with the vertex or slope
+
+                    var sx = t.sx;
+                    var sy = t.sy;
+
+                    // if the component of (ox,oy) parallel to the normal's righthand normal
+                    // has the same sign as the slope of the slope (the sign of the slope's slope is signx*signy)
+                    // then we project by the slope, otherwise by the vertex.
+                    // note that this is simply a VERY tricky/weird method of determining
+                    // if the circle is in side the slope/face's voronio region, or that of the vertex.
+                    var perp = (ox * -sy) + (oy * sx);
+                    if ((perp * signx * signy) < 0)
+                    {
+                        // collide vs. vertex
+                        var len = Math.sqrt(ox * ox + oy * oy);
+                        var pen = obj.radius - len;
+                        if (pen > 0)
+                        {
+                            // note: if len=0, then perp=0 and we'll never reach here, so don't worry about div-by-0
+                            ox /= len;
+                            oy /= len;
+
+                            obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                        }
+                    }
+                    else
+                    {
+                        // collide vs. slope
+
+                        // if the component of (ox,oy) parallel to the normal is less than the circle radius, we're
+                        // penetrating the slope. note that this method of penetration calculation doesn't hold
+                        // in general (i.e it won't work if the circle is in the slope), but works in this case
+                        // because we know the circle is in a neighboring cell
+                        var dp = (ox * sx) + (oy * sy);
+                        var pen = obj.radius - Math.abs(dp);// note: we don't need the abs because we know the dp will be positive, but just in case..
+                        if (pen > 0)
+                        {
+                            // collision; circle out along normal by penetration amount
+                            obj.reportCollisionVsWorld(sx * pen, sy * pen, t.sx, t.sy, t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            // colliding diagonally
+            if (((signx * oH) + (signy * oV)) > 0)
+            {
+                // the dotprod of slope normal and cell offset is strictly positive,
+                // therefore obj is in the diagonal neighb pointed at by the normal.
+
+                // collide vs slope
+
+                // we should really precalc this at compile time, but for now, fuck it
+                var slen = Math.sqrt(2 * 2 + 1 * 1);// the raw slope is (-2,-1)
+                var sx = (signx * 1) / slen;// get slope _unit_ normal;
+                var sy = (signy * 2) / slen;// raw RH normal is (1,-2)
+
+                var r = obj.radius;
+                var ox = (obj.pos.x - (sx * r)) - (t.pos.x - (signx * t.xw));// this gives is the coordinates of the innermost
+                var oy = (obj.pos.y - (sy * r)) - (t.pos.y + (signy * t.yw));// point on the circle, relative to a point on the slope
+
+                // if the dotprod of (ox,oy) and (sx,sy) is negative, the point on the circle is in the slope
+                // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+                var dp = (ox * sx) + (oy * sy);
+
+                if (dp < 0)
+                {
+                    // collision; project delta onto slope and use this to displace the object
+                    // (sx,sy)*-dp is the projection vector
+                    obj.reportCollisionVsWorld(-sx * dp, -sy * dp, t.sx, t.sy, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                }
+                return Phaser.Physics.Ninja.Circle.COL_NONE;
+            }
+            else
+            {
+                // collide vs the appropriate vertex
+                var vx = t.pos.x + (oH * t.xw);
+                var vy = t.pos.y + (oV * t.yw);
+
+                var dx = obj.pos.x - vx;// calc vert->circle vector
+                var dy = obj.pos.y - vy;
+
+                var len = Math.sqrt(dx * dx + dy * dy);
+                var pen = obj.radius - len;
+                if (pen > 0)
+                {
+                    // vertex is in the circle; project outward
+                    if (len === 0)
+                    {
+                        // project out by 45deg
+                        dx = oH / Math.SQRT2;
+                        dy = oV / Math.SQRT2;
+                    }
+                    else
+                    {
+                        dx /= len;
+                        dy /= len;
+                    }
+
+                    obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                }
+
+            }
+        }
+
+        return Phaser.Physics.Ninja.Circle.COL_NONE;
+    },
+
+    /**
+    * Resolves 67 Degree tile collision.
+    *
+    * @method Phaser.Physics.Ninja.Circle#projCircle_67DegS
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {number} oH - Grid / voronoi region.
+    * @param {number} oV - Grid / voronoi region.
+    * @param {Phaser.Physics.Ninja.Circle} obj - The Circle involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projCircle_67DegS: function (x,y,oH,oV,obj,t)
+    {
+
+        // if the object is in a cell pointed at by signx, no collision will ever occur
+        // otherwise,
+        //
+        // if we're colliding diagonally:
+        //  -collide vs. the appropriate vertex
+        // if obj is in this tile: collide vs slope or vertex or axis
+        // if obj is vert neighb in direction of slope: collide vs. slope or vertex
+        // if obj is vert neighb against the slope:
+        //   if (distance in y from circle to 90deg corner of tile < 1/2 tileheight, collide vs. face)
+        //   else(collide vs. corner of slope) (vert collision with a non-grid-aligned vert)
+        // if obj is horiz neighb against direction of slope: collide vs. face
+
+        var signx = t.signx;
+        var signy = t.signy;
+
+        if ((signx * oH) > 0)
+        {
+            // object will never collide vs tile, it can't reach that far
+
+            return Phaser.Physics.Ninja.Circle.COL_NONE;
+        }
+        else if (oH === 0)
+        {
+            if (oV === 0)
+            {
+                // colliding with current tile
+                // we could only be colliding vs the slope OR a vertex
+                // look at the vector form the closest vert to the circle to decide
+
+                var lenP;
+                var sx = t.sx;
+                var sy = t.sy;
+
+                var r = obj.radius;
+                var ox = obj.pos.x - t.pos.x;// this gives is the coordinates of the innermost
+                var oy = obj.pos.y - (t.pos.y - (signy * t.yw));// point on the circle, relative to the tile corner
+
+                // if the component of (ox,oy) parallel to the normal's righthand normal
+                // has the same sign as the slope of the slope (the sign of the slope's slope is signx*signy)
+                // then we project by the normal or axis, otherwise by the corner/vertex
+                // note that this is simply a VERY tricky/weird method of determining
+                // if the circle is in side the slope/face's voronoi region, or that of the vertex.
+
+                var perp = (ox * -sy) + (oy * sx);
+                if ((perp * signx * signy) < 0)
+                {
+                    // collide vs. vertex
+                    var len = Math.sqrt(ox * ox + oy * oy);
+                    var pen = r - len;
+                    if (pen > 0)
+                    {
+                        // note: if len=0, then perp=0 and we'll never reach here, so don't worry about div-by-0
+                        ox /= len;
+                        oy /= len;
+
+                        obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+                else
+                {
+                    // collide vs. slope or vs axis
+                    ox -= r * sx;// this gives us the vector from
+                    oy -= r * sy;// a point on the slope to the innermost point on the circle
+
+                    // if the dotprod of (ox,oy) and (sx,sy) is negative, the point on the circle is in the slope
+                    // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+                    var dp = (ox * sx) + (oy * sy);
+
+                    if (dp < 0)
+                    {
+                        // collision; project delta onto slope and use this to displace the object
+                        sx *= -dp;// (sx,sy) is now the projection vector
+                        sy *= -dp;
+
+                        var lenN = Math.sqrt(sx * sx + sy * sy);
+
+                        // find the smallest axial projection vector
+                        if (x < y)
+                        {
+                            // penetration in x is smaller
+                            lenP = x;
+                            y = 0;
+
+                            // get sign for projection along x-axis
+                            if ((obj.pos.x - t.pos.x) < 0)
+                            {
+                                x *= -1;
+                            }
+                        }
+                        else
+                        {
+                            // penetration in y is smaller
+                            lenP = y;
+                            x = 0;
+
+                            // get sign for projection along y-axis
+                            if ((obj.pos.y - t.pos.y) < 0)
+                            {
+                                y *= -1;
+                            }
+                        }
+
+                        if (lenP < lenN)
+                        {
+                            obj.reportCollisionVsWorld(x,y,x / lenP, y / lenP, t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                        }
+                        else
+                        {
+                            obj.reportCollisionVsWorld(sx,sy,t.sx,t.sy,t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                        }
+                    }
+                }
+
+            }
+            else
+            {
+                // colliding vertically
+
+                if ((signy * oV) < 0)
+                {
+                    // colliding with face/edge OR with corner of wedge, depending on our position vertically
+
+                    // collide vs. vertex
+                    // get diag vertex position
+                    var vx = t.pos.x;
+                    var vy = t.pos.y - (signy * t.yw);
+
+                    var dx = obj.pos.x - vx;// calc vert->circle vector
+                    var dy = obj.pos.y - vy;
+
+                    if ((dx * signx) < 0)
+                    {
+                        // colliding vs face
+                        obj.reportCollisionVsWorld(0, y * oV, 0, oV, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                    else
+                    {
+                        // colliding vs. vertex
+
+                        var len = Math.sqrt(dx * dx + dy * dy);
+                        var pen = obj.radius - len;
+                        if (pen > 0)
+                        {
+                            // vertex is in the circle; project outward
+                            if (len === 0)
+                            {
+                                // project out by 45deg
+                                dx = oH / Math.SQRT2;
+                                dy = oV / Math.SQRT2;
+                            }
+                            else
+                            {
+                                dx /= len;
+                                dy /= len;
+                            }
+
+                            obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                        }
+                    }
+                }
+                else
+                {
+                    // we could only be colliding vs the slope OR a vertex
+                    // look at the vector form the closest vert to the circle to decide
+
+                    var sx = t.sx;
+                    var sy = t.sy;
+
+                    var ox = obj.pos.x - (t.pos.x - (signx * t.xw));// this gives is the coordinates of the innermost
+                    var oy = obj.pos.y - (t.pos.y + (oV * t.yw));// point on the circle, relative to the closest tile vert
+
+                    // if the component of (ox,oy) parallel to the normal's righthand normal
+                    // has the same sign as the slope of the slope (the sign of the slope's slope is signx*signy)
+                    // then we project by the vertex, otherwise by the normal.
+                    // note that this is simply a VERY tricky/weird method of determining
+                    // if the circle is in side the slope/face's voronio region, or that of the vertex.
+                    var perp = (ox * -sy) + (oy * sx);
+                    if ((perp * signx * signy) > 0)
+                    {
+                        // collide vs. vertex
+                        var len = Math.sqrt(ox * ox + oy * oy);
+                        var pen = obj.radius - len;
+                        if (pen > 0)
+                        {
+                            // note: if len=0, then perp=0 and we'll never reach here, so don't worry about div-by-0
+                            ox /= len;
+                            oy /= len;
+
+                            obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                        }
+                    }
+                    else
+                    {
+                        // collide vs. slope
+
+                        // if the component of (ox,oy) parallel to the normal is less than the circle radius, we're
+                        // penetrating the slope. note that this method of penetration calculation doesn't hold
+                        // in general (i.e it won't work if the circle is in the slope), but works in this case
+                        // because we know the circle is in a neighboring cell
+                        var dp = (ox * sx) + (oy * sy);
+                        var pen = obj.radius - Math.abs(dp);// note: we don't need the abs because we know the dp will be positive, but just in case..
+
+                        if (pen > 0)
+                        {
+                            // collision; circle out along normal by penetration amount
+                            obj.reportCollisionVsWorld(sx * pen, sy * pen, t.sx, t.sy, t);
+
+                            return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                        }
+                    }
+                }
+            }
+        }
+        else if (oV === 0)
+        {
+            // colliding horizontally; we can assume that (signy*oV) < 0
+            // due to the first conditional far above
+
+            obj.reportCollisionVsWorld(x * oH, 0, oH, 0, t);
+
+            return Phaser.Physics.Ninja.Circle.COL_AXIS;
+        }
+        else
+        {
+            // colliding diagonally; due to the first conditional above,
+            // obj is vertically offset against slope, and offset in either direction horizontally
+
+            // collide vs. vertex
+            // get diag vertex position
+            var vx = t.pos.x + (oH * t.xw);
+            var vy = t.pos.y + (oV * t.yw);
+
+            var dx = obj.pos.x - vx;// calc vert->circle vector
+            var dy = obj.pos.y - vy;
+
+            var len = Math.sqrt(dx * dx + dy * dy);
+            var pen = obj.radius - len;
+            if (pen > 0)
+            {
+                // vertex is in the circle; project outward
+                if (len === 0)
+                {
+                    // project out by 45deg
+                    dx = oH / Math.SQRT2;
+                    dy = oV / Math.SQRT2;
+                }
+                else
+                {
+                    dx /= len;
+                    dy /= len;
+                }
+
+                obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                return Phaser.Physics.Ninja.Circle.COL_OTHER;
+            }
+        }
+
+        return Phaser.Physics.Ninja.Circle.COL_NONE;
+
+    },
+
+    /**
+    * Resolves 67 Degree tile collision.
+    *
+    * @method Phaser.Physics.Ninja.Circle#projCircle_67DegB
+    * @param {number} x - Penetration depth on the x axis.
+    * @param {number} y - Penetration depth on the y axis.
+    * @param {number} oH - Grid / voronoi region.
+    * @param {number} oV - Grid / voronoi region.
+    * @param {Phaser.Physics.Ninja.Circle} obj - The Circle involved in the collision.
+    * @param {Phaser.Physics.Ninja.Tile} t - The Tile involved in the collision.
+    * @return {number} The result of the collision.
+    */
+    projCircle_67DegB: function (x,y,oH, oV, obj,t)
+    {
+
+        // if we're colliding diagonally:
+        //  -if we're in the cell pointed at by the normal, collide vs slope, else
+        //  collide vs. the appropriate corner/vertex
+        //
+        // if obj is in this tile: collide as with aabb
+        //
+        // if obj is horiz or vertical neighbor AGAINST the slope: collide with edge
+        //
+        // if obj is vert neighb in direction of slope: collide vs. slope or vertex or halfedge
+        //
+        // if obj is horiz neighb in direction of slope: collide vs. slope or vertex
+
+        var signx = t.signx;
+        var signy = t.signy;
+
+        if (oH === 0)
+        {
+            if (oV === 0)
+            {
+                // colliding with current cell
+
+                var lenP;
+                var sx = t.sx;
+                var sy = t.sy;
+
+                var r = obj.radius;
+                var ox = (obj.pos.x - (sx * r)) - (t.pos.x + (signx * t.xw));// this gives is the coordinates of the innermost
+                var oy = (obj.pos.y - (sy * r)) - (t.pos.y - (signy * t.yw));// point on the AABB, relative to a point on the slope
+
+                // if the dotprod of (ox,oy) and (sx,sy) is negative, the point on the circle is in the slope
+                // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+                var dp = (ox * sx) + (oy * sy);
+
+                if (dp < 0)
+                {
+                    // collision; project delta onto slope and use this to displace the object
+                    sx *= -dp;// (sx,sy) is now the projection vector
+                    sy *= -dp;
+
+                    var lenN = Math.sqrt(sx * sx + sy * sy);
+
+                    // find the smallest axial projection vector
+                    if (x < y)
+                    {
+                        // penetration in x is smaller
+                        lenP = x;
+                        y = 0;
+
+                        // get sign for projection along x-axis
+                        if ((obj.pos.x - t.pos.x) < 0)
+                        {
+                            x *= -1;
+                        }
+                    }
+                    else
+                    {
+                        // penetration in y is smaller
+                        lenP = y;
+                        x = 0;
+
+                        // get sign for projection along y-axis
+                        if ((obj.pos.y - t.pos.y) < 0)
+                        {
+                            y *= -1;
+                        }
+                    }
+
+                    if (lenP < lenN)
+                    {
+                        obj.reportCollisionVsWorld(x,y,x / lenP, y / lenP, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                    else
+                    {
+                        obj.reportCollisionVsWorld(sx, sy, t.sx, t.sy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+
+                }
+            }
+            else
+            {
+                // colliding vertically
+
+                if ((signy * oV) < 0)
+                {
+                    // colliding with face/edge
+                    obj.reportCollisionVsWorld(0, y * oV, 0, oV, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                }
+                else
+                {
+                    // colliding with edge, slope, or vertex
+
+                    var ox = obj.pos.x - t.pos.x;// this gives is the coordinates of the innermost
+                    var oy = obj.pos.y - (t.pos.y + (signy * t.yw));// point on the circle, relative to the closest tile vert
+
+                    if ((ox * signx) < 0)
+                    {
+                        // we're colliding with the halfface
+                        obj.reportCollisionVsWorld(0, y * oV, 0, oV, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_AXIS;
+                    }
+                    else
+                    {
+                        // colliding with the vertex or slope
+
+                        var sx = t.sx;
+                        var sy = t.sy;
+
+                        // if the component of (ox,oy) parallel to the normal's righthand normal
+                        // has the same sign as the slope of the slope (the sign of the slope's slope is signx*signy)
+                        // then we project by the vertex, otherwise by the slope.
+                        // note that this is simply a VERY tricky/weird method of determining
+                        // if the circle is in side the slope/face's voronio region, or that of the vertex.
+                        var perp = (ox * -sy) + (oy * sx);
+                        if ((perp * signx * signy) > 0)
+                        {
+                            // collide vs. vertex
+                            var len = Math.sqrt(ox * ox + oy * oy);
+                            var pen = obj.radius - len;
+                            if (pen > 0)
+                            {
+                                // note: if len=0, then perp=0 and we'll never reach here, so don't worry about div-by-0
+                                ox /= len;
+                                oy /= len;
+
+                                obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                                return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                            }
+                        }
+                        else
+                        {
+                            // collide vs. slope
+
+                            // if the component of (ox,oy) parallel to the normal is less than the circle radius, we're
+                            // penetrating the slope. note that this method of penetration calculation doesn't hold
+                            // in general (i.e it won't work if the circle is in the slope), but works in this case
+                            // because we know the circle is in a neighboring cell
+                            var dp = (ox * sx) + (oy * sy);
+                            var pen = obj.radius - Math.abs(dp);// note: we don't need the abs because we know the dp will be positive, but just in case..
+                            if (pen > 0)
+                            {
+                                // collision; circle out along normal by penetration amount
+                                obj.reportCollisionVsWorld(sx * pen, sy * pen, sx, sy, t);
+
+                                return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else if (oV === 0)
+        {
+            // colliding horizontally
+
+            if ((signx * oH) < 0)
+            {
+                // colliding with face/edge
+                obj.reportCollisionVsWorld(x * oH, 0, oH, 0, t);
+
+                return Phaser.Physics.Ninja.Circle.COL_AXIS;
+            }
+            else
+            {
+                // we could only be colliding vs the slope OR a vertex
+                // look at the vector form the closest vert to the circle to decide
+
+                var slen = Math.sqrt(2 * 2 + 1 * 1);// the raw slope is (-2,-1)
+                var sx = (signx * 2) / slen;// get slope _unit_ normal;
+                var sy = (signy * 1) / slen;// raw RH normal is (1,-2)
+
+                var ox = obj.pos.x - (t.pos.x + (signx * t.xw));// this gives is the coordinates of the innermost
+                var oy = obj.pos.y - (t.pos.y - (signy * t.yw));// point on the circle, relative to the closest tile vert
+
+                // if the component of (ox,oy) parallel to the normal's righthand normal
+                // has the same sign as the slope of the slope (the sign of the slope's slope is signx*signy)
+                // then we project by the slope, otherwise by the vertex.
+                // note that this is simply a VERY tricky/weird method of determining
+                // if the circle is in side the slope/face's voronio region, or that of the vertex.
+                var perp = (ox * -sy) + (oy * sx);
+                if ((perp * signx * signy) < 0)
+                {
+                    // collide vs. vertex
+                    var len = Math.sqrt(ox * ox + oy * oy);
+                    var pen = obj.radius - len;
+                    if (pen > 0)
+                    {
+                        // note: if len=0, then perp=0 and we'll never reach here, so don't worry about div-by-0
+                        ox /= len;
+                        oy /= len;
+
+                        obj.reportCollisionVsWorld(ox * pen, oy * pen, ox, oy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+                else
+                {
+                    // collide vs. slope
+
+                    // if the component of (ox,oy) parallel to the normal is less than the circle radius, we're
+                    // penetrating the slope. note that this method of penetration calculation doesn't hold
+                    // in general (i.e it won't work if the circle is in the slope), but works in this case
+                    // because we know the circle is in a neighboring cell
+                    var dp = (ox * sx) + (oy * sy);
+                    var pen = obj.radius - Math.abs(dp);// note: we don't need the abs because we know the dp will be positive, but just in case..
+                    if (pen > 0)
+                    {
+                        // collision; circle out along normal by penetration amount
+                        obj.reportCollisionVsWorld(sx * pen, sy * pen, t.sx, t.sy, t);
+
+                        return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                    }
+                }
+            }
+        }
+        else
+        {
+            // colliding diagonally
+            if (((signx * oH) + (signy * oV)) > 0)
+            {
+                // the dotprod of slope normal and cell offset is strictly positive,
+                // therefore obj is in the diagonal neighb pointed at by the normal.
+
+                // collide vs slope
+
+                var sx = t.sx;
+                var sy = t.sy;
+
+                var r = obj.radius;
+                var ox = (obj.pos.x - (sx * r)) - (t.pos.x + (signx * t.xw));// this gives is the coordinates of the innermost
+                var oy = (obj.pos.y - (sy * r)) - (t.pos.y - (signy * t.yw));// point on the circle, relative to a point on the slope
+
+                // if the dotprod of (ox,oy) and (sx,sy) is negative, the point on the circle is in the slope
+                // and we need toproject it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+                var dp = (ox * sx) + (oy * sy);
+
+                if (dp < 0)
+                {
+                    // collision; project delta onto slope and use this to displace the object
+                    // (sx,sy)*-dp is the projection vector
+
+                    obj.reportCollisionVsWorld(-sx * dp, -sy * dp, t.sx, t.sy, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                }
+                return Phaser.Physics.Ninja.Circle.COL_NONE;
+            }
+            else
+            {
+
+                // collide vs the appropriate vertex
+                var vx = t.pos.x + (oH * t.xw);
+                var vy = t.pos.y + (oV * t.yw);
+
+                var dx = obj.pos.x - vx;// calc vert->circle vector
+                var dy = obj.pos.y - vy;
+
+                var len = Math.sqrt(dx * dx + dy * dy);
+                var pen = obj.radius - len;
+                if (pen > 0)
+                {
+                    // vertex is in the circle; project outward
+                    if (len === 0)
+                    {
+                        // project out by 45deg
+                        dx = oH / Math.SQRT2;
+                        dy = oV / Math.SQRT2;
+                    }
+                    else
+                    {
+                        dx /= len;
+                        dy /= len;
+                    }
+
+                    obj.reportCollisionVsWorld(dx * pen, dy * pen, dx, dy, t);
+
+                    return Phaser.Physics.Ninja.Circle.COL_OTHER;
+                }
+
+            }
+        }
+
+        return Phaser.Physics.Ninja.Circle.COL_NONE;
+    },
+
+    /**
+    * Destroys this Circle's reference to Body and System
+    *
+    * @method Phaser.Physics.Ninja.Circle#destroy
+    */
+    destroy: function ()
+    {
+        this.body = null;
+        this.system = null;
+    },
+
+    /**
+    * Render this circle for debugging purposes.
+    *
+    * @method Phaser.Physics.Ninja.Circle#render
+    * @param {object} context - The context to render to.
+    * @param {number} xOffset - X offset from circle's position to render at.
+    * @param {number} yOffset - Y offset from circle's position to render at.
+    * @param {string} color - color of the debug shape to be rendered. (format is css color string).
+    * @param {boolean} filled - Render the shape as solid (true) or hollow (false).
+    */
+    render: function (context, xOffset, yOffset, color, filled)
+    {
+        var x = this.pos.x - xOffset;
+        var y = this.pos.y - yOffset;
+
+        context.beginPath();
+        context.arc(x, y, this.radius, 0, 2 * Math.PI, false);
+
+        if (filled)
+        {
+            context.fillStyle = color;
+            context.fill();
+        }
+        else
+        {
+            context.strokeStyle = color;
+            context.stroke();
+        }
+    }
+};
+
+/**
+* @author       Richard Davey <rich@photonstorm.com>
+* @copyright    2016 Photon Storm Ltd.
+* @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
+*/
+
 //  Add an extra properties to p2 that we need
 p2.Body.prototype.parent = null;
 p2.Spring.prototype.parent = null;
@@ -108372,6 +123804,980 @@ Phaser.Bullet.prototype.update = function ()
         this.game.world.wrap(this, this.data.bulletManager.bulletWorldWrapPadding);
     }
 
+};
+
+/* eslint-disable camelcase */
+/* globals Creature,CreatureAnimation,CreatureManager,CreatureModuleUtils */
+/**
+ * @author       Richard Davey <rich@photonstorm.com>
+ * @author       Kestrel Moon Studios <creature@kestrelmoon.com>
+ * @copyright    2016 Photon Storm Ltd and Kestrel Moon Studios
+ * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
+ */
+
+/**
+ * @class CreatureShader
+ * @constructor
+ * @param gl {WebGLContext} the current WebGL drawing context
+ */
+PIXI.CreatureShader = function (gl)
+{
+    /**
+     * @property _UID
+     * @type Number
+     * @private
+     */
+    this._UID = Phaser._UID++;
+
+    /**
+     * @property gl
+     * @type WebGLContext
+     */
+    this.gl = gl;
+
+    /**
+     * The WebGL program.
+     * @property program
+     * @type Any
+     */
+    this.program = null;
+
+    /**
+     * The fragment shader.
+     * @property fragmentSrc
+     * @type Array
+     */
+    this.fragmentSrc = [
+        '//CreatureShader Fragment Shader.',
+        'precision mediump float;',
+        'varying vec2 vTextureCoord;',
+        'varying float vTextureIndex;',
+        'varying vec4 vColor;',
+
+        /*
+         * 'uniform float alpha;',
+         * 'uniform vec3 tint;',
+         */
+        'uniform sampler2D uSampler;',
+        'void main(void) {',
+        '   gl_FragColor = texture2D(uSampler, vTextureCoord) * vColor;',
+        '}'
+    ];
+
+    /**
+     * The vertex shader.
+     * @property vertexSrc
+     * @type Array
+     */
+    this.vertexSrc = [
+        '//CreatureShader Vertex Shader.',
+        'attribute vec2 aVertexPosition;',
+        'attribute vec2 aTextureCoord;',
+        'attribute float aTextureIndex;',
+        'attribute vec4 aColor;',
+        'uniform mat3 translationMatrix;',
+        'uniform vec2 projectionVector;',
+        'uniform vec2 offsetVector;',
+        'uniform float alpha;',
+        'uniform vec3 tint;',
+        'varying vec2 vTextureCoord;',
+        'varying float vTextureIndex;',
+        'varying vec4 vColor;',
+
+        'void main(void) {',
+        '   vec3 v = translationMatrix * vec3(aVertexPosition , 1.0);',
+        '   v -= offsetVector.xyx;',
+        '   gl_Position = vec4( v.x / projectionVector.x -1.0, v.y / -projectionVector.y + 1.0 , 0.0, 1.0);',
+        '   vTextureCoord = aTextureCoord;',
+        '   vTextureIndex = aTextureIndex;',
+        '   vColor = vec4(tint[0], tint[1], tint[2], 1.0) * aColor.a * alpha;',
+        '}'
+    ];
+
+    this.init();
+};
+
+PIXI.CreatureShader.prototype.constructor = PIXI.CreatureShader;
+
+/**
+ * Initialises the shader.
+ *
+ * @method PIXI.CreatureShader#init
+ */
+PIXI.CreatureShader.prototype.init = function ()
+{
+    var gl = this.gl;
+    var program = PIXI.compileProgram(gl, this.vertexSrc, this.fragmentSrc);
+    gl.useProgram(program);
+
+    // get and store the uniforms for the shader
+    this.uSampler = PIXI._enableMultiTextureToggle ?
+        gl.getUniformLocation(program, 'uSamplerArray[0]') :
+        gl.getUniformLocation(program, 'uSampler');
+
+    this.projectionVector = gl.getUniformLocation(program, 'projectionVector');
+    this.offsetVector = gl.getUniformLocation(program, 'offsetVector');
+    this.colorAttribute = gl.getAttribLocation(program, 'aColor');
+    this.aTextureIndex = gl.getAttribLocation(program, 'aTextureIndex');
+
+    // this.dimensions = gl.getUniformLocation(this.program, 'dimensions');
+
+    // get and store the attributes
+    this.aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
+    this.aTextureCoord = gl.getAttribLocation(program, 'aTextureCoord');
+
+    this.attributes = [ this.aVertexPosition, this.aTextureCoord, this.colorAttribute ];
+
+    this.translationMatrix = gl.getUniformLocation(program, 'translationMatrix');
+    this.alpha = gl.getUniformLocation(program, 'alpha');
+    this.tintColor = gl.getUniformLocation(program, 'tint');
+
+    this.program = program;
+};
+
+/**
+ * Destroys the shader.
+ *
+ * @method PIXI.CreatureShader#destroy
+ */
+PIXI.CreatureShader.prototype.destroy = function ()
+{
+    this.gl.deleteProgram(this.program);
+    this.uniforms = null;
+    this.gl = null;
+
+    this.attribute = null;
+};
+
+/**
+ * Creature is a custom Game Object used in conjunction with the Creature Runtime libraries by Kestrel Moon Studios.
+ *
+ * It allows you to display animated Game Objects that were created with the [Creature Automated Animation Tool](http://www.kestrelmoon.com/creature/).
+ *
+ * Note 1: You can only use Phaser.Creature objects in WebGL enabled games. They do not work in Canvas mode games.
+ *
+ * Note 2: You must use a build of Phaser that includes the CreatureMeshBone.js runtime and gl-matrix.js, or have them
+ * loaded before your Phaser game boots.
+ *
+ * See the Phaser custom build process for more details.
+ *
+ * By default the Creature runtimes are NOT included in any pre-configured version of Phaser.
+ *
+ * So you'll need to do `grunt custom` to create a build that includes them.
+ *
+ * @class Phaser.Creature
+ * @extends PIXI.DisplayObjectContainer
+ * @extends Phaser.Component.Core
+ * @extends Phaser.Component.Angle
+ * @extends Phaser.Component.AutoCull
+ * @extends Phaser.Component.BringToTop
+ * @extends Phaser.Component.Destroy
+ * @extends Phaser.Component.FixedToCamera
+ * @extends Phaser.Component.LifeSpan
+ * @extends Phaser.Component.Reset
+ * @extends Phaser.Component.InputEnabled
+ * @constructor
+ * @param {Phaser.Game} game - A reference to the currently running game.
+ * @param {number} x - The x coordinate of the Game Object. The coordinate is relative to any parent container this Game Object may be in.
+ * @param {number} y - The y coordinate of the Game Object. The coordinate is relative to any parent container this Game Object may be in.
+ * @param {string|PIXI.Texture} key - The texture used by the Creature Object during rendering. It can be a string which is a reference to the Cache entry, or an instance of a PIXI.Texture.
+ * @param {string} mesh - The mesh data for the Creature Object. It should be a string which is a reference to the Cache JSON entry.
+ * @param {string} [animation='default'] - The animation within the mesh data  to play.
+ * @param {string} [useFlatData=false] - Use flat data
+ */
+Phaser.Creature = function (game, x, y, key, mesh, animation, useFlatData)
+{
+    /**
+     * @property {Phaser.Game} game - A reference to the currently running game.
+     */
+    this.game = game;
+
+    if (animation === undefined) { animation = 'default'; }
+    if (useFlatData === undefined) { useFlatData = false; }
+
+    /**
+     * @property {number} type - The const type of this object.
+     * @readonly
+     */
+    this.type = Phaser.CREATURE;
+
+    if (!game.cache.checkJSONKey(mesh))
+    {
+        console.warn('Phaser.Creature: Invalid mesh key given. Not found in Phaser.Cache');
+        return;
+    }
+
+    var meshData = game.cache.getJSON(mesh, true);
+
+    /**
+     * @property {Creature} _creature - The Creature instance.
+     * @private
+     */
+    this._creature = new Creature(meshData, useFlatData);
+
+    /**
+     * @property {CreatureAnimation} animation - The CreatureAnimation instance.
+     */
+    this.animation = new CreatureAnimation(meshData, animation, useFlatData);
+
+    /**
+     * @property {CreatureManager} manager - The CreatureManager instance for this object.
+     */
+    this.manager = new CreatureManager(this._creature);
+
+    /**
+     * @property {number} timeDelta - How quickly the animation advances.
+     * @default
+     */
+    this.timeDelta = 0.05;
+
+    if (typeof key === 'string')
+    {
+        var texture = new PIXI.Texture(game.cache.getBaseTexture(key));
+    }
+    else
+    {
+        var texture = key;
+    }
+
+    /**
+     * @property {PIXI.Texture} texture - The texture the animation is using.
+     */
+    this.texture = texture;
+
+    PIXI.DisplayObjectContainer.call(this);
+
+    this.dirty = true;
+    this.blendMode = PIXI.blendModes.NORMAL;
+
+    /**
+     * @property {Phaser.Point} creatureBoundsMin - The minimum bounds point.
+     * @protected
+     */
+    this.creatureBoundsMin = new Phaser.Point();
+
+    /**
+     * @property {Phaser.Point} creatureBoundsMax - The maximum bounds point.
+     * @protected
+     */
+    this.creatureBoundsMax = new Phaser.Point();
+
+    var target = this.manager.target_creature;
+
+    /**
+     * @property {Float32Array} vertices - The vertices data.
+     * @protected
+     */
+    this.vertices = new Float32Array(target.total_num_pts * 2);
+
+    /**
+     * @property {Float32Array} uvs - The UV data.
+     * @protected
+     */
+    this.uvs = new Float32Array(target.total_num_pts * 2);
+
+    /**
+     * @property {Uint16Array} indices
+     * @protected
+     */
+    this.indices = new Uint16Array(target.global_indices.length);
+
+    for (var i = 0; i < this.indices.length; i++)
+    {
+        this.indices[i] = target.global_indices[i];
+    }
+
+    /**
+     * @property {Uint16Array} colors - The vertices colors
+     * @protected
+     */
+    this.colors = new Float32Array(target.total_num_pts * 4);
+    for(var j = 0; j < this.colors.length; j++)
+    {
+        this.colors[j] = 1.0;
+    }
+
+    this.updateRenderData(target.global_pts, target.global_uvs);
+
+    this.manager.AddAnimation(this.animation);
+    this.manager.SetActiveAnimationName(animation, false);
+
+    Phaser.Component.Core.init.call(this, game, x, y);
+
+    /**
+     * @property {number} tint - colour change
+     * @default
+     */
+    this.data.tint = 0xFFFFFF;
+
+    /**
+     * @property {number} alpha - set the opacity
+     * @default
+     */
+    this.data.alpha = 1.0;
+};
+
+Phaser.Creature.prototype = Object.create(PIXI.DisplayObjectContainer.prototype);
+Phaser.Creature.prototype.constructor = Phaser.Creature;
+
+Phaser.Component.Core.install.call(Phaser.Creature.prototype, [
+    'Angle',
+    'AutoCull',
+    'BringToTop',
+    'Destroy',
+    'FixedToCamera',
+    'LifeSpan',
+    'Reset',
+    'InputEnabled'
+]);
+
+Phaser.Creature.prototype.preUpdateInWorld = Phaser.Component.InWorld.preUpdate;
+Phaser.Creature.prototype.preUpdateCore = Phaser.Component.Core.preUpdate;
+
+/**
+ * Automatically called by World.preUpdate.
+ *
+ * @method Phaser.Creature#preUpdate
+ * @memberof Phaser.Creature
+ */
+Phaser.Creature.prototype.preUpdate = function ()
+{
+    if (!this.preUpdateInWorld())
+    {
+        return false;
+    }
+
+    this.manager.Update(this.timeDelta);
+
+    this.updateData();
+
+    return this.preUpdateCore();
+};
+
+/**
+ *
+ *
+ * @method Phaser.Creature#_initWebGL
+ * @memberof Phaser.Creature
+ * @private
+ */
+Phaser.Creature.prototype._initWebGL = function (renderSession)
+{
+    // build the strip!
+    var gl = renderSession.gl;
+
+    this._vertexBuffer = gl.createBuffer();
+    this._indexBuffer = gl.createBuffer();
+    this._uvBuffer = gl.createBuffer();
+    this._colorBuffer = gl.createBuffer();
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.DYNAMIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._uvBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.uvs, gl.DYNAMIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
+};
+
+/**
+ * @method Phaser.Creature#_renderWebGL
+ * @memberof Phaser.Creature
+ * @private
+ */
+Phaser.Creature.prototype._renderWebGL = function (renderSession)
+{
+    //  If the sprite is not visible or the alpha is 0 then no need to render this element
+    if (!this.visible || this.alpha <= 0)
+    {
+        return;
+    }
+
+    renderSession.spriteBatch.stop();
+
+    // init! init!
+    if (!this._vertexBuffer)
+    {
+        this._initWebGL(renderSession);
+    }
+
+    renderSession.shaderManager.setShader(renderSession.shaderManager.creatureShader);
+
+    this._renderCreature(renderSession);
+
+    renderSession.spriteBatch.start();
+};
+
+/**
+ * @method Phaser.Creature#_renderCreature
+ * @memberof Phaser.Creature
+ * @private
+ */
+Phaser.Creature.prototype._renderCreature = function (renderSession)
+{
+    var gl = renderSession.gl;
+
+    var projection = renderSession.projection;
+    var offset = renderSession.offset;
+    var shader = renderSession.shaderManager.creatureShader;
+
+    renderSession.blendModeManager.setBlendMode(this.blendMode);
+
+    //  Set uniforms
+    gl.uniformMatrix3fv(shader.translationMatrix, false, this.worldTransform.toArray(true));
+    gl.uniform2f(shader.projectionVector, projection.x, -projection.y);
+    gl.uniform2f(shader.offsetVector, -offset.x, -offset.y);
+    gl.uniform1f(shader.alpha, this.worldAlpha);
+    gl.uniform3fv(shader.tintColor, Phaser.Color.hexToRGBArray(this.tint));
+    gl.uniform1f(shader.alpha, this.alpha);
+
+    if (!this.dirty)
+    {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.vertices);
+        gl.vertexAttribPointer(shader.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+
+        //  Update the uvs
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._uvBuffer);
+        gl.vertexAttribPointer(shader.aTextureCoord, 2, gl.FLOAT, false, 0, 0);
+
+        // Update the colors
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.STATIC_DRAW);
+
+        gl.activeTexture(gl.TEXTURE0);
+
+        //  Check if a texture is dirty..
+        if (this.texture.baseTexture._dirty[gl.id])
+        {
+            renderSession.renderer.updateTexture(this.texture.baseTexture);
+        }
+        else
+        {
+            //  Bind the current texture
+            gl.bindTexture(gl.TEXTURE_2D, this.texture.baseTexture._glTextures[gl.id]);
+        }
+
+        //  Don't need to upload!
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+    }
+    else
+    {
+        this.dirty = false;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.DYNAMIC_DRAW);
+        gl.vertexAttribPointer(shader.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+
+        //  Update the uvs
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._uvBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.uvs, gl.DYNAMIC_DRAW);
+        gl.vertexAttribPointer(shader.aTextureCoord, 2, gl.FLOAT, false, 0, 0);
+
+        // Update the colors
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shader.colorAttribute, 4, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+
+        //  Check if a texture is dirty
+        if (this.texture.baseTexture._dirty[gl.id])
+        {
+            renderSession.renderer.updateTexture(this.texture.baseTexture);
+        }
+        else
+        {
+            gl.bindTexture(gl.TEXTURE_2D, this.texture.baseTexture._glTextures[gl.id]);
+        }
+
+        //  Don't need to upload!
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
+    }
+
+    gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
+};
+
+/**
+ * @method Phaser.Creature#updateCreatureBounds
+ * @memberof Phaser.Creature
+ * @private
+ */
+Phaser.Creature.prototype.updateCreatureBounds = function ()
+{
+    //  Update bounds based off world transform matrix
+    var target = this.manager.target_creature;
+
+    target.ComputeBoundaryMinMax();
+
+    this.creatureBoundsMin.set(target.boundary_min[0], -target.boundary_min[1]);
+    this.creatureBoundsMax.set(target.boundary_max[0], -target.boundary_max[1]);
+
+    this.worldTransform.apply(this.creatureBoundsMin, this.creatureBoundsMin);
+    this.worldTransform.apply(this.creatureBoundsMax, this.creatureBoundsMax);
+};
+
+/**
+ * @method Phaser.Creature#updateData
+ * @memberof Phaser.Creature
+ * @private
+ */
+Phaser.Creature.prototype.updateData = function ()
+{
+    var target = this.manager.target_creature;
+
+    var read_pts = target.render_pts;
+    var read_uvs = target.global_uvs;
+
+    this.updateRenderData(read_pts, read_uvs);
+    this.updateCreatureBounds();
+
+    this.dirty = true;
+};
+
+/**
+ * @method Phaser.Creature#updateRenderData
+ * @memberof Phaser.Creature
+ * @private
+ */
+Phaser.Creature.prototype.updateRenderData = function (verts, uvs)
+{
+    var target = this.manager.target_creature;
+
+    var pt_index = 0;
+    var uv_index = 0;
+
+    var write_pt_index = 0;
+
+    for (var i = 0; i < target.total_num_pts; i++)
+    {
+        this.vertices[write_pt_index] = verts[pt_index];
+        this.vertices[write_pt_index + 1] = -verts[pt_index + 1];
+
+        this.uvs[uv_index] = uvs[uv_index];
+        this.uvs[uv_index + 1] = uvs[uv_index + 1];
+
+        pt_index += 3;
+        uv_index += 2;
+
+        write_pt_index += 2;
+    }
+
+    // Update color/opacity region values
+    var render_composition =
+        target.render_composition;
+    var regions_map =
+        render_composition.getRegionsMap();
+    for(var region_name in regions_map)
+    {
+        var cur_region = regions_map[region_name];
+        var start_pt_idx = cur_region.getStartPtIndex();
+        var end_pt_idx = cur_region.getEndPtIndex() + 1;
+        var cur_opacity = cur_region.opacity * 0.01;
+
+        for(var i = (start_pt_idx * 4); i <= (end_pt_idx * 4); i++)
+        {
+            this.colors[i] = cur_opacity;
+        }
+    }
+};
+
+/**
+ * Sets the Animation this Creature object will play, as defined in the mesh data.
+ *
+ * @method Phaser.Creature#setAnimation
+ * @memberof Phaser.Creature
+ * @param {string} key - The key of the animation to set, as defined in the mesh data.
+ */
+Phaser.Creature.prototype.setAnimation = function (key)
+{
+    this.data.anchorY = null;
+    this.data.anchorX = null;
+    this.data.animation = key;
+    this.manager.SetActiveAnimationName(key, true);
+};
+
+/**
+ * Sets the animation playback speed
+ *
+ * @method Phaser.Creature#setAnimationPlaySpeed
+ * @memberof Phaser.Creature
+ * @param {number} speed - Sets the playback speed
+ */
+Phaser.Creature.prototype.setAnimationPlaySpeed = function (speed)
+{
+    if (speed)
+    {
+        this.timeDelta = speed;
+    }
+};
+
+/**
+ * Plays the currently set animation.
+ *
+ * @method Phaser.Creature#play
+ * @memberof Phaser.Creature
+ * @param {boolean} [loop=false] - Should the animation loop?
+ */
+Phaser.Creature.prototype.play = function (loop)
+{
+    if (loop === undefined) { loop = false; }
+
+    this.loop = loop;
+
+    this.manager.SetIsPlaying(true);
+    this.manager.RunAtTime(0);
+};
+
+/**
+ * Stops the currently playing animation.
+ *
+ * @method Phaser.Creature#stop
+ * @memberof Phaser.Creature
+ */
+Phaser.Creature.prototype.stop = function ()
+{
+    this.manager.SetIsPlaying(false);
+};
+
+/**
+ * @name Phaser.Creature#isPlaying
+ * @property {boolean} isPlaying - Is the _current_ animation playing?
+ */
+Object.defineProperty(Phaser.Creature.prototype, 'isPlaying', {
+
+    get: function ()
+    {
+        return this.manager.GetIsPlaying();
+    },
+
+    set: function (value)
+    {
+        this.manager.SetIsPlaying(value);
+    }
+
+});
+
+/**
+ * @name Phaser.Creature#loop
+ * @property {boolean} loop - Should the _current_ animation loop or not?
+ */
+Object.defineProperty(Phaser.Creature.prototype, 'loop', {
+
+    get: function ()
+    {
+        return this.manager.should_loop;
+    },
+
+    set: function (value)
+    {
+        this.manager.SetShouldLoop(value);
+    }
+
+});
+
+/**
+ * @name Phaser.Creature#height
+ * @property {number} height - Sets the height of the animation
+ */
+Object.defineProperty(Phaser.Creature.prototype, 'height', {
+
+    get: function ()
+    {
+        return this.data.height;
+    },
+
+    set: function (value)
+    {
+        var target = this.manager.target_creature;
+
+        var width = this.data.width ? this.data.width : 0;
+
+        var values = target.GetPixelScaling(width, value);
+        this.scale.set(values[0], values[1]);
+        this.data.height = value;
+    }
+
+});
+
+/**
+ * @name Phaser.Creature#width
+ * @property {number} width - Sets the width of the animation
+ */
+Object.defineProperty(Phaser.Creature.prototype, 'width', {
+
+    get: function ()
+    {
+        return this.data.width;
+    },
+
+    set: function (value)
+    {
+        var target = this.manager.target_creature;
+
+        var height = this.data.height ? this.data.height : 0;
+
+        var values = target.GetPixelScaling(value, height);
+        this.scale.set(values[0], values[1]);
+        this.data.width = value;
+    }
+
+});
+
+/**
+ * @name Phaser.Creature#anchorX
+ * @property {number} anchorX - Sets the anchorX of the animation
+ */
+Object.defineProperty(Phaser.Creature.prototype, 'anchorX', {
+
+    get: function ()
+    {
+        return this.data.anchorX;
+    },
+
+    set: function (value)
+    {
+        if (value === 0)
+        {
+            value = 0.01;
+        }
+
+        if (value === 1)
+        {
+            value = 0.99;
+        }
+
+        if (value === this.data.anchorX)
+        {
+            return;
+        }
+
+        var target = this.manager.target_creature;
+
+        this.stop();
+        this.manager.RunAtTime(0);
+
+        if (this.data.anchorX)
+        {
+            target.SetAnchorPoint(-this.data.anchorX, null, this.data.animation);
+
+            this.play(true);
+            this.stop();
+            this.manager.RunAtTime(0);
+        }
+
+        target.SetAnchorPoint(value, null, this.data.animation);
+        this.play(true);
+
+        this.data.anchorX = value;
+    }
+
+});
+
+/**
+ * @name Phaser.Creature#anchorY
+ * @property {number} anchorY - Sets the anchorY of the animation
+ */
+Object.defineProperty(Phaser.Creature.prototype, 'anchorY', {
+
+    get: function ()
+    {
+        return this.data.anchorY;
+    },
+
+    set: function (value)
+    {
+        if (value === 0)
+        {
+            value = 0.01;
+        }
+
+        if (value === 1)
+        {
+            value = 0.99;
+        }
+
+        if (value === this.data.anchorY)
+        {
+            return;
+        }
+
+        var target = this.manager.target_creature;
+
+        this.stop();
+        this.manager.RunAtTime(0);
+
+        if (this.data.anchorY)
+        {
+            target.SetAnchorPoint(null, -this.data.anchorY, this.data.animation);
+
+            this.play(true);
+            this.stop();
+            this.manager.RunAtTime(0);
+        }
+
+        target.SetAnchorPoint(null, value, this.data.animation);
+        this.play(true);
+
+        this.data.anchorY = value;
+    }
+
+});
+
+/**
+ * @name Phaser.Creature#tint
+ * @property {number} tint - Sets the colour tint
+ */
+Object.defineProperty(Phaser.Creature.prototype, 'tint', {
+
+    get: function ()
+    {
+        return this.data.tint;
+    },
+
+    set: function (value)
+    {
+        this.data.tint = value;
+    }
+
+});
+
+/**
+ * @name Phaser.Creature#alpha
+ * @property {number} alpha - Sets the opacity
+ */
+Object.defineProperty(Phaser.Creature.prototype, 'alpha', {
+
+    get: function ()
+    {
+        return this.data.alpha;
+    },
+
+    set: function (value)
+    {
+        this.data.alpha = value;
+    }
+
+});
+
+/**
+ * Sets whether anchor point transformations are active.
+ *
+ * @method Phaser.Creature#setAnchorPointEnabled
+ * @memberof Phaser.Creature
+ */
+Phaser.Creature.prototype.setAnchorPointEnabled = function (value)
+{
+    var target = this.manager.target_creature;
+    target.SetAnchorPointEnabled(value);
+};
+
+/**
+ * @method Phaser.Creature#createAllAnimations
+ * @memberof Phaser.Creature
+ */
+Phaser.Creature.prototype.createAllAnimations = function (mesh)
+{
+    if (!this.game.cache.checkJSONKey(mesh))
+    {
+        console.warn('Phaser.Creature: Invalid mesh key given. Not found in Phaser.Cache');
+        return;
+    }
+
+    var meshData = this.game.cache.getJSON(mesh, true);
+
+    this.manager.CreateAllAnimations(meshData);
+};
+
+/**
+ * @method Phaser.Creature#setMetaData
+ * @memberof Phaser.Creature
+ */
+Phaser.Creature.prototype.setMetaData = function (meta)
+{
+    if (!this.game.cache.checkJSONKey(meta))
+    {
+        console.warn('Phaser.Creature: Invalid meta key given. Not found in Phaser.Cache');
+        return;
+    }
+
+    var metaJson = this.game.cache.getJSON(meta, true);
+    var metaData = CreatureModuleUtils.BuildCreatureMetaData(metaJson);
+
+    this._creature.SetMetaData(metaData);
+};
+
+/**
+ * @method Phaser.Creature#enableSkinSwap
+ * @memberof Phaser.Creature
+ */
+Phaser.Creature.prototype.enableSkinSwap = function (swapNameIn, active)
+{
+    var target = this.manager.target_creature;
+
+    if (target.creature_meta_data === null)
+    {
+        console.warn('Phaser.Creature: Attempting to use skin swapping before setting the meta data. You must use {@link #setMetaData} before using skin swapping functionality.');
+        return;
+    }
+
+    target.EnableSkinSwap(swapNameIn, active);
+
+    this.indices = new Uint16Array(target.final_skin_swap_indices.length);
+    for(var i = 0; i < this.indices.length; i++)
+    {
+        this.indices[i] = target.final_skin_swap_indices[i];
+    }
+};
+
+/**
+ * @method Phaser.Creature#disableSkinSwap
+ * @memberof Phaser.Creature
+ */
+Phaser.Creature.prototype.disableSkinSwap = function ()
+{
+    var target = this.manager.target_creature;
+
+    if (target.creature_meta_data === null)
+    {
+        console.warn('Phaser.Creature: Attempting to use skin swapping before setting the meta data. You must use {@link #setMetaData} before using skin swapping functionality.');
+        return;
+    }
+
+    target.DisableSkinSwap();
+
+    this.indices = new Uint16Array(target.global_indices.length);
+    for(var i = 0; i < this.indices.length; i++)
+    {
+        this.indices[i] = target.global_indices[i];
+    }
+};
+
+/**
+ * @method Phaser.Creature#setActiveItemSwap
+ * @memberof Phaser.Creature
+ */
+Phaser.Creature.prototype.setActiveItemSwap = function (regionName, swapIdx)
+{
+    var target = this.manager.target_creature;
+
+    target.active_uv_swap_actions[regionName] = swapIdx;
+};
+
+/**
+ * @method Phaser.Creature#removeActiveItemSwap
+ * @memberof Phaser.Creature
+ */
+Phaser.Creature.prototype.removeActiveItemSwap = function (regionName)
+{
+    var target = this.manager.target_creature;
+
+    delete target.active_uv_swap_actions[regionName];
 };
 
 /**

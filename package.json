@@ -24,7 +24,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://photonstorm@github.com/photonstorm/phaser-ce.git"
+    "url": "https://github.com/mindtrustlabs/phaser-ce.git"
   },
   "scripts": {
     "check-version": "grep -H 'VERSION:' src/Phaser.js build/phaser.js; grep -H '\"version\":' package.json; grep -H -m1 '## Version ' CHANGELOG.md; grep -H 'phaser-ce/releases/tag/v' README.md",
@@ -35,7 +35,7 @@
     "test:src": "eslint src",
     "test:ts": "tsc --noImplicitAny ./typescript/p2.d.ts ./typescript/phaser.d.ts ./typescript/pixi.d.ts; tsc --noImplicitAny ./typescript/phaser.comments.d.ts ./typescript/pixi.comments.d.ts",
     "tsc": "./node_modules/typescript/bin/tsc"
-},
+  },
   "keywords": [
     "2d",
     "HTML5",
