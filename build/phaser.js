@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 15:52:56
+* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 16:14:25
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -41159,6 +41159,7 @@ Phaser.Pointer.prototype = {
      */
     processButtonsDown: function (button, event)
     {
+        console.log("Process down "+button);
         switch (button)
         {
             case (Phaser.Mouse.LEFT_BUTTON):
@@ -41193,6 +41194,8 @@ Phaser.Pointer.prototype = {
      */
     processButtonsUp: function (button, event)
     {
+
+        console.log("Process UP "+button);
         switch (button)
         {
             case (Phaser.Mouse.LEFT_BUTTON):
@@ -41231,6 +41234,7 @@ Phaser.Pointer.prototype = {
         var down = (type === 'down');
         var move = (type === 'move');
 
+ 
         if (buttons !== undefined)
         {
             // On OS X (and other devices with trackpads) you have to press CTRL + the pad to initiate a right-click event.
@@ -41263,16 +41267,21 @@ Phaser.Pointer.prototype = {
                 else
                 if (down)
                 {
+
+            console.log("fallback Process down "+event.button);
                     this.processButtonsDown(event.button, event);
                 }
                 else if (!move)
                 {
+
+        console.log("fallback Process up "+event.button);
                     this.processButtonsUp(event.button, event);
                 }
             }
             else
             if (down)
             {
+                console.log("double fallback process down left"/right);
                 // On OS X (and other devices with trackpads) you have to press CTRL + the pad to initiate a right-click event.
                 if (event.ctrlKey)
                 {
@@ -41280,11 +41289,13 @@ Phaser.Pointer.prototype = {
                 }
                 else
                 {
+
                     this.leftButton.start(event);
                 }
             }
             else
             {
+                console.log("double fallback process up left/right");
                 this.leftButton.stop(event);
                 this.rightButton.stop(event);
             }
@@ -41307,6 +41318,7 @@ Phaser.Pointer.prototype = {
         this.isUp = true;
         this.isDown = false;
 
+        console.log("Update buttons. All are up. Riight?  L "+this.leftButton.isDown +" R "+this.rightButton.isDown +" m "+this.middleButton.isDown +" back "+this.backButton.isDown +" forw "+this.forwardButton.isDown +" or eras "+this.eraserButton.isDown);
         if (this.leftButton.isDown || this.rightButton.isDown || this.middleButton.isDown || this.backButton.isDown || this.forwardButton.isDown || this.eraserButton.isDown)
         {
             this.isUp = false;
