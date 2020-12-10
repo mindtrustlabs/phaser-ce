@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 15:44:31
+* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 15:53:01
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -25268,10 +25268,12 @@ Phaser.MSPointer.prototype = {
 
         if (this.isMousePointerEvent(event))
         {
+            console.log("is mouse pointer");
             this.input.mousePointer.start(event);
         }
         else
         {
+            console.log("NOT mouse pointer");
             this.input.startPointer(event);
         }
     },
@@ -25336,6 +25338,7 @@ Phaser.MSPointer.prototype = {
 
         if (!this.input.enabled || !this.enabled)
         {
+            console.log("cancelling up because "+this.enabled);
             return;
         }
 
@@ -28571,7 +28574,7 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
-        console.log(this +" touchedHandler "+data.isDown +" and "+data.isOver);
+        console.log(this +" t.ouchedHandler "+data.isDown +" and "+data.isOver);
         if (!data.isDown && data.isOver)
         {
             if (this.pixelPerfectClick && !this.checkPixel(null, null, pointer))

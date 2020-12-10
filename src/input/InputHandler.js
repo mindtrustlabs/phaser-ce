@@ -999,7 +999,7 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
-        console.log(this +" touchedHandler "+data.isDown +" and "+data.isOver);
+        console.log(this +" t.ouchedHandler "+data.isDown +" and "+data.isOver);
         if (!data.isDown && data.isOver)
         {
             if (this.pixelPerfectClick && !this.checkPixel(null, null, pointer))

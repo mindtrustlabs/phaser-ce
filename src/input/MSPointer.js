@@ -276,10 +276,12 @@ Phaser.MSPointer.prototype = {
 
         if (this.isMousePointerEvent(event))
         {
+            console.log("is mouse pointer");
             this.input.mousePointer.start(event);
         }
         else
         {
+            console.log("NOT mouse pointer");
             this.input.startPointer(event);
         }
     },
@@ -344,6 +346,7 @@ Phaser.MSPointer.prototype = {
 
         if (!this.input.enabled || !this.enabled)
         {
+            console.log("cancelling up because "+this.enabled);
             return;
         }
 
