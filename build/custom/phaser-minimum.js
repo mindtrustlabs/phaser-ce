@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 19:46:51
+* v2.16.1 "2020-10-21" - Built: Fri Dec 11 2020 12:18:57
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -24518,7 +24518,6 @@ Phaser.Mouse.prototype = {
 
         this._onMouseDown = function (event)
         {
-            console.log("On mouse down");
             return _this.onMouseDown(event);
         };
 
@@ -24529,14 +24528,11 @@ Phaser.Mouse.prototype = {
 
         this._onMouseUp = function (event)
         {
-            console.error("On mouse up");
             return _this.onMouseUp(event);
         };
 
         this._onMouseUpGlobal = function (event)
         {
-
-            console.error("On mouse up global");
             return _this.onMouseUpGlobal(event);
         };
 
@@ -24581,7 +24577,6 @@ Phaser.Mouse.prototype = {
      */
     onMouseDown: function (event)
     {
-        console.log("On mouse down inner");
         this.event = event;
 
         if (this.capture)
@@ -24640,7 +24635,6 @@ Phaser.Mouse.prototype = {
      */
     onMouseUp: function (event)
     {
-        console.log("On mouse down inner");
         this.event = event;
 
         if (this.capture)
@@ -25246,7 +25240,6 @@ Phaser.MSPointer.prototype = {
     {
         this.game.input.executeTouchLockCallbacks(false, event);
 
-        console.log("Pointer down on MSPoonter");
         this.event = event;
 
         if (this.capture)
@@ -25319,7 +25312,6 @@ Phaser.MSPointer.prototype = {
      */
     onPointerUp: function (event)
     {
-        console.log("On MS Pointer up");
         this.game.input.executeTouchLockCallbacks(true, event);
 
         this.event = event;
@@ -25340,7 +25332,7 @@ Phaser.MSPointer.prototype = {
         }
 
         event.identifier = event.pointerId;
- 
+
         if (this.isMousePointerEvent(event))
         {
             this.input.mousePointer.stop(event);
@@ -25695,7 +25687,6 @@ Phaser.DeviceButton.prototype = {
      */
     start: function (event, value)
     {
-        console.log("START device button  "+this.isDown +" ? (ingore if < t) value "+value);
         if (this.isDown)
         {
             return;
@@ -25730,7 +25721,6 @@ Phaser.DeviceButton.prototype = {
      */
     stop: function (event, value)
     {
-        console.log("STOP device button "+this.isUp +" ? (ignored if < true) and down? "+this.isDown +" value "+value);
         if (this.isUp)
         {
             return;
@@ -26330,7 +26320,6 @@ Phaser.Pointer.prototype = {
      */
     processButtonsDown: function (button, event)
     {
-        console.log("Process down "+button);
         switch (button)
         {
             case (Phaser.Mouse.LEFT_BUTTON):
@@ -26365,8 +26354,6 @@ Phaser.Pointer.prototype = {
      */
     processButtonsUp: function (button, event)
     {
-
-        console.log("Process UP "+button);
         switch (button)
         {
             case (Phaser.Mouse.LEFT_BUTTON):
@@ -26407,12 +26394,10 @@ Phaser.Pointer.prototype = {
 
         if(type==='erup')
         {
-            console.log("Its up, so clear out the button hax");
+            // hack to fix on iOS -mg
             buttons = 0;
         }
 
- 
-        console.log("<> Change to: "+type +" for value: "+buttons);
         if (buttons !== undefined)
         {
             // On OS X (and other devices with trackpads) you have to press CTRL + the pad to initiate a right-click event.
@@ -26444,20 +26429,16 @@ Phaser.Pointer.prototype = {
                 else
                 if (down)
                 {
-console.log("fallback Process down "+event.button);
                     this.processButtonsDown(event.button, event);
                 }
                 else if (!move)
                 {
-
-        console.log("fallback Process up "+event.button);
                     this.processButtonsUp(event.button, event);
                 }
             }
             else
             if (down)
             {
-                console.log("double fallback process down left"/right);
                 // On OS X (and other devices with trackpads) you have to press CTRL + the pad to initiate a right-click event.
                 if (event.ctrlKey)
                 {
@@ -26471,7 +26452,6 @@ console.log("fallback Process down "+event.button);
             }
             else
             {
-                console.log("double fallback process up left/right");
                 this.leftButton.stop(event);
                 this.rightButton.stop(event);
             }
@@ -26494,7 +26474,6 @@ console.log("fallback Process down "+event.button);
         this.isUp = true;
         this.isDown = false;
 
-        console.log("Update buttons. "+event.buttons+" isDown? L "+this.leftButton.isDown +" R "+this.rightButton.isDown +" m "+this.middleButton.isDown +" back "+this.backButton.isDown +" forw "+this.forwardButton.isDown +" or eras "+this.eraserButton.isDown);
         if (this.leftButton.isDown || this.rightButton.isDown || this.middleButton.isDown || this.backButton.isDown || this.forwardButton.isDown || this.eraserButton.isDown)
         {
             this.isUp = false;
@@ -26511,7 +26490,6 @@ console.log("fallback Process down "+event.button);
     {
         var input = this.game.input;
 
-        console.log("input START "+input +" "+event.buttons);
         if (event.pointerId)
         {
             this.pointerId = event.pointerId;
@@ -26567,8 +26545,6 @@ console.log("fallback Process down "+event.button);
         if (this.targetObject !== null)
         {
             this.targetObject._touchedHandler(this);
-        } else {
-            console.log("touch not over an object");
         }
 
         return this;
@@ -26876,7 +26852,6 @@ console.log("fallback Process down "+event.button);
     {
         var input = this.game.input;
 
-        console.log("input STOP "+input +" bts "+event.buttons);
         if (this._stateReset && this.withinGame)
         {
             event.preventDefault();
@@ -27324,7 +27299,6 @@ Phaser.Touch.prototype = {
 
         this._onTouchStart = function (event)
         {
-            console.log("_onTouchStart");
             return _this.onTouchStart(event);
         };
 
@@ -27335,7 +27309,6 @@ Phaser.Touch.prototype = {
 
         this._onTouchEnd = function (event)
         {
-            console.log("_onTouchEnd");
             return _this.onTouchEnd(event);
         };
 
@@ -27391,7 +27364,6 @@ Phaser.Touch.prototype = {
      */
     onTouchStart: function (event)
     {
-        console.log("Fun touch start");
         this.game.input.executeTouchLockCallbacks(false, event);
 
         this.event = event;
@@ -27430,7 +27402,6 @@ Phaser.Touch.prototype = {
      */
     onTouchCancel: function (event)
     {
-        console.log("Fun touch cancel");
         this.event = event;
 
         if (this.touchCancelCallback)
@@ -27537,8 +27508,6 @@ Phaser.Touch.prototype = {
      */
     onTouchEnd: function (event)
     {
-
-        console.log("Fun onTouchEnd");
         this.game.input.executeTouchLockCallbacks(true, event);
 
         this.event = event;
@@ -28590,8 +28559,6 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
- 
-        console.log(this +" t.ouchedHandler "+data.isDown +" and "+data.isOver);
         if (!data.isDown && data.isOver)
         {
             if (this.pixelPerfectClick && !this.checkPixel(null, null, pointer))
@@ -28692,8 +28659,6 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
-
-        console.log(this +" releaseHandler "+data.isDown +" and "+pointer.isUp);
         //  If was previously touched by this Pointer, check if still is AND still over this item
         if (data.isDown && pointer.isUp)
         {
@@ -28908,8 +28873,6 @@ Phaser.InputHandler.prototype = {
     {
         pointerId = pointerId || 0;
         delay = delay || 500;
-
-        console.log(this +" just pressed "+this._pointerData[pointerId].isDown +" and "+this.downDuration(pointerId));
         return (this._pointerData[pointerId].isDown && this.downDuration(pointerId) < delay);
     },
 

@@ -147,7 +147,6 @@ Phaser.Touch.prototype = {
 
         this._onTouchStart = function (event)
         {
-            console.log("_onTouchStart");
             return _this.onTouchStart(event);
         };
 
@@ -158,7 +157,6 @@ Phaser.Touch.prototype = {
 
         this._onTouchEnd = function (event)
         {
-            console.log("_onTouchEnd");
             return _this.onTouchEnd(event);
         };
 
@@ -214,7 +212,6 @@ Phaser.Touch.prototype = {
      */
     onTouchStart: function (event)
     {
-        console.log("Fun touch start");
         this.game.input.executeTouchLockCallbacks(false, event);
 
         this.event = event;
@@ -253,7 +250,6 @@ Phaser.Touch.prototype = {
      */
     onTouchCancel: function (event)
     {
-        console.log("Fun touch cancel");
         this.event = event;
 
         if (this.touchCancelCallback)
@@ -360,8 +356,6 @@ Phaser.Touch.prototype = {
      */
     onTouchEnd: function (event)
     {
-
-        console.log("Fun onTouchEnd");
         this.game.input.executeTouchLockCallbacks(true, event);
 
         this.event = event;

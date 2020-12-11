@@ -151,7 +151,6 @@ Phaser.DeviceButton.prototype = {
      */
     start: function (event, value)
     {
-        console.log("START device button  "+this.isDown +" ? (ingore if < t) value "+value);
         if (this.isDown)
         {
             return;
@@ -186,7 +185,6 @@ Phaser.DeviceButton.prototype = {
      */
     stop: function (event, value)
     {
-        console.log("STOP device button "+this.isUp +" ? (ignored if < true) and down? "+this.isDown +" value "+value);
         if (this.isUp)
         {
             return;

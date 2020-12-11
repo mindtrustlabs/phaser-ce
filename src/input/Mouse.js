@@ -197,7 +197,6 @@ Phaser.Mouse.prototype = {
 
         this._onMouseDown = function (event)
         {
-            console.log("On mouse down");
             return _this.onMouseDown(event);
         };
 
@@ -208,14 +207,11 @@ Phaser.Mouse.prototype = {
 
         this._onMouseUp = function (event)
         {
-            console.error("On mouse up");
             return _this.onMouseUp(event);
         };
 
         this._onMouseUpGlobal = function (event)
         {
-
-            console.error("On mouse up global");
             return _this.onMouseUpGlobal(event);
         };
 
@@ -260,7 +256,6 @@ Phaser.Mouse.prototype = {
      */
     onMouseDown: function (event)
     {
-        console.log("On mouse down inner");
         this.event = event;
 
         if (this.capture)
@@ -319,7 +314,6 @@ Phaser.Mouse.prototype = {
      */
     onMouseUp: function (event)
     {
-        console.log("On mouse down inner");
         this.event = event;
 
         if (this.capture)
