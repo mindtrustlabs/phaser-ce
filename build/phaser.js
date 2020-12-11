@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 19:28:26
+* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 19:37:10
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -40170,6 +40170,8 @@ Phaser.MSPointer.prototype = {
         event.identifier = event.pointerId;
 
         event.buttons = 0;
+
+        console.log("Setting buttons to 0 "+event.buttons);
         if (this.isMousePointerEvent(event))
         {
             this.input.mousePointer.stop(event);
