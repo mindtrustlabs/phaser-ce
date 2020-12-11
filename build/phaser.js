@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 17:17:48
+* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 17:45:09
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -40523,7 +40523,7 @@ Phaser.DeviceButton.prototype = {
      */
     start: function (event, value)
     {
-        console.log("stop device button "+this.isDown);
+        console.log("START device button  "+this.isDown +" ? (ingore if < t) value "+value);
         if (this.isDown)
         {
             return;
@@ -40558,7 +40558,7 @@ Phaser.DeviceButton.prototype = {
      */
     stop: function (event, value)
     {
-        console.log("stop device button "+this.isUp);
+        console.log("STOP device button "+this.isUp +" ? (ignored if < true) and down? "+this.isDown +" value "+value);
         if (this.isUp)
         {
             return;
@@ -41234,7 +41234,7 @@ Phaser.Pointer.prototype = {
         var move = (type === 'move');
 
  
-        console.log("updown "+type +" buttons "+buttons);
+        console.log("<> Change to: "+type +" for value: "+buttons);
         if (buttons !== undefined)
         {
             // On OS X (and other devices with trackpads) you have to press CTRL + the pad to initiate a right-click event.
@@ -41242,8 +41242,6 @@ Phaser.Pointer.prototype = {
             {
                 buttons = 2;
             }
-
-            console.log("button start stop "+buttons);
             // Note: These are bitwise checks, not booleans
             this.leftButton.startStop(Phaser.Pointer.LEFT_BUTTON & buttons, event);
             this.rightButton.startStop(Phaser.Pointer.RIGHT_BUTTON & buttons, event);
@@ -41268,8 +41266,7 @@ Phaser.Pointer.prototype = {
                 else
                 if (down)
                 {
-
-            console.log("fallback Process down "+event.button);
+console.log("fallback Process down "+event.button);
                     this.processButtonsDown(event.button, event);
                 }
                 else if (!move)
@@ -41336,7 +41333,7 @@ Phaser.Pointer.prototype = {
     {
         var input = this.game.input;
 
-        console.log("input start "+input +" and this pointer "+this +"  "+this.isMouse );
+        console.log("input START "+input +" "+event.buttons);
         if (event.pointerId)
         {
             this.pointerId = event.pointerId;
@@ -41701,7 +41698,7 @@ Phaser.Pointer.prototype = {
     {
         var input = this.game.input;
 
-        console.log("input stop "+input);
+        console.log("input STOP "+input +" bts "+event.buttons);
         if (this._stateReset && this.withinGame)
         {
             event.preventDefault();
