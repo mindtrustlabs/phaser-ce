@@ -521,6 +521,12 @@ Phaser.Pointer.prototype = {
         var down = (type === 'down');
         var move = (type === 'move');
 
+        if(type==='erup')
+        {
+            console.log("Its up, so clear out the button hax");
+            buttons = 0;
+        }
+
  
         console.log("<> Change to: "+type +" for value: "+buttons);
         if (buttons !== undefined)

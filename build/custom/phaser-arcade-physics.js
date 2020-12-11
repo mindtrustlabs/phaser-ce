@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 19:37:15
+* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 19:46:44
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -25340,10 +25340,7 @@ Phaser.MSPointer.prototype = {
         }
 
         event.identifier = event.pointerId;
-
-        event.buttons = 0;
-
-        console.log("Setting buttons to 0 "+event.buttons);
+ 
         if (this.isMousePointerEvent(event))
         {
             this.input.mousePointer.stop(event);
@@ -26407,6 +26404,12 @@ Phaser.Pointer.prototype = {
         var type = event.type.toLowerCase().substr(-4);
         var down = (type === 'down');
         var move = (type === 'move');
+
+        if(type==='erup')
+        {
+            console.log("Its up, so clear out the button hax");
+            buttons = 0;
+        }
 
  
         console.log("<> Change to: "+type +" for value: "+buttons);

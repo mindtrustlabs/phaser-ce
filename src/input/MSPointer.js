@@ -348,10 +348,7 @@ Phaser.MSPointer.prototype = {
         }
 
         event.identifier = event.pointerId;
-
-        event.buttons = 0;
-
-        console.log("Setting buttons to 0 "+event.buttons);
+ 
         if (this.isMousePointerEvent(event))
         {
             this.input.mousePointer.stop(event);
