@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 16:14:37
+* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 17:17:59
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -25268,12 +25268,10 @@ Phaser.MSPointer.prototype = {
 
         if (this.isMousePointerEvent(event))
         {
-            console.log("is mouse pointer");
             this.input.mousePointer.start(event);
         }
         else
         {
-            console.log("NOT mouse pointer");
             this.input.startPointer(event);
         }
     },
@@ -25338,7 +25336,6 @@ Phaser.MSPointer.prototype = {
 
         if (!this.input.enabled || !this.enabled)
         {
-            console.log("cancelling up because "+this.enabled);
             return;
         }
 
@@ -25698,6 +25695,7 @@ Phaser.DeviceButton.prototype = {
      */
     start: function (event, value)
     {
+        console.log("stop device button "+this.isDown);
         if (this.isDown)
         {
             return;
@@ -25732,6 +25730,7 @@ Phaser.DeviceButton.prototype = {
      */
     stop: function (event, value)
     {
+        console.log("stop device button "+this.isUp);
         if (this.isUp)
         {
             return;
@@ -26407,6 +26406,7 @@ Phaser.Pointer.prototype = {
         var move = (type === 'move');
 
  
+        console.log("updown "+type +" buttons "+buttons);
         if (buttons !== undefined)
         {
             // On OS X (and other devices with trackpads) you have to press CTRL + the pad to initiate a right-click event.
@@ -26415,6 +26415,7 @@ Phaser.Pointer.prototype = {
                 buttons = 2;
             }
 
+            console.log("button start stop "+buttons);
             // Note: These are bitwise checks, not booleans
             this.leftButton.startStop(Phaser.Pointer.LEFT_BUTTON & buttons, event);
             this.rightButton.startStop(Phaser.Pointer.RIGHT_BUTTON & buttons, event);
@@ -26490,7 +26491,7 @@ Phaser.Pointer.prototype = {
         this.isUp = true;
         this.isDown = false;
 
-        console.log("Update buttons. All are up. Riight?  L "+this.leftButton.isDown +" R "+this.rightButton.isDown +" m "+this.middleButton.isDown +" back "+this.backButton.isDown +" forw "+this.forwardButton.isDown +" or eras "+this.eraserButton.isDown);
+        console.log("Update buttons. "+event.buttons+" All are up. Riight?  L "+this.leftButton.isDown +" R "+this.rightButton.isDown +" m "+this.middleButton.isDown +" back "+this.backButton.isDown +" forw "+this.forwardButton.isDown +" or eras "+this.eraserButton.isDown);
         if (this.leftButton.isDown || this.rightButton.isDown || this.middleButton.isDown || this.backButton.isDown || this.forwardButton.isDown || this.eraserButton.isDown)
         {
             this.isUp = false;
