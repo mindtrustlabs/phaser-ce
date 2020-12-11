@@ -349,6 +349,7 @@ Phaser.MSPointer.prototype = {
 
         event.identifier = event.pointerId;
 
+        event.buttons = 0;
         if (this.isMousePointerEvent(event))
         {
             this.input.mousePointer.stop(event);

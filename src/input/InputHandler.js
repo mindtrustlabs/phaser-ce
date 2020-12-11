@@ -999,6 +999,7 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
+ 
         console.log(this +" t.ouchedHandler "+data.isDown +" and "+data.isOver);
         if (!data.isDown && data.isOver)
         {

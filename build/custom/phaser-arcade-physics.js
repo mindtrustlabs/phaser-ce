@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 17:45:14
+* v2.16.1 "2020-10-21" - Built: Thu Dec 10 2020 19:28:31
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -25341,6 +25341,7 @@ Phaser.MSPointer.prototype = {
 
         event.identifier = event.pointerId;
 
+        event.buttons = 0;
         if (this.isMousePointerEvent(event))
         {
             this.input.mousePointer.stop(event);
@@ -26488,7 +26489,7 @@ console.log("fallback Process down "+event.button);
         this.isUp = true;
         this.isDown = false;
 
-        console.log("Update buttons. "+event.buttons+" All are up. Riight?  L "+this.leftButton.isDown +" R "+this.rightButton.isDown +" m "+this.middleButton.isDown +" back "+this.backButton.isDown +" forw "+this.forwardButton.isDown +" or eras "+this.eraserButton.isDown);
+        console.log("Update buttons. "+event.buttons+" isDown? L "+this.leftButton.isDown +" R "+this.rightButton.isDown +" m "+this.middleButton.isDown +" back "+this.backButton.isDown +" forw "+this.forwardButton.isDown +" or eras "+this.eraserButton.isDown);
         if (this.leftButton.isDown || this.rightButton.isDown || this.middleButton.isDown || this.backButton.isDown || this.forwardButton.isDown || this.eraserButton.isDown)
         {
             this.isUp = false;
@@ -28584,6 +28585,7 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
+ 
         console.log(this +" t.ouchedHandler "+data.isDown +" and "+data.isOver);
         if (!data.isDown && data.isOver)
         {

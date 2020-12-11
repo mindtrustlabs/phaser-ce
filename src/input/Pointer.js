@@ -604,7 +604,7 @@ console.log("fallback Process down "+event.button);
         this.isUp = true;
         this.isDown = false;
 
-        console.log("Update buttons. "+event.buttons+" All are up. Riight?  L "+this.leftButton.isDown +" R "+this.rightButton.isDown +" m "+this.middleButton.isDown +" back "+this.backButton.isDown +" forw "+this.forwardButton.isDown +" or eras "+this.eraserButton.isDown);
+        console.log("Update buttons. "+event.buttons+" isDown? L "+this.leftButton.isDown +" R "+this.rightButton.isDown +" m "+this.middleButton.isDown +" back "+this.backButton.isDown +" forw "+this.forwardButton.isDown +" or eras "+this.eraserButton.isDown);
         if (this.leftButton.isDown || this.rightButton.isDown || this.middleButton.isDown || this.backButton.isDown || this.forwardButton.isDown || this.eraserButton.isDown)
         {
             this.isUp = false;
