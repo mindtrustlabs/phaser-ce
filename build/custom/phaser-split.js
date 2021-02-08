@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Fri Dec 11 2020 12:18:59
+* v2.16.1 "2020-10-21" - Built: Mon Feb 08 2021 13:13:02
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -20704,6 +20704,7 @@ Phaser.InputHandler.prototype = {
 
         if (this._pendingDrag)
         {
+            window.log("Pending drag... "+this._dragDistancePass +" and "+this._dragTimePass);
             if (!this._dragDistancePass)
             {
                 this._dragDistancePass = (Phaser.Math.distance(pointer.x, pointer.y, this.downPoint.x, this.downPoint.y) >= this.dragDistanceThreshold);
@@ -21005,7 +21006,7 @@ Phaser.InputHandler.prototype = {
         var pointerData = this._pointerData[pointer.id];
         var snapPoint = this.snapPoint;
         var sprite = this.sprite;
-
+window.log("Drag update");
         if (fromStart === undefined) { fromStart = false; }
 
         if (pointer.isUp)
@@ -21296,6 +21297,7 @@ Phaser.InputHandler.prototype = {
     {
         var x = this.sprite.x;
         var y = this.sprite.y;
+        window.log("Start phase drag");
         var pointerLocalCoord = this.globalToLocal(pointer);
 
         this.isDragged = true;
@@ -21409,6 +21411,7 @@ Phaser.InputHandler.prototype = {
      */
     stopDrag: function (pointer)
     {
+        window.log("Stop Phase drag");
         this.isDragged = false;
         this._draggedPointerID = -1;
         this._pointerData[pointer.id].isDragged = false;

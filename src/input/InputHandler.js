@@ -867,6 +867,7 @@ Phaser.InputHandler.prototype = {
 
         if (this._pendingDrag)
         {
+            window.log("Pending drag... "+this._dragDistancePass +" and "+this._dragTimePass);
             if (!this._dragDistancePass)
             {
                 this._dragDistancePass = (Phaser.Math.distance(pointer.x, pointer.y, this.downPoint.x, this.downPoint.y) >= this.dragDistanceThreshold);
@@ -1168,7 +1169,7 @@ Phaser.InputHandler.prototype = {
         var pointerData = this._pointerData[pointer.id];
         var snapPoint = this.snapPoint;
         var sprite = this.sprite;
-
+window.log("Drag update");
         if (fromStart === undefined) { fromStart = false; }
 
         if (pointer.isUp)
@@ -1459,6 +1460,7 @@ Phaser.InputHandler.prototype = {
     {
         var x = this.sprite.x;
         var y = this.sprite.y;
+        window.log("Start phase drag");
         var pointerLocalCoord = this.globalToLocal(pointer);
 
         this.isDragged = true;
@@ -1572,6 +1574,7 @@ Phaser.InputHandler.prototype = {
      */
     stopDrag: function (pointer)
     {
+        window.log("Stop Phase drag");
         this.isDragged = false;
         this._draggedPointerID = -1;
         this._pointerData[pointer.id].isDragged = false;
