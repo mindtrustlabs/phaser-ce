@@ -454,7 +454,7 @@ Phaser.MSPointer.prototype = {
         {
             pointer.withinGame = true;
         }
-
+        window.log("On pointer over MSPointer");
         if (this.pointerOverCallback)
         {
             this.pointerOverCallback.call(this.callbackContext, event);

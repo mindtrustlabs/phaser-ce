@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Mon Feb 08 2021 13:12:59
+* v2.16.1 "2020-10-21" - Built: Mon Feb 08 2021 16:06:00
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -25440,7 +25440,7 @@ Phaser.MSPointer.prototype = {
         {
             pointer.withinGame = true;
         }
-
+        window.log("On pointer over MSPointer");
         if (this.pointerOverCallback)
         {
             this.pointerOverCallback.call(this.callbackContext, event);
@@ -28477,6 +28477,8 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
+
+        window.log("isOver :"+data.IsOver +" or dirty "+pointer.dirty);
         if (data.isOver === false || pointer.dirty)
         {
             var sendEvent = (data.isOver === false);
@@ -28523,6 +28525,7 @@ Phaser.InputHandler.prototype = {
 
         var data = this._pointerData[pointer.id];
 
+        window.log("Pointer out isOver false");
         data.isOver = false;
         data.isOut = true;
         data.timeOut = this.game.time.time;
@@ -28560,6 +28563,7 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
+        window.log("Touched handler "+(!data.isDown) +" and  "+data.isOver);
         if (!data.isDown && data.isOver)
         {
             if (this.pixelPerfectClick && !this.checkPixel(null, null, pointer))
@@ -28592,10 +28596,12 @@ Phaser.InputHandler.prototype = {
                     return;
                 }
             }
-
+            window.log("Draggable "+this.draggable +" and "+this.isDragged);
             //  Start drag
             if (this.draggable && this.isDragged === false)
             {
+
+                window.log("Drag Thresh "+this.dragTimeThreshold +" and "+this.dragDistanceThreshold);
                 if (this.dragTimeThreshold === 0 && this.dragDistanceThreshold === 0)
                 {
                     this.startDrag(pointer);
@@ -28640,6 +28646,7 @@ Phaser.InputHandler.prototype = {
         {
             if (this._dragDistancePass)
             {
+                window.log("drag distance trigger");
                 this.startDrag(pointer);
             }
         }
@@ -28691,6 +28698,7 @@ Phaser.InputHandler.prototype = {
                 }
             }
 
+            window.log("Release handler setting isOver "+isOver);
             data.isOver = isOver;
 
             if (!isOver && this.useHandCursor)
