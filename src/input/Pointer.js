@@ -615,7 +615,7 @@ Phaser.Pointer.prototype = {
     start: function (event)
     {
         var input = this.game.input;
-        console.log("start on pointer "+this.isMouse +" and target obj "+targetObject +"  this should trigger a move from click");
+window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +"  this should trigger a move from click");
         if (event.pointerId)
         {
             this.pointerId = event.pointerId;
@@ -691,7 +691,7 @@ Phaser.Pointer.prototype = {
             {
                 if (input.interactiveItems.total > 0)
                 {
-                    console.log("was dirty");
+                    window.log("was dirty");
                     this.processInteractiveObjects(false);
                 }
 
@@ -807,7 +807,7 @@ Phaser.Pointer.prototype = {
         {
             if (this.targetObject.update(this) === false)
             {
-                console.log("TargetObject is now null do to update");
+                window.log("TargetObject is now null do to update");
                 this.targetObject = null;
             }
         }
@@ -896,7 +896,7 @@ Phaser.Pointer.prototype = {
             candidateTarget = this.game.input.customCandidateHandler.call(this.game.input.customCandidateHandlerContext, this, this.interactiveCandidates, candidateTarget);
         }
 
-        console.log("process interactive objects from click "+fromClick +" and can "+candidateTarget );
+        window.log("process interactive objects from click "+fromClick +" and can "+candidateTarget );
         this.swapTarget(candidateTarget, false);
 
         return (this.targetObject !== null);
@@ -931,7 +931,7 @@ Phaser.Pointer.prototype = {
         else
         if (this.targetObject === null)
         {
-            console.log("set targetobject "+newTarget);
+            window.log("set targetobject "+newTarget);
             //  And now set the new one
             this.targetObject = newTarget;
             newTarget._pointerOverHandler(this, silent);
@@ -944,7 +944,7 @@ Phaser.Pointer.prototype = {
                 //  Same target as before, so update it
                 if (newTarget.update(this) === false)
                 {
-                    console.log("same target update set to false, now null targetobject");
+                    window.log("same target update set to false, now null targetobject");
                     this.targetObject = null;
                 }
             }
@@ -953,7 +953,7 @@ Phaser.Pointer.prototype = {
                 //  The target has changed, so tell the old one we've left it
                 this.targetObject._pointerOutHandler(this, silent);
 
-                console.log("new target object "+newTarget);
+                window.log("new target object "+newTarget);
                 //  And now set the new one
                 this.targetObject = newTarget;
                 this.targetObject._pointerOverHandler(this, silent);
@@ -970,7 +970,7 @@ Phaser.Pointer.prototype = {
     leave: function (event)
     {
         this.withinGame = false;
-        console.log("move from leaving, not click");
+        window.log("move from leaving, not click");
         this.move(event, false);
     },
 

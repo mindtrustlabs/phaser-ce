@@ -266,7 +266,7 @@ Phaser.MSPointer.prototype = {
             this.pointerDownCallback.call(this.callbackContext, event);
         }
 
-        console.log("On pointer down either of these false? => "+ this.input.enabled +" or "+this.enabled);
+        window.log("On pointer down either of these false? => "+ this.input.enabled +" or "+this.enabled);
         if (!this.input.enabled || !this.enabled)
         {
             return;
@@ -336,7 +336,7 @@ Phaser.MSPointer.prototype = {
             event.preventDefault();
         }
 
-        console.log("On pointer up");
+        window.log("On pointer up");
         if (this.pointerUpCallback)
         {
             this.pointerUpCallback.call(this.callbackContext, event);
@@ -408,7 +408,7 @@ Phaser.MSPointer.prototype = {
             pointer.withinGame = false;
         }
 
-        console.log("On pointer out");
+        window.log("On pointer out");
         if (this.pointerOutCallback)
         {
             this.pointerOutCallback.call(this.callbackContext, event);
@@ -457,7 +457,7 @@ Phaser.MSPointer.prototype = {
         {
             pointer.withinGame = true;
         }
-        console.log("On pointer over MSPointer");
+        window.log("On pointer over MSPointer");
         if (this.pointerOverCallback)
         {
             this.pointerOverCallback.call(this.callbackContext, event);
@@ -483,7 +483,7 @@ Phaser.MSPointer.prototype = {
         {
             return;
         }
-        console.log("On pointer cancel");
+window.log("On pointer cancel");
         event.identifier = event.pointerId;
 
         if (this.isMousePointerEvent(event))
