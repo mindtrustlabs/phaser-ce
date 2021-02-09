@@ -918,7 +918,7 @@ Phaser.InputHandler.prototype = {
 
         var data = this._pointerData[pointer.id];
 
-        window.log("isOver :"+data.IsOver +" or dirty "+pointer.dirty);
+        window.log("isOver :"+data.isOver +" or dirty "+pointer.dirty);
         if (data.isOver === false || pointer.dirty)
         {
             var sendEvent = (data.isOver === false);
