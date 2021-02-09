@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.1 "2020-10-21" - Built: Mon Feb 08 2021 21:59:56
+* v2.16.1 "2020-10-21" - Built: Mon Feb 08 2021 23:27:07
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -25252,7 +25252,7 @@ Phaser.MSPointer.prototype = {
             this.pointerDownCallback.call(this.callbackContext, event);
         }
 
-        window.log("On pointer down either of these false? => "+ this.input.enabled +" or "+this.enabled);
+        console.log("On pointer down either of these false? => "+ this.input.enabled +" or "+this.enabled);
         if (!this.input.enabled || !this.enabled)
         {
             return;
@@ -25322,7 +25322,7 @@ Phaser.MSPointer.prototype = {
             event.preventDefault();
         }
 
-        window.log("On pointer up");
+        console.log("On pointer up");
         if (this.pointerUpCallback)
         {
             this.pointerUpCallback.call(this.callbackContext, event);
@@ -25394,7 +25394,7 @@ Phaser.MSPointer.prototype = {
             pointer.withinGame = false;
         }
 
-        window.log("On pointer out");
+        console.log("On pointer out");
         if (this.pointerOutCallback)
         {
             this.pointerOutCallback.call(this.callbackContext, event);
@@ -25443,7 +25443,7 @@ Phaser.MSPointer.prototype = {
         {
             pointer.withinGame = true;
         }
-        window.log("On pointer over MSPointer");
+        console.log("On pointer over MSPointer");
         if (this.pointerOverCallback)
         {
             this.pointerOverCallback.call(this.callbackContext, event);
@@ -25469,7 +25469,7 @@ Phaser.MSPointer.prototype = {
         {
             return;
         }
-window.log("On pointer cancel");
+        console.log("On pointer cancel");
         event.identifier = event.pointerId;
 
         if (this.isMousePointerEvent(event))
@@ -26492,7 +26492,7 @@ Phaser.Pointer.prototype = {
     start: function (event)
     {
         var input = this.game.input;
-window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +"  this should trigger a move from click");
+        console.log("start on pointer "+this.isMouse +" and target obj "+targetObject +"  this should trigger a move from click");
         if (event.pointerId)
         {
             this.pointerId = event.pointerId;
@@ -26568,7 +26568,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
             {
                 if (input.interactiveItems.total > 0)
                 {
-                    window.log("was dirty");
+                    console.log("was dirty");
                     this.processInteractiveObjects(false);
                 }
 
@@ -26684,7 +26684,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
         {
             if (this.targetObject.update(this) === false)
             {
-                window.log("TargetObject is now null do to update");
+                console.log("TargetObject is now null do to update");
                 this.targetObject = null;
             }
         }
@@ -26773,7 +26773,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
             candidateTarget = this.game.input.customCandidateHandler.call(this.game.input.customCandidateHandlerContext, this, this.interactiveCandidates, candidateTarget);
         }
 
-        window.log("process interactive objects from click "+fromClick +" and can "+candidateTarget );
+        console.log("process interactive objects from click "+fromClick +" and can "+candidateTarget );
         this.swapTarget(candidateTarget, false);
 
         return (this.targetObject !== null);
@@ -26808,7 +26808,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
         else
         if (this.targetObject === null)
         {
-            window.log("set targetobject ");
+            console.log("set targetobject "+newTarget);
             //  And now set the new one
             this.targetObject = newTarget;
             newTarget._pointerOverHandler(this, silent);
@@ -26821,7 +26821,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
                 //  Same target as before, so update it
                 if (newTarget.update(this) === false)
                 {
-                    window.log("same target update set to false, now null targetobject");
+                    console.log("same target update set to false, now null targetobject");
                     this.targetObject = null;
                 }
             }
@@ -26830,7 +26830,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
                 //  The target has changed, so tell the old one we've left it
                 this.targetObject._pointerOutHandler(this, silent);
 
-                window.log("new target object "+newTarget);
+                console.log("new target object "+newTarget);
                 //  And now set the new one
                 this.targetObject = newTarget;
                 this.targetObject._pointerOverHandler(this, silent);
@@ -26847,7 +26847,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
     leave: function (event)
     {
         this.withinGame = false;
-        window.log("move from leaving, not click");
+        console.log("move from leaving, not click");
         this.move(event, false);
     },
 
@@ -28436,7 +28436,7 @@ Phaser.InputHandler.prototype = {
 
         if (this._pendingDrag)
         {
-            window.log("Pending drag... "+this._dragDistancePass +" and "+this._dragTimePass);
+            console.log("Pending drag... "+this._dragDistancePass +" and "+this._dragTimePass);
             if (!this._dragDistancePass)
             {
                 this._dragDistancePass = (Phaser.Math.distance(pointer.x, pointer.y, this.downPoint.x, this.downPoint.y) >= this.dragDistanceThreshold);
@@ -28487,7 +28487,7 @@ Phaser.InputHandler.prototype = {
 
         var data = this._pointerData[pointer.id];
 
-        window.log("isOver :"+data.isOver +" or DDDD dirty "+pointer.dirty);
+        console.log("isOver :"+data.isOver +" or DDDD dirty "+pointer.dirty);
         if (data.isOver === false || pointer.dirty)
         {
             var sendEvent = (data.isOver === false);
@@ -28534,7 +28534,7 @@ Phaser.InputHandler.prototype = {
 
         var data = this._pointerData[pointer.id];
 
-        window.log("Pointer out isOver false");
+        console.log("Pointer out isOver false");
         data.isOver = false;
         data.isOut = true;
         data.timeOut = this.game.time.time;
@@ -28572,7 +28572,7 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
-        window.log("Touched handler "+(!data.isDown) +" and  "+data.isOver);
+        console.log("Touched handler "+(!data.isDown) +" and  "+data.isOver);
         if (!data.isDown && data.isOver)
         {
             if (this.pixelPerfectClick && !this.checkPixel(null, null, pointer))
@@ -28605,12 +28605,12 @@ Phaser.InputHandler.prototype = {
                     return;
                 }
             }
-            window.log("Draggable "+this.draggable +" and "+this.isDragged);
+            console.log("Draggable "+this.draggable +" and "+this.isDragged);
             //  Start drag
             if (this.draggable && this.isDragged === false)
             {
 
-                window.log("Drag Thresh "+this.dragTimeThreshold +" and "+this.dragDistanceThreshold);
+                console.log("Drag Thresh "+this.dragTimeThreshold +" and "+this.dragDistanceThreshold);
                 if (this.dragTimeThreshold === 0 && this.dragDistanceThreshold === 0)
                 {
                     this.startDrag(pointer);
@@ -28655,7 +28655,7 @@ Phaser.InputHandler.prototype = {
         {
             if (this._dragDistancePass)
             {
-                window.log("drag distance trigger");
+                console.log("drag distance trigger");
                 this.startDrag(pointer);
             }
         }
@@ -28707,7 +28707,7 @@ Phaser.InputHandler.prototype = {
                 }
             }
 
-            window.log("Release handler setting isOver "+isOver);
+            console.log("Release handler setting isOver "+isOver);
             data.isOver = isOver;
 
             if (!isOver && this.useHandCursor)
@@ -28746,7 +28746,7 @@ Phaser.InputHandler.prototype = {
         var pointerData = this._pointerData[pointer.id];
         var snapPoint = this.snapPoint;
         var sprite = this.sprite;
-window.log("Drag update");
+        console.log("Drag update");
         if (fromStart === undefined) { fromStart = false; }
 
         if (pointer.isUp)
@@ -29037,7 +29037,7 @@ window.log("Drag update");
     {
         var x = this.sprite.x;
         var y = this.sprite.y;
-        window.log("Start phase drag");
+        console.log("Start phase drag");
         var pointerLocalCoord = this.globalToLocal(pointer);
 
         this.isDragged = true;
@@ -29151,7 +29151,7 @@ window.log("Drag update");
      */
     stopDrag: function (pointer)
     {
-        window.log("Stop Phase drag");
+        console.log("Stop Phase drag");
         this.isDragged = false;
         this._draggedPointerID = -1;
         this._pointerData[pointer.id].isDragged = false;
