@@ -931,7 +931,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
         else
         if (this.targetObject === null)
         {
-            window.log("set targetobject ");
+            window.log("set targetobject "+newTarget);
             //  And now set the new one
             this.targetObject = newTarget;
             newTarget._pointerOverHandler(this, silent);
