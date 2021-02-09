@@ -615,7 +615,7 @@ Phaser.Pointer.prototype = {
     start: function (event)
     {
         var input = this.game.input;
-window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +"  this should trigger a move from click");
+window.log("start on pointer "+this.isMouse +" and target obj "+this.targetObject +"  this should trigger a move from click");
         if (event.pointerId)
         {
             this.pointerId = event.pointerId;
