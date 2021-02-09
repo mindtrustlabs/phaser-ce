@@ -867,7 +867,7 @@ Phaser.InputHandler.prototype = {
 
         if (this._pendingDrag)
         {
-            window.log("Pending drag... "+this._dragDistancePass +" and "+this._dragTimePass);
+            console.log("Pending drag... "+this._dragDistancePass +" and "+this._dragTimePass);
             if (!this._dragDistancePass)
             {
                 this._dragDistancePass = (Phaser.Math.distance(pointer.x, pointer.y, this.downPoint.x, this.downPoint.y) >= this.dragDistanceThreshold);
@@ -918,7 +918,7 @@ Phaser.InputHandler.prototype = {
 
         var data = this._pointerData[pointer.id];
 
-        window.log("isOver :"+data.isOver +" or DDDD dirty "+pointer.dirty);
+        console.log("isOver :"+data.isOver +" or DDDD dirty "+pointer.dirty);
         if (data.isOver === false || pointer.dirty)
         {
             var sendEvent = (data.isOver === false);
@@ -965,7 +965,7 @@ Phaser.InputHandler.prototype = {
 
         var data = this._pointerData[pointer.id];
 
-        window.log("Pointer out isOver false");
+        console.log("Pointer out isOver false");
         data.isOver = false;
         data.isOut = true;
         data.timeOut = this.game.time.time;
@@ -1003,7 +1003,7 @@ Phaser.InputHandler.prototype = {
         }
 
         var data = this._pointerData[pointer.id];
-        window.log("Touched handler "+(!data.isDown) +" and  "+data.isOver);
+        console.log("Touched handler "+(!data.isDown) +" and  "+data.isOver);
         if (!data.isDown && data.isOver)
         {
             if (this.pixelPerfectClick && !this.checkPixel(null, null, pointer))
@@ -1036,12 +1036,12 @@ Phaser.InputHandler.prototype = {
                     return;
                 }
             }
-            window.log("Draggable "+this.draggable +" and "+this.isDragged);
+            console.log("Draggable "+this.draggable +" and "+this.isDragged);
             //  Start drag
             if (this.draggable && this.isDragged === false)
             {
 
-                window.log("Drag Thresh "+this.dragTimeThreshold +" and "+this.dragDistanceThreshold);
+                console.log("Drag Thresh "+this.dragTimeThreshold +" and "+this.dragDistanceThreshold);
                 if (this.dragTimeThreshold === 0 && this.dragDistanceThreshold === 0)
                 {
                     this.startDrag(pointer);
@@ -1086,7 +1086,7 @@ Phaser.InputHandler.prototype = {
         {
             if (this._dragDistancePass)
             {
-                window.log("drag distance trigger");
+                console.log("drag distance trigger");
                 this.startDrag(pointer);
             }
         }
@@ -1138,7 +1138,7 @@ Phaser.InputHandler.prototype = {
                 }
             }
 
-            window.log("Release handler setting isOver "+isOver);
+            console.log("Release handler setting isOver "+isOver);
             data.isOver = isOver;
 
             if (!isOver && this.useHandCursor)
@@ -1177,7 +1177,7 @@ Phaser.InputHandler.prototype = {
         var pointerData = this._pointerData[pointer.id];
         var snapPoint = this.snapPoint;
         var sprite = this.sprite;
-window.log("Drag update");
+        console.log("Drag update");
         if (fromStart === undefined) { fromStart = false; }
 
         if (pointer.isUp)
@@ -1468,7 +1468,7 @@ window.log("Drag update");
     {
         var x = this.sprite.x;
         var y = this.sprite.y;
-        window.log("Start phase drag");
+        console.log("Start phase drag");
         var pointerLocalCoord = this.globalToLocal(pointer);
 
         this.isDragged = true;
@@ -1582,7 +1582,7 @@ window.log("Drag update");
      */
     stopDrag: function (pointer)
     {
-        window.log("Stop Phase drag");
+        console.log("Stop Phase drag");
         this.isDragged = false;
         this._draggedPointerID = -1;
         this._pointerData[pointer.id].isDragged = false;

@@ -615,7 +615,7 @@ Phaser.Pointer.prototype = {
     start: function (event)
     {
         var input = this.game.input;
-window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +"  this should trigger a move from click");
+        console.log("start on pointer "+this.isMouse +" and target obj "+targetObject +"  this should trigger a move from click");
         if (event.pointerId)
         {
             this.pointerId = event.pointerId;
@@ -691,7 +691,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
             {
                 if (input.interactiveItems.total > 0)
                 {
-                    window.log("was dirty");
+                    console.log("was dirty");
                     this.processInteractiveObjects(false);
                 }
 
@@ -807,7 +807,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
         {
             if (this.targetObject.update(this) === false)
             {
-                window.log("TargetObject is now null do to update");
+                console.log("TargetObject is now null do to update");
                 this.targetObject = null;
             }
         }
@@ -896,7 +896,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
             candidateTarget = this.game.input.customCandidateHandler.call(this.game.input.customCandidateHandlerContext, this, this.interactiveCandidates, candidateTarget);
         }
 
-        window.log("process interactive objects from click "+fromClick +" and can "+candidateTarget );
+        console.log("process interactive objects from click "+fromClick +" and can "+candidateTarget );
         this.swapTarget(candidateTarget, false);
 
         return (this.targetObject !== null);
@@ -931,7 +931,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
         else
         if (this.targetObject === null)
         {
-            window.log("set targetobject "+newTarget);
+            console.log("set targetobject "+newTarget);
             //  And now set the new one
             this.targetObject = newTarget;
             newTarget._pointerOverHandler(this, silent);
@@ -944,7 +944,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
                 //  Same target as before, so update it
                 if (newTarget.update(this) === false)
                 {
-                    window.log("same target update set to false, now null targetobject");
+                    console.log("same target update set to false, now null targetobject");
                     this.targetObject = null;
                 }
             }
@@ -953,7 +953,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
                 //  The target has changed, so tell the old one we've left it
                 this.targetObject._pointerOutHandler(this, silent);
 
-                window.log("new target object "+newTarget);
+                console.log("new target object "+newTarget);
                 //  And now set the new one
                 this.targetObject = newTarget;
                 this.targetObject._pointerOverHandler(this, silent);
@@ -970,7 +970,7 @@ window.log("start on pointer "+this.isMouse +" and target obj "+targetObject +" 
     leave: function (event)
     {
         this.withinGame = false;
-        window.log("move from leaving, not click");
+        console.log("move from leaving, not click");
         this.move(event, false);
     },
 
